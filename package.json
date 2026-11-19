@@ -6,7 +6,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-    "preview": "turbo run preview"
+    "preview": "turbo run preview",
+    "deploy:aws": "./scripts/deploy.sh"
   },
   "devDependencies": {
     "turbo": "^2.11.13"
