@@ -15,7 +15,7 @@ Editable copy (services, prices, opening hours, contact details) lives in `apps/
 
 ```bash
 pnpm install
-pnpm dev        # start the dev server (http://localhost:5173)
+pnpm dev        # start the dev server (http://localhost:5180)
 pnpm build      # production build → apps/web/dist
 pnpm typecheck
 pnpm preview    # serve the production build
