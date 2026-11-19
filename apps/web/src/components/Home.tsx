@@ -1,5 +1,6 @@
 import interior from "../assets/salon-interior.jpg";
 import { salon } from "../data/content";
+import { Link } from "../router";
 
 export default function Home() {
   return (
@@ -12,12 +13,12 @@ export default function Home() {
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">{salon.tagline}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#bookings"
+            <Link
+              to="/book"
               className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
             >
               Book an appointment
-            </a>
+            </Link>
             <a
               href="#about"
               className="rounded-full border border-ink/20 px-7 py-3 text-sm font-medium transition-colors hover:border-gold hover:text-gold"

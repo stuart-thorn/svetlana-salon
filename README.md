@@ -5,11 +5,12 @@ Single-page website for Canary Wharf Salon. It's a pnpm + Turborepo monorepo, an
 ## Structure
 
 ```
-apps/web     # the SPA (sections: Home, About us, Bookings, Contact)
-packages/    # reserved for shared packages
+apps/web          # the SPA (sections: Home, About us, Bookings, Contact) + /book flow
+packages/booking  # @salon/booking: catalogue, availability types, mock provider (+ tests)
 ```
 
-Editable copy (services, prices, opening hours, contact details) lives in `apps/web/src/data/content.ts`.
+Editable copy (opening hours, contact details) lives in `apps/web/src/data/content.ts`.
+Services, prices, stylists and their rotas live in `packages/booking/src/catalog.ts`.
 
 ## Scripts
 
@@ -18,12 +19,17 @@ pnpm install
 pnpm dev        # start the dev server (http://localhost:5180)
 pnpm build      # production build → apps/web/dist
 pnpm typecheck
+pnpm test       # vitest (booking package)
 pnpm preview    # serve the production build
 ```
 
 ## Notes
 
-- The booking form validates on the client and shows a confirmation. It is not connected to a backend yet.
+- Online booking lives at `/book`: Professional → Services → Date → Time → Details, with the cart always visible
+  (sticky panel on desktop, bottom bar on mobile). Steps are in the URL so the browser back button works.
+- Availability comes from a `BookingProvider` (`packages/booking/src/types.ts`). It is currently the **mock** provider,
+  which simulates a diary of existing appointments. To go live, implement `BookingProvider` against a real
+  backend, swap it in `apps/web/src/booking/provider.ts`, and set `isDemo = false` to remove the demo banner.
 - Photos are from Unsplash (credited in the footer).
 
 ## Deployment (AWS CloudFront)

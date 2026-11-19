@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { navLinks, salon } from "../data/content";
+import { Link } from "../router";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -56,12 +57,12 @@ export default function Header() {
             </li>
           ))}
           <li>
-            <a
-              href="#bookings"
+            <Link
+              to="/book"
               className="rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-gold"
             >
               Book now
-            </a>
+            </Link>
           </li>
         </ul>
 
@@ -92,6 +93,11 @@ export default function Header() {
               </a>
             </li>
           ))}
+          <li className="pt-2">
+            <Link to="/book" className="block rounded-full bg-ink px-5 py-3 text-center text-sm text-white">
+              Book now
+            </Link>
+          </li>
         </ul>
       )}
     </header>

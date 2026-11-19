@@ -1,0 +1,247 @@
+import { useEffect, useState } from "react";
+import { SlotUnavailableError, type BookingConfirmation, type Customer } from "@salon/booking";
+import { Link, navigate, useLocation } from "../router";
+import { CartBar, CartPanel, type CartAction } from "./Cart";
+import Confirmation from "./Confirmation";
+import { isDemo, provider } from "./provider";
+import { STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
+import DateStep from "./steps/DateStep";
+import DetailsStep, { DETAILS_FORM_ID, validateCustomer, type CustomerErrors } from "./steps/DetailsStep";
+import ProfessionalStep from "./steps/ProfessionalStep";
+import ServicesStep from "./steps/ServicesStep";
+import TimeStep from "./steps/TimeStep";
+import { useAsync } from "./useAsync";
+import { Chevron, Notice, Spinner } from "./ui";
+
+const emptyCustomer: Customer = { name: "", email: "", phone: "", notes: "" };
+
+export default function BookingPage() {
+  const { search } = useLocation();
+  const { data: catalog, error: catalogError } = useAsync(() => provider.getCatalog(), []);
+  const { draft, chooseStylist, toggleService, setDate, setTime, reset } = useDraft(catalog);
+
+  const [customer, setCustomer] = useState<Customer>(emptyCustomer);
+  const [customerErrors, setCustomerErrors] = useState<CustomerErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [slotError, setSlotError] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+
+  // The URL drives the step, but you can't skip ahead of what you've chosen.
+  const requested = search.get("step");
+  const furthest = furthestStep(draft);
+  const step: Step = !isStep(requested)
+    ? "professional"
+    : stepIndex(requested) <= stepIndex(furthest)
+      ? requested
+      : furthest;
+
+  useEffect(() => {
+    if (!confirmation && requested !== step) navigate(`/book?step=${step}`, { replace: true });
+  }, [step, requested, confirmation]);
+
+  useEffect(() => {
+    document.title = "Book an appointment | Canary Wharf Salon";
+  }, []);
+
+  const goTo = (s: Step) => {
+    navigate(`/book?step=${s}`);
+    window.scrollTo(0, 0);
+  };
+  const next = () => goTo(STEPS[stepIndex(step) + 1]!);
+  const back = () => (stepIndex(step) === 0 ? navigate("/") : goTo(STEPS[stepIndex(step) - 1]!));
+
+  const submit = async () => {
+    const errors = validateCustomer(customer);
+    setCustomerErrors(errors);
+    if (Object.keys(errors).length || !draft.date || !draft.time) return;
+    setSubmitting(true);
+    try {
+      const result = await provider.createBooking({
+        stylistId: stylistIdOrNull(draft),
+        serviceIds: draft.serviceIds,
+        date: draft.date,
+        time: draft.time,
+        customer,
+      });
+      setConfirmation(result);
+      reset();
+      window.scrollTo(0, 0);
+    } catch (e) {
+      setTime(null);
+      setSlotError(e instanceof SlotUnavailableError ? e.message : "Something went wrong. Please choose a time and try again.");
+      goTo("time");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const action: CartAction = {
+    professional: { label: "Continue", disabled: !draft.stylist, onClick: next },
+    services: { label: "Continue", disabled: !draft.serviceIds.length, onClick: next },
+    date: { label: "Continue", disabled: !draft.date, onClick: next },
+    time: { label: "Continue", disabled: !draft.time, onClick: next },
+    details: { label: "Confirm booking", disabled: false, busy: submitting, form: DETAILS_FORM_ID },
+  }[step];
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
+          {!confirmation && (
+            <button
+              type="button"
+              onClick={back}
+              aria-label={stepIndex(step) === 0 ? "Back to website" : `Back to ${STEP_LABELS[STEPS[stepIndex(step) - 1]!]}`}
+              className="-ml-2 flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100"
+            >
+              <Chevron dir="left" />
+            </button>
+          )}
+
+          {!confirmation && (
+            <nav aria-label="Booking steps" className="min-w-0 flex-1">
+              <p className="text-sm sm:hidden">
+                <span className="text-muted">
+                  Step {stepIndex(step) + 1} of {STEPS.length} ·{" "}
+                </span>
+                {STEP_LABELS[step]}
+              </p>
+              <ol className="hidden items-center gap-1 text-sm sm:flex">
+                {STEPS.map((s, i) => {
+                  const reachable = i <= stepIndex(furthest);
+                  const current = s === step;
+                  return (
+                    <li key={s} className="flex items-center gap-1">
+                      {i > 0 && <Chevron size={14} />}
+                      <button
+                        type="button"
+                        disabled={!reachable || current}
+                        onClick={() => goTo(s)}
+                        aria-current={current ? "step" : undefined}
+                        className={`rounded px-1.5 py-1 ${current ? "font-medium text-ink" : reachable ? "text-muted hover:text-gold" : "text-muted/40"}`}
+                      >
+                        {STEP_LABELS[s]}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+          )}
+          {confirmation && <p className="flex-1 font-serif text-lg">Canary Wharf Salon</p>}
+
+          <Link to="/" aria-label="Close booking" className="-mr-2 flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </Link>
+        </div>
+        {isDemo && (
+          <p className="bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
+            Demo mode: availability is simulated and no real bookings are made.
+          </p>
+        )}
+      </header>
+
+      {catalogError ? (
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+          <Notice tone="error">We couldn't load the booking system. Please refresh, or call us to book.</Notice>
+        </div>
+      ) : !catalog ? (
+        <div className="flex items-center justify-center gap-3 py-24 text-muted">
+          <Spinner /> Loading…
+        </div>
+      ) : confirmation ? (
+        <main className="px-4 py-10 sm:px-6">
+          <Confirmation
+            confirmation={confirmation}
+            catalog={catalog}
+            email={customer.email}
+            onBookAnother={() => {
+              setConfirmation(null);
+              setCustomerErrors({});
+              navigate("/book?step=professional", { replace: true });
+            }}
+          />
+        </main>
+      ) : (
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 px-4 pt-8 pb-36 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-16">
+          <main>
+            <h1 className="mb-8 font-serif text-3xl sm:text-4xl">{STEP_TITLES[step]}</h1>
+
+            {step === "professional" && (
+              <ProfessionalStep
+                catalog={catalog}
+                selected={draft.stylist}
+                onSelect={(id) => {
+                  chooseStylist(id);
+                  goTo("services");
+                }}
+              />
+            )}
+
+            {step === "services" && (
+              <ServicesStep catalog={catalog} stylist={draft.stylist} selectedIds={draft.serviceIds} onToggle={toggleService} />
+            )}
+
+            {step === "date" && (
+              <DateStep
+                stylistId={stylistIdOrNull(draft)}
+                serviceIds={draft.serviceIds}
+                selected={draft.date}
+                onSelect={(d) => {
+                  setDate(d);
+                  goTo("time");
+                }}
+              />
+            )}
+
+            {step === "time" && draft.date && draft.stylist && (
+              <TimeStep
+                catalog={catalog}
+                stylist={draft.stylist}
+                serviceIds={draft.serviceIds}
+                date={draft.date}
+                selected={draft.time}
+                error={slotError}
+                onStylistChange={(id) => {
+                  setSlotError(null);
+                  chooseStylist(id, { keepDate: true });
+                }}
+                onDateChange={(d) => {
+                  setSlotError(null);
+                  setDate(d);
+                }}
+                onChangeDateClick={() => goTo("date")}
+                onSelect={(t) => {
+                  setSlotError(null);
+                  setTime(t);
+                  goTo("details");
+                }}
+              />
+            )}
+
+            {step === "details" && (
+              <DetailsStep
+                value={customer}
+                errors={customerErrors}
+                onChange={(c) => {
+                  setCustomer(c);
+                  if (Object.keys(customerErrors).length) setCustomerErrors(validateCustomer(c));
+                }}
+                onSubmit={submit}
+              />
+            )}
+          </main>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-28">
+              <CartPanel catalog={catalog} draft={draft} action={action} />
+            </div>
+          </aside>
+          <CartBar catalog={catalog} draft={draft} action={action} />
+        </div>
+      )}
+    </div>
+  );
+}
