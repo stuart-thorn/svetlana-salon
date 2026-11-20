@@ -5,7 +5,7 @@ Resources:
   SiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "canary-wharf-salon-site-${AWS::AccountId}"
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -51,7 +51,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: Canary Wharf Salon
+        Comment: !Ref AWS::StackName
         Enabled: true
         HttpVersion: http2and3
         IPV6Enabled: true
