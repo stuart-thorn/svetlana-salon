@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import type { Customer } from "@salon/booking";
+import { formatPrice, type Customer } from "@salon/booking";
 
 export type CustomerErrors = Partial<Record<keyof Customer, string>>;
 
@@ -18,6 +18,8 @@ interface Props {
   errors: CustomerErrors;
   onChange: (value: Customer) => void;
   onSubmit: () => void;
+  /** Amounts in pounds when part of the price is paid online. */
+  deposit?: { now: number; atSalon: number };
 }
 
 const inputClass =
@@ -29,7 +31,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -74,7 +76,11 @@ export default function DetailsStep({ value, errors, onChange, onSubmit }: Props
           className={inputClass}
         />
       </div>
-      <p className="text-xs text-muted">No payment is taken online. We'll email your confirmation.</p>
+      <p className="text-xs text-muted">
+        {deposit
+          ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`
+          : "No payment is taken online. We'll email your confirmation."}
+      </p>
     </form>
   );
 }

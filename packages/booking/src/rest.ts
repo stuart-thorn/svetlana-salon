@@ -7,6 +7,7 @@ import {
   type Catalog,
   type DayAvailability,
   type OpeningHours,
+  type Service,
 } from "./types";
 import { timeToMinutes } from "./utils";
 
@@ -25,11 +26,17 @@ interface ApiMoney {
   amount: number;
   currency: string;
 }
+type ApiPayment =
+  | { kind: "none" | "card_on_file" | "full" }
+  | { kind: "deposit"; percent?: number; fixed?: ApiMoney };
+interface ApiPolicyOverrides {
+  policyOverrides?: { payment?: ApiPayment };
+}
 interface ApiCatalog {
-  tenant: { name: string };
+  tenant: { name: string; policies: { payment: ApiPayment } };
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
-  categories: { id: string; name: string }[];
-  offerings: { id: string; categoryId: string; name: string; description?: string; durationMin: number; basePrice: ApiMoney }[];
+  categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
+  offerings: ({ id: string; categoryId: string; name: string; description?: string; durationMin: number; basePrice: ApiMoney } & ApiPolicyOverrides)[];
   providers: { id: string; name: string; title?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
 }
@@ -56,6 +63,14 @@ interface ApiProblem {
 
 const pounds = (m: ApiMoney) => m.amount / 100;
 
+/** What is paid online for a service: offering override, else category override, else tenant default. */
+function depositOf(payment: ApiPayment): Service["deposit"] {
+  if (payment.kind === "full") return { percent: 100 };
+  if (payment.kind !== "deposit") return undefined;
+  if (payment.percent !== undefined) return { percent: payment.percent };
+  return payment.fixed ? { amount: pounds(payment.fixed) } : undefined;
+}
+
 export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   const location = api.locations.find((l) => l.id === locationId);
   const openingHours: (OpeningHours | null)[] = Array.from({ length: 7 }, (_, d) => {
@@ -65,14 +80,19 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   return {
     salonName: api.tenant.name,
     categories: api.categories.map(({ id, name }) => ({ id, name })),
-    services: api.offerings.map((o) => ({
-      id: o.id,
-      categoryId: o.categoryId,
-      name: o.name,
-      ...(o.description && { description: o.description }),
-      durationMin: o.durationMin,
-      price: pounds(o.basePrice),
-    })),
+    services: api.offerings.map((o): Service => {
+      const category = api.categories.find((c) => c.id === o.categoryId);
+      const deposit = depositOf(o.policyOverrides?.payment ?? category?.policyOverrides?.payment ?? api.tenant.policies.payment);
+      return {
+        id: o.id,
+        categoryId: o.categoryId,
+        name: o.name,
+        ...(o.description && { description: o.description }),
+        durationMin: o.durationMin,
+        price: pounds(o.basePrice),
+        ...(deposit && { deposit }),
+      };
+    }),
     stylists: api.providers.map((p) => ({
       id: p.id,
       name: p.name,

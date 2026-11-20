@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SlotUnavailableError, type BookingConfirmation, type Customer } from "@salon/booking";
+import { SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
 import { Link, navigate, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
@@ -82,12 +82,16 @@ export default function BookingPage() {
     }
   };
 
+  const selected = catalog ? servicesById(catalog, draft.serviceIds) : [];
+  const depositNow = depositFor(selected);
+  const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
+
   const action: CartAction = {
     professional: { label: "Continue", disabled: !draft.stylist, onClick: next },
     services: { label: "Continue", disabled: !draft.serviceIds.length, onClick: next },
     date: { label: "Continue", disabled: !draft.date, onClick: next },
     time: { label: "Continue", disabled: !draft.time, onClick: next },
-    details: { label: "Confirm booking", disabled: false, busy: submitting, form: DETAILS_FORM_ID },
+    details: { label: deposit ? "Continue to payment" : "Confirm booking", disabled: false, busy: submitting, form: DETAILS_FORM_ID },
   }[step];
 
   return (
@@ -262,6 +266,7 @@ export default function BookingPage() {
                   if (Object.keys(customerErrors).length) setCustomerErrors(validateCustomer(c));
                 }}
                 onSubmit={submit}
+                deposit={deposit}
               />
             )}
           </main>

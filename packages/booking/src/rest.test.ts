@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRestProvider } from "./rest";
+import { depositFor } from "./utils";
 import { BookingExpiredError, SlotUnavailableError } from "./types";
 
 const gbp = (amount: number) => ({ amount, currency: "GBP" });
@@ -39,10 +40,17 @@ describe("REST provider", () => {
     const { provider, calls } = fakeApi({
       "GET /v1/catalog": {
         body: {
-          tenant: { name: "Canary Wharf Salon" },
+          tenant: { name: "Canary Wharf Salon", policies: { payment: { kind: "none" } } },
           locations: [{ id: "cw", kind: "physical", openingHours: [{ open: "10:00", close: "16:00" }, null, null, null, null, null, null] }],
-          categories: [{ id: "cut", name: "Cut & Style" }],
-          offerings: [{ id: "womens-cut", categoryId: "cut", name: "Women's cut", durationMin: 60, basePrice: gbp(6500) }],
+          categories: [
+            { id: "cut", name: "Cut & Style" },
+            { id: "colour", name: "Colour", policyOverrides: { payment: { kind: "deposit", percent: 50 } } },
+          ],
+          offerings: [
+            { id: "womens-cut", categoryId: "cut", name: "Women's cut", durationMin: 60, basePrice: gbp(6500) },
+            { id: "toner", categoryId: "colour", name: "Toner", durationMin: 30, basePrice: gbp(3333) },
+            { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), policyOverrides: { payment: { kind: "none" } } },
+          ],
           providers: [{ id: "elena", name: "Elena", title: "Senior Stylist" }],
           skills: [{ providerId: "elena", offeringId: "womens-cut", price: gbp(6500), durationMin: 60 }],
         },
@@ -53,6 +61,9 @@ describe("REST provider", () => {
     expect((calls[0]!.init?.headers as Record<string, string>)["X-Api-Key"]).toBe("pk_test_x");
     expect(catalog.salonName).toBe("Canary Wharf Salon");
     expect(catalog.services[0]).toMatchObject({ id: "womens-cut", price: 65, durationMin: 60 });
+    expect(catalog.services.map((s) => s.deposit)).toEqual([undefined, { percent: 50 }, undefined]);
+    // Rounded per service like the API: 50% of £33.33 = £16.67.
+    expect(depositFor(catalog.services)).toBe(16.67);
     expect(catalog.stylists[0]).toMatchObject({ id: "elena", role: "Senior Stylist", serviceIds: ["womens-cut"] });
     expect(catalog.openingHours[0]).toEqual({ open: 600, close: 960 });
     expect(catalog.openingHours[1]).toBeNull();

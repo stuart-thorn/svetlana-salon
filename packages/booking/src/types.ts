@@ -16,6 +16,8 @@ export interface Service {
   durationMin: number;
   /** Price in whole pounds (GBP). */
   price: number;
+  /** Part of the price paid online when booking: a percentage, or a fixed amount in pounds. Absent = none. */
+  deposit?: { percent: number } | { amount: number };
 }
 
 export interface Stylist {

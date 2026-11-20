@@ -37,6 +37,18 @@ export const formatPrice = (pounds: number): string => {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(pounds);
 };
 
+/**
+ * Deposit taken online for these services, in pounds, rounded per service to the penny the same way the
+ * booking API does. The API's figure on the booking is authoritative; this is for showing it up front.
+ */
+export const depositFor = (services: Service[]): number =>
+  services.reduce((sum, s) => {
+    if (!s.deposit) return sum;
+    const pence = Math.round(s.price * 100);
+    const due = "percent" in s.deposit ? Math.round((pence * s.deposit.percent) / 100) : Math.min(Math.round(s.deposit.amount * 100), pence);
+    return sum + due;
+  }, 0) / 100;
+
 export const servicesById = (catalog: Catalog, ids: string[]): Service[] =>
   ids.map((id) => catalog.services.find((s) => s.id === id)).filter((s): s is Service => !!s);
 
