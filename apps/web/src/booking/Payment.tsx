@@ -39,7 +39,7 @@ export default function Payment({
     <div className="mx-auto max-w-lg py-6">
       <h1 className="font-serif text-3xl">Pay your deposit</h1>
       <p className="mt-3 text-muted">
-        Colour appointments need a deposit to secure the time.
+        A deposit secures your appointment.
         {minutesLeft !== null && ` We're holding it for you for ${minutesLeft} more minute${minutesLeft === 1 ? "" : "s"}.`}
       </p>
 
