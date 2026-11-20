@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRestProvider } from "./rest";
 import { depositFor } from "./utils";
-import { BookingExpiredError, SlotUnavailableError } from "./types";
+import { BookingExpiredError, IncompatibleServicesError, SlotUnavailableError } from "./types";
 
 const gbp = (amount: number) => ({ amount, currency: "GBP" });
 
@@ -48,15 +48,19 @@ describe("REST provider", () => {
           ],
           offerings: [
             { id: "womens-cut", categoryId: "cut", name: "Women's cut", durationMin: 60, basePrice: gbp(6500) },
-            { id: "toner", categoryId: "colour", name: "Toner", durationMin: 30, basePrice: gbp(3333) },
+            { id: "toner", categoryId: "colour", name: "Toner", durationMin: 30, basePrice: gbp(3333), audienceIds: ["women"], standalone: false, addOnTo: { categoryIds: ["cut"] }, exclusiveGroup: "toner" },
             { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), policyOverrides: { payment: { kind: "none" } } },
           ],
+          audiences: [{ id: "women", name: "Women", sortOrder: 1 }],
           providers: [{ id: "elena", name: "Elena", title: "Senior Stylist" }],
           skills: [{ providerId: "elena", offeringId: "womens-cut", price: gbp(6500), durationMin: 60 }],
         },
       },
     });
     const catalog = await provider.getCatalog();
+    expect(catalog.audiences).toEqual([{ id: "women", name: "Women" }]);
+    expect(catalog.services[1]).toMatchObject({ audienceIds: ["women"], standalone: false, addOnTo: { categoryIds: ["cut"] }, exclusiveGroup: "toner" });
+    expect(catalog.services[0]).not.toHaveProperty("standalone");
     expect(calls[0]!.url).toBe("http://api.test/v1/catalog?locationId=cw");
     expect((calls[0]!.init?.headers as Record<string, string>)["X-Api-Key"]).toBe("pk_test_x");
     expect(catalog.salonName).toBe("Canary Wharf Salon");
@@ -144,6 +148,8 @@ describe("REST provider", () => {
     const expired = fakeApi({ "POST /v1/bookings/bk_1/simulate-payment": { status: 409, body: { code: "booking_expired" } } });
     const pending = { reference: "CWS-ABC123", bookingId: "bk_1", stylistId: "elena", serviceIds: [], date: "2026-11-25", time: "10:00", endTime: "11:00", durationMin: 60, total: 65 };
     await expect(expired.provider.completeSimulatedPayment(pending)).rejects.toBeInstanceOf(BookingExpiredError);
+    const mixed = fakeApi({ "GET /v1/availability/slots": { status: 422, body: { code: "incompatible_offerings", detail: "Book each person separately." } } });
+    await expect(mixed.provider.getTimeSlots({ date: "2026-11-25", stylistId: null, serviceIds: ["a", "b"] })).rejects.toThrow(IncompatibleServicesError);
     const inFlight = fakeApi({ "POST /v1/bookings": { status: 409, body: { code: "idempotency_conflict" } } });
     await expect(
       inFlight.provider.createBooking({ stylistId: "elena", serviceIds: ["a"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } }),

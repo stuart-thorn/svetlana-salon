@@ -1,22 +1,78 @@
-import { eligibleStylists, formatDuration, formatServicePrice, type Catalog } from "@salon/booking";
-import { ANY } from "../state";
-import { Check, Plus } from "../ui";
+import { useEffect } from "react";
+import { formatDuration, formatServicePrice, servicesById, type Catalog, type Service } from "@salon/booking";
+import { ANY, FAMILY, fitsVisit } from "../state";
+import { Check, Notice, Plus } from "../ui";
 
 interface Props {
   catalog: Catalog;
   stylist: string | null;
+  audience: string | null;
+  /** The visit so far, main first. */
   selectedIds: string[];
-  onToggle: (id: string) => void;
+  onAudience: (audience: string) => void;
+  onSelect: (id: string) => void;
 }
 
-export default function ServicesStep({ catalog, stylist, selectedIds, onToggle }: Props) {
-  const specific = stylist && stylist !== ANY ? catalog.stylists.find((s) => s.id === stylist) : undefined;
-  const visible = catalog.services.filter((s) => !specific || specific.serviceIds.includes(s.id));
-  const categories = catalog.categories.filter((c) => visible.some((s) => s.categoryId === c.id));
+function ServiceCard({ service, selected, hint, onClick }: { service: Service; selected: boolean; hint?: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`flex w-full items-start justify-between gap-4 rounded-2xl border p-5 text-left transition ${
+        selected ? "border-ink ring-1 ring-ink" : "border-line hover:border-gold"
+      }`}
+    >
+      <span className="min-w-0">
+        <span className="block font-medium">{service.name}</span>
+        <span className="mt-0.5 block text-sm text-muted">
+          {hint && <span className="text-gold">{hint} · </span>}
+          {formatDuration(service.durationMin)}
+        </span>
+        {service.description && <span className="mt-2 block text-sm text-muted">{service.description}</span>}
+        <span className="mt-3 block font-medium">
+          {formatServicePrice(service)}
+          {service.deposit && <span className="ml-2 text-xs font-normal text-muted">Deposit online</span>}
+        </span>
+      </span>
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${
+          selected ? "bg-ink text-white" : "bg-stone-100 text-ink"
+        }`}
+        aria-hidden
+      >
+        {selected ? <Check /> : <Plus />}
+      </span>
+    </button>
+  );
+}
 
-  // With "any professional", every chosen service must still be doable by one person.
-  const isCompatible = (id: string) =>
-    selectedIds.includes(id) || eligibleStylists(catalog, [...selectedIds, id]).length > 0;
+export default function ServicesStep({ catalog, stylist, audience, selectedIds, onAudience, onSelect }: Props) {
+  const specific = stylist && stylist !== ANY ? catalog.stylists.find((s) => s.id === stylist) : undefined;
+  const offered = catalog.services.filter((s) => !specific || specific.serviceIds.includes(s.id));
+
+  // Who it's for: only audiences this professional has services for. No audiences in the catalogue = no filter.
+  const audiences = catalog.audiences.filter((a) => offered.some((s) => !s.audienceIds || s.audienceIds.includes(a.id)));
+  const filtering = audiences.length > 0;
+  const onlyAudience = audiences.length === 1 ? audiences[0]!.id : null;
+  const current = audience === FAMILY || audiences.some((a) => a.id === audience) ? audience : onlyAudience;
+  useEffect(() => {
+    if (onlyAudience && audience !== onlyAudience && audience !== FAMILY) onAudience(onlyAudience);
+  }, [onlyAudience, audience, onAudience]);
+
+  const visible = !filtering
+    ? offered
+    : current && current !== FAMILY
+      ? offered.filter((s) => !s.audienceIds || s.audienceIds.includes(current))
+      : [];
+
+  const draft = { stylist, serviceIds: selectedIds };
+  const chosen = servicesById(catalog, selectedIds);
+  const addOns = selectedIds.length ? visible.filter((s) => fitsVisit(catalog, draft, s.id)) : [];
+  // Mains to start from; with a visit under way, the ones that would replace it.
+  const others = visible.filter((s) => s.standalone !== false && !selectedIds.includes(s.id) && !addOns.includes(s));
+  const categories = catalog.categories.filter((c) => others.some((s) => s.categoryId === c.id));
+  const Heading = chosen.length ? "h3" : "h2";
 
   return (
     <div>
@@ -26,76 +82,108 @@ export default function ServicesStep({ catalog, stylist, selectedIds, onToggle }
         </p>
       )}
 
-      <nav aria-label="Service categories" className="sticky top-16 z-10 -mx-4 mb-6 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:px-0">
-        <ul className="flex gap-2 overflow-x-auto">
-          {categories.map((c) => (
-            <li key={c.id}>
-              <a
-                href={`#cat-${c.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById(`cat-${c.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                className="block rounded-full border border-line px-4 py-2 text-sm whitespace-nowrap transition-colors hover:border-gold hover:text-gold"
+      {filtering && (
+        <fieldset className="mb-8">
+          <legend className="mb-3 text-sm text-muted">Who is this appointment for?</legend>
+          <div className="flex flex-wrap gap-2">
+            {[...audiences, { id: FAMILY, name: "Family or group" }].map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => onAudience(a.id)}
+                aria-pressed={current === a.id}
+                className={`rounded-full border px-4 py-2 text-sm transition-colors ${
+                  current === a.id ? "border-ink bg-ink text-white" : "border-line hover:border-gold hover:text-gold"
+                }`}
               >
-                {c.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+                {a.name}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
-      <div className="space-y-10">
-        {categories.map((c) => (
-          <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
-            <h2 className="font-serif text-xl">{c.name}</h2>
-            <ul className="mt-4 space-y-3">
-              {visible
-                .filter((s) => s.categoryId === c.id)
-                .map((s) => {
-                  const selected = selectedIds.includes(s.id);
-                  const compatible = isCompatible(s.id);
-                  return (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onClick={() => onToggle(s.id)}
-                        disabled={!compatible}
-                        aria-pressed={selected}
-                        className={`flex w-full items-start justify-between gap-4 rounded-2xl border p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                          selected ? "border-ink ring-1 ring-ink" : "border-line enabled:hover:border-gold"
-                        }`}
-                      >
-                        <span className="min-w-0">
-                          <span className="block font-medium">{s.name}</span>
-                          <span className="mt-0.5 block text-sm text-muted">{formatDuration(s.durationMin)}</span>
-                          {s.description && <span className="mt-2 block text-sm text-muted">{s.description}</span>}
-                          {!compatible && (
-                            <span className="mt-2 block text-xs text-muted">
-                              No single professional offers this with your current selection.
-                            </span>
-                          )}
-                          <span className="mt-3 block font-medium">
-                            {formatServicePrice(s)}
-                            {s.deposit && <span className="ml-2 text-xs font-normal text-muted">Deposit online</span>}
-                          </span>
-                        </span>
-                        <span
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${
-                            selected ? "bg-ink text-white" : "bg-stone-100 text-ink"
-                          }`}
-                          aria-hidden
-                        >
-                          {selected ? <Check /> : <Plus />}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
+      {current === FAMILY && (
+        <Notice>
+          Booking for more than one person? For now, please book each person's appointment separately, choosing
+          who it's for each time. We'll do our best to seat you together.
+        </Notice>
+      )}
+
+      {filtering && !current && <p className="text-sm text-muted">Choose who the appointment is for to see the services.</p>}
+
+      {chosen.length > 0 && (
+        <section className="mb-10">
+          <h2 className="font-serif text-xl">Your visit</h2>
+          <ul className="mt-4 space-y-3">
+            {chosen.map((s, i) => (
+              <li key={s.id}>
+                <ServiceCard service={s} selected hint={i > 0 ? "Add-on" : undefined} onClick={() => onSelect(s.id)} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {addOns.length > 0 && (
+        <section className="mb-10">
+          <h2 className="font-serif text-xl">Add to your visit</h2>
+          <ul className="mt-4 space-y-3">
+            {addOns.map((s) => (
+              <li key={s.id}>
+                <ServiceCard service={s} selected={false} onClick={() => onSelect(s.id)} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {categories.length > 0 && (
+        <>
+          {chosen.length > 0 && (
+            <div className="mb-2">
+              <h2 className="font-serif text-xl">Or choose a different service</h2>
+              <p className="mt-1 text-sm text-muted">These can't be combined with your visit, so choosing one replaces it.</p>
+            </div>
+          )}
+
+          <nav aria-label="Service categories" className="sticky top-16 z-10 -mx-4 mb-6 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:px-0">
+            <ul className="flex gap-2 overflow-x-auto">
+              {categories.map((c) => (
+                <li key={c.id}>
+                  <a
+                    href={`#cat-${c.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById(`cat-${c.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="block rounded-full border border-line px-4 py-2 text-sm whitespace-nowrap transition-colors hover:border-gold hover:text-gold"
+                  >
+                    {c.name}
+                  </a>
+                </li>
+              ))}
             </ul>
-          </section>
-        ))}
-      </div>
+          </nav>
+
+          <div className="space-y-10">
+            {categories.map((c) => (
+              <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
+                <Heading className={`font-serif ${chosen.length ? "text-lg" : "text-xl"}`}>{c.name}</Heading>
+                <ul className="mt-4 space-y-3">
+                  {others
+                    .filter((s) => s.categoryId === c.id)
+                    .map((s) => (
+                      <li key={s.id}>
+                        <ServiceCard service={s} selected={false} onClick={() => onSelect(s.id)} />
+                      </li>
+                    ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

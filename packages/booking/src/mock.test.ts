@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { catalog } from "./catalog";
 import { createMockProvider } from "./mock";
-import { BookingExpiredError, SlotUnavailableError } from "./types";
+import { BookingExpiredError, IncompatibleServicesError, SlotUnavailableError } from "./types";
 import { addDays, dayOfWeek, timeToMinutes } from "./utils";
 
 // Tuesday 24 Nov 2026, 08:00 local.
@@ -109,6 +109,20 @@ describe("mock booking provider", () => {
     await expect(
       p.createBooking({ ...query, time: first!.time, customer: { name: "B", email: "b@b.co", phone: "07000000000" } }),
     ).rejects.toBeInstanceOf(SlotUnavailableError);
+  });
+
+  it("refuses services that don't make one visit, and books add-ons after the main", async () => {
+    const p = make();
+    const date = nextWeekday(addDays(TODAY, 1), 1);
+    await expect(p.getTimeSlots({ date, stylistId: "aisha", serviceIds: ["mens-cut", "womens-cut"] })).rejects.toBeInstanceOf(IncompatibleServicesError);
+    await expect(p.getAvailableDates({ from: date, to: date, stylistId: null, serviceIds: ["skin-fade", "mens-graded"] })).rejects.toBeInstanceOf(IncompatibleServicesError);
+
+    let query = { date, stylistId: "elena", serviceIds: ["womens-cut", "full-colour"] };
+    let [slot] = await p.getTimeSlots(query);
+    for (let n = 1; !slot && n < 14; n++) [slot] = await p.getTimeSlots((query = { ...query, date: addDays(date, n) }));
+    const conf = await p.createBooking({ ...query, time: slot!.time, customer: { name: "V", email: "v@v.co", phone: "07000000000" } });
+    expect(conf.serviceIds).toEqual(["full-colour", "womens-cut"]);
+    expect(conf.durationMin).toBe(180);
   });
 
   it("assigns a free stylist when booking with 'any professional'", async () => {

@@ -84,11 +84,14 @@ function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
           <p className="text-sm text-muted">No services selected</p>
         ) : (
           <ul className="space-y-3">
-            {services.map((s) => (
+            {services.map((s, i) => (
               <li key={s.id} className="flex justify-between gap-4 text-sm">
                 <div>
                   <p>{s.name}</p>
-                  <p className="text-xs text-muted">{formatDuration(s.durationMin)}</p>
+                  <p className="text-xs text-muted">
+                    {i > 0 && "Add-on · "}
+                    {formatDuration(s.durationMin)}
+                  </p>
                 </div>
                 <p className="shrink-0">{formatServicePrice(s)}</p>
               </li>

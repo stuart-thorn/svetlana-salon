@@ -8,6 +8,12 @@ export interface Category {
   name: string;
 }
 
+/** Who services are for, e.g. Men / Women / Children. Shown as a filter. */
+export interface Audience {
+  id: string;
+  name: string;
+}
+
 export interface Service {
   id: string;
   categoryId: string;
@@ -20,6 +26,14 @@ export interface Service {
   priceFrom?: boolean;
   /** Part of the price paid online when booking: a percentage, or a fixed amount in pounds. Absent = none. */
   deposit?: { percent: number } | { amount: number };
+  /** Audiences it's offered to. Absent = everyone. */
+  audienceIds?: string[];
+  /** `false` = only bookable as an add-on to another service. Default true. */
+  standalone?: boolean;
+  /** Can be added to a visit that includes one of these. Absent = never an add-on. */
+  addOnTo?: { categoryIds?: string[]; offeringIds?: string[] };
+  /** A visit holds at most one service from each group, e.g. "haircut". */
+  exclusiveGroup?: string;
 }
 
 export interface Stylist {
@@ -40,6 +54,9 @@ export interface OpeningHours {
 export interface Catalog {
   salonName: string;
   categories: Category[];
+  /** In display order. Empty = no audience filter. */
+  audiences: Audience[];
+  /** In menu order, which is also the order add-ons are performed in. */
   services: Service[];
   stylists: Stylist[];
   /** Indexed by day of week, 0 = Sunday. `null` = closed. */
@@ -103,6 +120,14 @@ export class BookingExpiredError extends Error {
   constructor(message = "The time we held for you has run out. Please choose a time again.") {
     super(message);
     this.name = "BookingExpiredError";
+  }
+}
+
+/** The chosen services don't make one person's visit (e.g. a men's and a women's cut). */
+export class IncompatibleServicesError extends Error {
+  constructor(message = "Those services can't be booked together. Please change your selection.") {
+    super(message);
+    this.name = "IncompatibleServicesError";
   }
 }
 

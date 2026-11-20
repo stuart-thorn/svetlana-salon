@@ -6,6 +6,18 @@ const h = (hours: number, minutes = 0) => hours * 60 + minutes;
 const COLOUR_DEPOSIT: Service["deposit"] = { percent: 50 };
 
 /**
+ * One person's visit (see visit.ts): a main service plus add-ons. Cuts, beard trims and blow-dries can follow
+ * a colour; a beard trim can follow a men's cut; one cut and one colour per visit. The consultation and patch
+ * test stand alone because the patch test has to be done before the colour appointment.
+ */
+const COLOUR_SERVICES = ["root-colour", "full-colour", "highlights", "balayage"];
+const mens = { audienceIds: ["men"] };
+const womens = { audienceIds: ["women"] };
+const adults = { audienceIds: ["men", "women"] };
+const cut = { exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } };
+const colour = { ...adults, exclusiveGroup: "colour", deposit: COLOUR_DEPOSIT };
+
+/**
  * N&G Canary Wharf's indicative launch menu, subject to final confirmation.
  * Mirrored in bookable-agent's seed (infra/local/src/fixtures/canary-wharf-salon.ts): keep them in step.
  * Durations, the beard trim price and the consultation price are placeholders until the client confirms them.
@@ -18,13 +30,18 @@ export const catalog: Catalog = {
     { id: "children", name: "Children" },
     { id: "colour", name: "Colour & highlights" },
   ],
+  audiences: [
+    { id: "men", name: "Men" },
+    { id: "women", name: "Women" },
+    { id: "children", name: "Children" },
+  ],
   services: [
-    { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 30, price: 25 },
-    { id: "mens-graded", categoryId: "men", name: "Graded cut", durationMin: 30, price: 30 },
-    { id: "mens-cut", categoryId: "men", name: "Men's standard cut", durationMin: 45, price: 40, description: "Scissor or clipper cut, wash and style." },
-    { id: "skin-fade", categoryId: "men", name: "Skin fade", durationMin: 45, price: 45 },
-    { id: "mens-long", categoryId: "men", name: "Men's longer hair cut", durationMin: 60, price: 50 },
-    { id: "beard-trim", categoryId: "men", name: "Beard trim & shape", durationMin: 20, price: 15 },
+    { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 30, price: 25, ...mens, ...cut },
+    { id: "mens-graded", categoryId: "men", name: "Graded cut", durationMin: 30, price: 30, ...mens, ...cut },
+    { id: "mens-cut", categoryId: "men", name: "Men's standard cut", durationMin: 45, price: 40, description: "Scissor or clipper cut, wash and style.", ...mens, ...cut },
+    { id: "skin-fade", categoryId: "men", name: "Skin fade", durationMin: 45, price: 45, ...mens, ...cut },
+    { id: "mens-long", categoryId: "men", name: "Men's longer hair cut", durationMin: 60, price: 50, ...mens, ...cut },
+    { id: "beard-trim", categoryId: "men", name: "Beard trim & shape", durationMin: 20, price: 15, ...mens, addOnTo: { categoryIds: ["men"] } },
     {
       id: "mens-hair-design",
       categoryId: "men",
@@ -33,9 +50,11 @@ export const catalog: Catalog = {
       price: 45,
       priceFrom: true,
       description: "A consultation-led cut designed around your hair, face shape and routine.",
+      ...mens,
+      ...cut,
     },
-    { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. £70–£90." },
-    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 45, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves." },
+    { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. £70–£90.", ...womens, ...cut },
+    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 45, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves.", ...womens, addOnTo: { offeringIds: COLOUR_SERVICES } },
     {
       id: "womens-hair-design",
       categoryId: "women",
@@ -44,13 +63,15 @@ export const catalog: Catalog = {
       price: 75,
       priceFrom: true,
       description: "An in-depth consultation and a cut designed around your hair, face shape and routine.",
+      ...womens,
+      ...cut,
     },
-    { id: "kids-cut", categoryId: "children", name: "Children's haircut", durationMin: 30, price: 30, priceFrom: true },
-    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Recommended before your first colour appointment." },
-    { id: "root-colour", categoryId: "colour", name: "Root colour", durationMin: 90, price: 70, priceFrom: true, deposit: COLOUR_DEPOSIT },
-    { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 120, price: 95, priceFrom: true, deposit: COLOUR_DEPOSIT },
-    { id: "highlights", categoryId: "colour", name: "Highlights", durationMin: 150, price: 120, priceFrom: true, deposit: COLOUR_DEPOSIT, description: "Foil highlights, half or full head. Includes toner." },
-    { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 180, price: 150, priceFrom: true, deposit: COLOUR_DEPOSIT, description: "Hand-painted, natural-looking lightening. Includes toner. Up to £180." },
+    { id: "kids-cut", categoryId: "children", name: "Children's haircut", durationMin: 30, price: 30, priceFrom: true, audienceIds: ["children"], exclusiveGroup: "haircut" },
+    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Recommended before your first colour appointment.", ...adults },
+    { id: "root-colour", categoryId: "colour", name: "Root colour", durationMin: 90, price: 70, priceFrom: true, ...colour },
+    { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 120, price: 95, priceFrom: true, ...colour },
+    { id: "highlights", categoryId: "colour", name: "Highlights", durationMin: 150, price: 120, priceFrom: true, ...colour, description: "Foil highlights, half or full head. Includes toner." },
+    { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 180, price: 150, priceFrom: true, ...colour, description: "Hand-painted, natural-looking lightening. Includes toner. Up to £180." },
   ],
   // Placeholder team until the client confirms its stylists.
   stylists: [

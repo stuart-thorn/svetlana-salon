@@ -1,6 +1,7 @@
 import { catalog as defaultCatalog } from "./catalog";
 import {
   BookingExpiredError,
+  IncompatibleServicesError,
   SlotUnavailableError,
   type AvailabilityQuery,
   type BookingConfirmation,
@@ -22,6 +23,7 @@ import {
   toISODate,
   totals,
 } from "./utils";
+import { resolveVisit } from "./visit";
 
 export interface MockProviderOptions {
   catalog?: Catalog;
@@ -134,6 +136,13 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
     return { today, last: addDays(today, maxDaysAhead) };
   };
 
+  /** Like the booking API: the services must make one person's visit; returns them in the order performed. */
+  const visitOf = (serviceIds: string[]): string[] => {
+    const ordered = resolveVisit(catalog, serviceIds);
+    if (!ordered) throw new IncompatibleServicesError();
+    return ordered;
+  };
+
   const computeSlots = ({ stylistId, serviceIds, date }: AvailabilityQuery & { date: ISODate }): TimeSlot[] => {
     const hours = hoursFor(date);
     const { today, last } = bookableWindow();
@@ -167,6 +176,7 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
 
     getAvailableDates: ({ from, to, ...query }) =>
       delay(() => {
+        visitOf(query.serviceIds);
         const days: DayAvailability[] = [];
         // Cap the range to keep a bad query from spinning.
         for (let d = from, i = 0; d <= to && i < 120; d = addDays(d, 1), i++) {
@@ -180,16 +190,21 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
         return days;
       }),
 
-    getTimeSlots: (query) => delay(() => computeSlots(query)),
+    getTimeSlots: (query) =>
+      delay(() => {
+        visitOf(query.serviceIds);
+        return computeSlots(query);
+      }),
 
     createBooking: (request: BookingRequest) =>
       delay((): BookingConfirmation => {
+        const serviceIds = visitOf(request.serviceIds);
         const slot = computeSlots(request).find((s) => s.time === request.time);
         if (!slot) throw new SlotUnavailableError();
         const stylistId = request.stylistId ?? slot.stylistIds[0]!;
         if (!slot.stylistIds.includes(stylistId)) throw new SlotUnavailableError();
 
-        const services = servicesById(catalog, request.serviceIds);
+        const services = servicesById(catalog, serviceIds);
         const { durationMin, price } = totals(services);
         const depositNow = depositFor(services);
         const start = timeToMinutes(request.time);
@@ -202,7 +217,7 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
           reference: `NGC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           bookingId,
           stylistId,
-          serviceIds: request.serviceIds,
+          serviceIds,
           date: request.date,
           time: request.time,
           endTime: minutesToTime(start + durationMin),

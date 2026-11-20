@@ -20,7 +20,7 @@ const emptyCustomer: Customer = { name: "", email: "", phone: "", notes: "" };
 export default function BookingPage() {
   const { search } = useLocation();
   const { data: catalog, error: catalogError } = useAsync(() => provider.getCatalog(), []);
-  const { draft, chooseStylist, toggleService, setDate, setTime, reset } = useDraft(catalog);
+  const { draft, chooseStylist, chooseAudience, selectService, setDate, setTime, reset } = useDraft(catalog);
 
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [customerErrors, setCustomerErrors] = useState<CustomerErrors>({});
@@ -222,7 +222,14 @@ export default function BookingPage() {
             )}
 
             {step === "services" && (
-              <ServicesStep catalog={catalog} stylist={draft.stylist} selectedIds={draft.serviceIds} onToggle={toggleService} />
+              <ServicesStep
+                catalog={catalog}
+                stylist={draft.stylist}
+                audience={draft.audience}
+                selectedIds={draft.serviceIds}
+                onAudience={chooseAudience}
+                onSelect={selectService}
+              />
             )}
 
             {step === "date" && (

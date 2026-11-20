@@ -1,5 +1,6 @@
 import {
   BookingExpiredError,
+  IncompatibleServicesError,
   SlotUnavailableError,
   type BookingConfirmation,
   type BookingProvider,
@@ -36,6 +37,8 @@ interface ApiCatalog {
   tenant: { name: string; policies: { payment: ApiPayment } };
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
   categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
+  /** Absent from catalogues published before audiences existed. */
+  audiences?: { id: string; name: string }[];
   offerings: ({
     id: string;
     categoryId: string;
@@ -44,7 +47,8 @@ interface ApiCatalog {
     durationMin: number;
     basePrice: ApiMoney;
     priceFrom?: boolean;
-  } & ApiPolicyOverrides)[];
+  } & ApiPolicyOverrides &
+    Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup">)[];
   providers: { id: string; name: string; title?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
 }
@@ -88,6 +92,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   return {
     salonName: api.tenant.name,
     categories: api.categories.map(({ id, name }) => ({ id, name })),
+    audiences: (api.audiences ?? []).map(({ id, name }) => ({ id, name })),
     services: api.offerings.map((o): Service => {
       const category = api.categories.find((c) => c.id === o.categoryId);
       const deposit = depositOf(o.policyOverrides?.payment ?? category?.policyOverrides?.payment ?? api.tenant.policies.payment);
@@ -100,6 +105,10 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
         price: pounds(o.basePrice),
         ...(o.priceFrom && { priceFrom: true }),
         ...(deposit && { deposit }),
+        ...(o.audienceIds && { audienceIds: o.audienceIds }),
+        ...(o.standalone === false && { standalone: false }),
+        ...(o.addOnTo && { addOnTo: o.addOnTo }),
+        ...(o.exclusiveGroup && { exclusiveGroup: o.exclusiveGroup }),
       };
     }),
     stylists: api.providers.map((p) => ({
@@ -148,6 +157,7 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
     const problem = (await res.json().catch(() => ({}))) as ApiProblem;
     if (problem.code === "slot_unavailable") throw new SlotUnavailableError();
     if (problem.code === "booking_expired") throw new BookingExpiredError();
+    if (problem.code === "incompatible_offerings") throw new IncompatibleServicesError(problem.detail);
     if (problem.code === "idempotency_conflict") {
       throw new Error("We're still processing your booking. Please wait a moment, then check your email before trying again.");
     }
