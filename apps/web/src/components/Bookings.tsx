@@ -3,7 +3,7 @@ import { hoursNote } from "../data/content";
 import clippers from "../assets/clippers.jpg";
 import { Link } from "../router";
 
-const steps = ["Choose your professional", "Pick your services", "Select a date", "Grab a time that suits you"];
+const steps = ["Choose your professional (optional)","Pick your services", "Select a date", "Grab a time that suits you"];
 
 export default function Bookings() {
   return (
