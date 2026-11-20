@@ -1,15 +1,14 @@
-import { useEffect } from "react";
 import { formatDuration, formatServicePrice, servicesById, type Catalog, type Service } from "@salon/booking";
-import { ANY, FAMILY, fitsVisit } from "../state";
-import { Check, Notice, Plus } from "../ui";
+import { ANY, fitsVisit, forAudience } from "../state";
+import { Check, Plus } from "../ui";
 
 interface Props {
   catalog: Catalog;
   stylist: string | null;
+  /** Chosen on the first step; filters the menu. */
   audience: string | null;
   /** The visit so far, main first. */
   selectedIds: string[];
-  onAudience: (audience: string) => void;
   onSelect: (id: string) => void;
 }
 
@@ -47,24 +46,11 @@ function ServiceCard({ service, selected, hint, onClick }: { service: Service; s
   );
 }
 
-export default function ServicesStep({ catalog, stylist, audience, selectedIds, onAudience, onSelect }: Props) {
+export default function ServicesStep({ catalog, stylist, audience, selectedIds, onSelect }: Props) {
   const specific = stylist && stylist !== ANY ? catalog.stylists.find((s) => s.id === stylist) : undefined;
   const offered = catalog.services.filter((s) => !specific || specific.serviceIds.includes(s.id));
 
-  // Who it's for: only audiences this professional has services for. No audiences in the catalogue = no filter.
-  const audiences = catalog.audiences.filter((a) => offered.some((s) => !s.audienceIds || s.audienceIds.includes(a.id)));
-  const filtering = audiences.length > 0;
-  const onlyAudience = audiences.length === 1 ? audiences[0]!.id : null;
-  const current = audience === FAMILY || audiences.some((a) => a.id === audience) ? audience : onlyAudience;
-  useEffect(() => {
-    if (onlyAudience && audience !== onlyAudience && audience !== FAMILY) onAudience(onlyAudience);
-  }, [onlyAudience, audience, onAudience]);
-
-  const visible = !filtering
-    ? offered
-    : current && current !== FAMILY
-      ? offered.filter((s) => !s.audienceIds || s.audienceIds.includes(current))
-      : [];
+  const visible = offered.filter((s) => forAudience(audience, s));
 
   const draft = { stylist, serviceIds: selectedIds };
   const chosen = servicesById(catalog, selectedIds);
@@ -81,36 +67,6 @@ export default function ServicesStep({ catalog, stylist, audience, selectedIds, 
           Showing services offered by <span className="text-ink">{specific.name}</span>.
         </p>
       )}
-
-      {filtering && (
-        <fieldset className="mb-8">
-          <legend className="mb-3 text-sm text-muted">Who is this appointment for?</legend>
-          <div className="flex flex-wrap gap-2">
-            {[...audiences, { id: FAMILY, name: "Family or group" }].map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => onAudience(a.id)}
-                aria-pressed={current === a.id}
-                className={`rounded-full border px-4 py-2 text-sm transition-colors ${
-                  current === a.id ? "border-ink bg-ink text-white" : "border-line hover:border-gold hover:text-gold"
-                }`}
-              >
-                {a.name}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
-      {current === FAMILY && (
-        <Notice>
-          Booking for more than one person? For now, please book each person's appointment separately, choosing
-          who it's for each time. We'll do our best to seat you together.
-        </Notice>
-      )}
-
-      {filtering && !current && <p className="text-sm text-muted">Choose who the appointment is for to see the services.</p>}
 
       {chosen.length > 0 && (
         <section className="mb-10">

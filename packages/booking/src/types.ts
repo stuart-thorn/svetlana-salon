@@ -8,10 +8,11 @@ export interface Category {
   name: string;
 }
 
-/** Who services are for, e.g. Men / Women / Children. Shown as a filter. */
+/** Who services are for, shown as a choice of menu, e.g. "Women's hair". */
 export interface Audience {
   id: string;
   name: string;
+  description?: string;
 }
 
 export interface Service {

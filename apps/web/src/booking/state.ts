@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { canAdd, eligibleStylists, prune, resolveVisit, type Catalog, type ClockTime, type ISODate } from "@salon/booking";
 
-export const STEPS = ["professional", "services", "date", "time", "details"] as const;
+export const STEPS = ["audience", "professional", "services", "date", "time", "details"] as const;
 export type Step = (typeof STEPS)[number];
 
 export const STEP_LABELS: Record<Step, string> = {
+  audience: "Menu",
   professional: "Professional",
   services: "Services",
   date: "Date",
@@ -13,6 +14,7 @@ export const STEP_LABELS: Record<Step, string> = {
 };
 
 export const STEP_TITLES: Record<Step, string> = {
+  audience: "What are you booking?",
   professional: "Select a professional",
   services: "Select services",
   date: "Select a date",
@@ -23,7 +25,7 @@ export const STEP_TITLES: Record<Step, string> = {
 /** Sentinel for "any professional". */
 export const ANY = "any";
 
-/** Audience chip for booking several people. Not in the catalogue: party bookings aren't supported yet. */
+/** "Family or group" choice for booking several people. Not in the catalogue: party bookings aren't supported yet. */
 export const FAMILY = "family";
 
 export interface Draft {
@@ -42,8 +44,12 @@ const STORAGE_KEY = "cws:booking-draft";
 
 export const isStep = (s: string | null): s is Step => !!s && (STEPS as readonly string[]).includes(s);
 
-/** The furthest step the customer may be on, given what they've chosen so far. */
-export function furthestStep(d: Draft): Step {
+/**
+ * The furthest step the customer may be on, given what they've chosen so far. `needsAudience` is false when the
+ * catalogue defines no audiences, so there's nothing to ask.
+ */
+export function furthestStep(d: Draft, needsAudience = true): Step {
+  if (needsAudience && (!d.audience || d.audience === FAMILY)) return "audience";
   if (!d.stylist) return "professional";
   if (!d.serviceIds.length) return "services";
   if (!d.date) return "date";
@@ -63,6 +69,17 @@ function load(): Draft {
     return empty;
   }
 }
+
+/** Whether a service is offered to the audience (null = no audience chosen or none defined: everything). */
+export const forAudience = (audience: string | null, s: { audienceIds?: string[] }) =>
+  !audience || audience === FAMILY || !s.audienceIds || s.audienceIds.includes(audience);
+
+/** Whether a stylist (or `ANY`) offers anything to the audience. */
+export const servesAudience = (catalog: Catalog, stylist: string, audience: string | null) =>
+  stylist === ANY ||
+  catalog.services.some(
+    (s) => forAudience(audience, s) && !!catalog.stylists.find((st) => st.id === stylist)?.serviceIds.includes(s.id),
+  );
 
 /** The largest valid visit left in `ids`, in the order performed. */
 const tidy = (catalog: Catalog, ids: string[]) => {
@@ -112,15 +129,22 @@ export function useDraft(catalog: Catalog | undefined) {
     [catalog],
   );
 
-  /** Changing who it's for keeps only the chosen services offered to them. */
+  /**
+   * Changing who it's for keeps only the chosen services offered to them, and drops a professional who
+   * doesn't serve them.
+   */
   const chooseAudience = useCallback(
     (audience: string) =>
       setDraft((d) => {
         if (d.audience === audience) return d;
-        if (!catalog) return { ...d, audience };
-        const forThem = catalog.services.filter((s) => audience !== FAMILY && (!s.audienceIds || s.audienceIds.includes(audience)));
-        const serviceIds = tidy(catalog, d.serviceIds.filter((id) => forThem.some((s) => s.id === id)));
-        return { ...d, audience, serviceIds, time: d.serviceIds.join() === serviceIds.join() ? d.time : null };
+        if (!catalog || audience === FAMILY) return { ...d, audience };
+        const stylist = d.stylist && servesAudience(catalog, d.stylist, audience) ? d.stylist : null;
+        const serviceIds = tidy(
+          catalog,
+          d.serviceIds.filter((id) => forAudience(audience, catalog.services.find((s) => s.id === id) ?? {})),
+        );
+        const unchanged = stylist === d.stylist && serviceIds.join() === d.serviceIds.join();
+        return unchanged ? { ...d, audience } : { audience, stylist, serviceIds, date: stylist ? d.date : null, time: null };
       }),
     [catalog],
   );

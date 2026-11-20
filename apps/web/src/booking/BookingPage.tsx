@@ -6,7 +6,8 @@ import Confirmation from "./Confirmation";
 import Payment from "./Payment";
 import { salon } from "../data/content";
 import { isDemo, isTestMode, provider } from "./provider";
-import { STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
+import { FAMILY, STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
+import AudienceStep from "./steps/AudienceStep";
 import DateStep from "./steps/DateStep";
 import DetailsStep, { DETAILS_FORM_ID, validateCustomer, type CustomerErrors } from "./steps/DetailsStep";
 import ProfessionalStep from "./steps/ProfessionalStep";
@@ -32,12 +33,12 @@ export default function BookingPage() {
 
   // The URL drives the step, but you can't skip ahead of what you've chosen.
   const requested = search.get("step");
-  const furthest = furthestStep(draft);
-  const step: Step = !isStep(requested)
-    ? "professional"
-    : stepIndex(requested) <= stepIndex(furthest)
-      ? requested
-      : furthest;
+  // Without audiences in the catalogue there's nothing to ask on the first step.
+  const needsAudience = !catalog || catalog.audiences.length > 0;
+  const furthest = furthestStep(draft, needsAudience);
+  const first: Step = needsAudience ? "audience" : "professional";
+  const wanted: Step = isStep(requested) && (needsAudience || requested !== "audience") ? requested : first;
+  const step: Step = stepIndex(wanted) <= stepIndex(furthest) ? wanted : furthest;
 
   useEffect(() => {
     if (!confirmation && !pending && requested !== step) navigate(`/book?step=${step}`, { replace: true });
@@ -52,7 +53,7 @@ export default function BookingPage() {
     window.scrollTo(0, 0);
   };
   const next = () => goTo(STEPS[stepIndex(step) + 1]!);
-  const back = () => (stepIndex(step) === 0 ? navigate("/") : goTo(STEPS[stepIndex(step) - 1]!));
+  const back = () => (step === first ? navigate("/") : goTo(STEPS[stepIndex(step) - 1]!));
 
   const submit = async () => {
     const errors = validateCustomer(customer);
@@ -92,6 +93,7 @@ export default function BookingPage() {
   const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
 
   const action: CartAction = {
+    audience: { label: "Continue", disabled: !draft.audience || draft.audience === FAMILY, onClick: next },
     professional: { label: "Continue", disabled: !draft.stylist, onClick: next },
     services: { label: "Continue", disabled: !draft.serviceIds.length, onClick: next },
     date: { label: "Continue", disabled: !draft.date, onClick: next },
@@ -107,7 +109,7 @@ export default function BookingPage() {
             <button
               type="button"
               onClick={back}
-              aria-label={stepIndex(step) === 0 ? "Back to website" : `Back to ${STEP_LABELS[STEPS[stepIndex(step) - 1]!]}`}
+              aria-label={step === first ? "Back to website" : `Back to ${STEP_LABELS[STEPS[stepIndex(step) - 1]!]}`}
               className="-ml-2 flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100"
             >
               <Chevron dir="left" />
@@ -201,7 +203,7 @@ export default function BookingPage() {
             onBookAnother={() => {
               setConfirmation(null);
               setCustomerErrors({});
-              navigate("/book?step=professional", { replace: true });
+              navigate(`/book?step=${first}`, { replace: true });
             }}
           />
         </main>
@@ -210,9 +212,21 @@ export default function BookingPage() {
           <main>
             <h1 className="mb-8 font-serif text-3xl sm:text-4xl">{STEP_TITLES[step]}</h1>
 
+            {step === "audience" && (
+              <AudienceStep
+                catalog={catalog}
+                selected={draft.audience}
+                onSelect={(id) => {
+                  chooseAudience(id);
+                  if (id !== FAMILY) goTo("professional");
+                }}
+              />
+            )}
+
             {step === "professional" && (
               <ProfessionalStep
                 catalog={catalog}
+                audience={draft.audience}
                 selected={draft.stylist}
                 onSelect={(id) => {
                   chooseStylist(id);
@@ -227,7 +241,6 @@ export default function BookingPage() {
                 stylist={draft.stylist}
                 audience={draft.audience}
                 selectedIds={draft.serviceIds}
-                onAudience={chooseAudience}
                 onSelect={selectService}
               />
             )}

@@ -38,7 +38,7 @@ interface ApiCatalog {
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
   categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
   /** Absent from catalogues published before audiences existed. */
-  audiences?: { id: string; name: string }[];
+  audiences?: { id: string; name: string; description?: string }[];
   offerings: ({
     id: string;
     categoryId: string;
@@ -92,7 +92,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   return {
     salonName: api.tenant.name,
     categories: api.categories.map(({ id, name }) => ({ id, name })),
-    audiences: (api.audiences ?? []).map(({ id, name }) => ({ id, name })),
+    audiences: (api.audiences ?? []).map(({ id, name, description }) => ({ id, name, ...(description && { description }) })),
     services: api.offerings.map((o): Service => {
       const category = api.categories.find((c) => c.id === o.categoryId);
       const deposit = depositOf(o.policyOverrides?.payment ?? category?.policyOverrides?.payment ?? api.tenant.policies.payment);

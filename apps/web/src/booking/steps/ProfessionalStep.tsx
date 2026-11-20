@@ -1,17 +1,21 @@
 import type { Catalog } from "@salon/booking";
-import { ANY } from "../state";
+import { ANY, servesAudience } from "../state";
 import { Avatar, Check } from "../ui";
 
 interface Props {
   catalog: Catalog;
+  /** Only professionals who offer something to this audience are listed. */
+  audience: string | null;
   selected: string | null;
   onSelect: (stylist: string) => void;
 }
 
-export default function ProfessionalStep({ catalog, selected, onSelect }: Props) {
+export default function ProfessionalStep({ catalog, audience, selected, onSelect }: Props) {
   const options = [
     { id: ANY, name: "Any professional", role: "For maximum availability", index: 0, stylist: undefined },
-    ...catalog.stylists.map((s, index) => ({ id: s.id, name: s.name, role: s.role, index, stylist: s })),
+    ...catalog.stylists
+      .map((s, index) => ({ id: s.id, name: s.name, role: s.role, index, stylist: s }))
+      .filter((o) => servesAudience(catalog, o.id, audience)),
   ];
 
   return (

@@ -51,14 +51,14 @@ describe("REST provider", () => {
             { id: "toner", categoryId: "colour", name: "Toner", durationMin: 30, basePrice: gbp(3333), audienceIds: ["women"], standalone: false, addOnTo: { categoryIds: ["cut"] }, exclusiveGroup: "toner" },
             { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), policyOverrides: { payment: { kind: "none" } } },
           ],
-          audiences: [{ id: "women", name: "Women", sortOrder: 1 }],
+          audiences: [{ id: "women", name: "Women's hair", description: "Cuts and colour", sortOrder: 1 }],
           providers: [{ id: "elena", name: "Elena", title: "Senior Stylist" }],
           skills: [{ providerId: "elena", offeringId: "womens-cut", price: gbp(6500), durationMin: 60 }],
         },
       },
     });
     const catalog = await provider.getCatalog();
-    expect(catalog.audiences).toEqual([{ id: "women", name: "Women" }]);
+    expect(catalog.audiences).toEqual([{ id: "women", name: "Women's hair", description: "Cuts and colour" }]);
     expect(catalog.services[1]).toMatchObject({ audienceIds: ["women"], standalone: false, addOnTo: { categoryIds: ["cut"] }, exclusiveGroup: "toner" });
     expect(catalog.services[0]).not.toHaveProperty("standalone");
     expect(calls[0]!.url).toBe("http://api.test/v1/catalog?locationId=cw");

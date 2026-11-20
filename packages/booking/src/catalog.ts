@@ -31,9 +31,9 @@ export const catalog: Catalog = {
     { id: "colour", name: "Colour & highlights" },
   ],
   audiences: [
-    { id: "men", name: "Men" },
-    { id: "women", name: "Women" },
-    { id: "children", name: "Children" },
+    { id: "men", name: "Men's hair & grooming", description: "Cuts, fades and beard trims" },
+    { id: "women", name: "Women's hair", description: "Cuts, blow-dries and styling" },
+    { id: "children", name: "Children's haircuts", description: "Cuts for boys and girls" },
   ],
   services: [
     { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 30, price: 25, ...mens, ...cut },
