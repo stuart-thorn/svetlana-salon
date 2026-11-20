@@ -30,6 +30,7 @@ pnpm preview    # serve the production build
 - Availability comes from a `BookingProvider` (`packages/booking/src/types.ts`). It is currently the **mock** provider,
   which simulates a diary of existing appointments. To go live, implement `BookingProvider` against a real
   backend, swap it in `apps/web/src/booking/provider.ts`, and set `isDemo = false` to remove the demo banner.
+  The planned backend (multi-tenant bookings and payments platform, separate repo) is designed in [`docs/backend.md`](docs/backend.md).
 - Photos are from Unsplash (credited in the footer).
 
 ## Deployment (AWS CloudFront)
