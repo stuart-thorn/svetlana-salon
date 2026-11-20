@@ -44,3 +44,16 @@ AWS_PROFILE=admin-CanaryWharfSalon pnpm deploy:aws --infra  # also create/update
 ```
 
 Live URL: https://d3pgslnze1o1uf.cloudfront.net
+
+`deploy.sh` refuses to run unless the working tree is clean and every commit is pushed to its upstream
+(`scripts/check-pushed.sh`; `ALLOW_DIRTY=1` overrides in an emergency).
+
+### Staging
+
+A separate stack, `canary-wharf-salon-site-staging` (https://d3m61eocrko2zw.cloudfront.net), is built against the
+staging booking API (bookable-agent stack `bookable-staging`) using `apps/web/.env.staging` (gitignored; values from
+`pnpm stage:seed staging` in bookable-agent):
+
+```bash
+STACK_NAME=canary-wharf-salon-site-staging AWS_PROFILE=admin-CanaryWharfSalon pnpm deploy:aws --mode staging
+```

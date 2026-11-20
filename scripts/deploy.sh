@@ -20,6 +20,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+"$ROOT/scripts/check-pushed.sh"
+
 if [[ -n "$MODE" && ! -f "$ROOT/apps/web/.env.$MODE" ]]; then
   echo "Missing apps/web/.env.$MODE (see apps/web/.env.example)" >&2
   exit 1
