@@ -1,5 +1,6 @@
 import { catalog as defaultCatalog } from "./catalog";
 import {
+  BookingExpiredError,
   SlotUnavailableError,
   type AvailabilityQuery,
   type BookingConfirmation,
@@ -13,6 +14,7 @@ import {
 import {
   addDays,
   dayOfWeek,
+  depositFor,
   eligibleStylists,
   minutesToTime,
   servicesById,
@@ -35,11 +37,16 @@ export interface MockProviderOptions {
   now?: () => Date;
   /** Changes the generated "existing bookings". */
   seed?: string;
+  /** How long a slot is held while a deposit is paid. */
+  holdMin?: number;
 }
 
 interface Interval {
   start: number;
   end: number;
+  /** Set while a deposit is unpaid: the slot frees up after this instant (ms). */
+  heldUntil?: number;
+  bookingId?: string;
 }
 
 // Small deterministic PRNG so the fake diary is stable across reloads.
@@ -61,7 +68,8 @@ const overlaps = (a: Interval, b: Interval) => a.start < b.end && b.start < a.en
  * In-memory availability source. Generates a plausible, deterministic diary of
  * existing appointments per stylist per day, and records bookings made in-session.
  */
-export function createMockProvider(options: MockProviderOptions = {}): BookingProvider & {
+export function createMockProvider(options: MockProviderOptions = {}): BookingProvider &
+  Required<Pick<BookingProvider, "completeSimulatedPayment">> & {
   /** Exposed for tests/debugging. */
   busyIntervals(stylistId: string, date: ISODate): Interval[];
 } {
@@ -73,6 +81,7 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
     latencyMs = [200, 450],
     now = () => new Date(),
     seed = "canary-wharf",
+    holdMin = 10,
   } = options;
 
   const booked = new Map<string, Interval[]>();
@@ -117,7 +126,7 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
 
   const busyIntervals = (stylistId: string, date: ISODate) => [
     ...generatedBusy(stylistId, date),
-    ...(booked.get(key(stylistId, date)) ?? []),
+    ...(booked.get(key(stylistId, date)) ?? []).filter((b) => b.heldUntil === undefined || b.heldUntil > now().getTime()),
   ];
 
   const bookableWindow = () => {
@@ -180,13 +189,18 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
         const stylistId = request.stylistId ?? slot.stylistIds[0]!;
         if (!slot.stylistIds.includes(stylistId)) throw new SlotUnavailableError();
 
-        const { durationMin, price } = totals(servicesById(catalog, request.serviceIds));
+        const services = servicesById(catalog, request.serviceIds);
+        const { durationMin, price } = totals(services);
+        const depositNow = depositFor(services);
         const start = timeToMinutes(request.time);
+        const bookingId = `bk_mock_${Math.random().toString(36).slice(2, 10)}`;
+        const heldUntil = depositNow > 0 ? now().getTime() + holdMin * 60_000 : undefined;
         const k = key(stylistId, request.date);
-        booked.set(k, [...(booked.get(k) ?? []), { start, end: start + durationMin }]);
+        booked.set(k, [...(booked.get(k) ?? []), { start, end: start + durationMin, bookingId, ...(heldUntil && { heldUntil }) }]);
 
         return {
-          reference: `CWS-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          reference: `NGC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          bookingId,
           stylistId,
           serviceIds: request.serviceIds,
           date: request.date,
@@ -194,7 +208,28 @@ export function createMockProvider(options: MockProviderOptions = {}): BookingPr
           endTime: minutesToTime(start + durationMin),
           durationMin,
           total: price,
+          ...(heldUntil
+            ? {
+                status: "pending_payment" as const,
+                deposit: { now: depositNow, atSalon: price - depositNow, paid: false },
+                expiresAt: new Date(heldUntil).toISOString(),
+              }
+            : { status: "confirmed" as const }),
         };
+      }),
+
+    completeSimulatedPayment: (c) =>
+      delay((): BookingConfirmation => {
+        const k = key(c.stylistId, c.date);
+        const entry = (booked.get(k) ?? []).find((b) => b.bookingId === c.bookingId);
+        if (!entry || !c.deposit) throw new Error("Unknown booking");
+        if (entry.heldUntil !== undefined && entry.heldUntil <= now().getTime()) {
+          booked.set(k, (booked.get(k) ?? []).filter((b) => b !== entry));
+          throw new BookingExpiredError();
+        }
+        delete entry.heldUntil;
+        const { expiresAt: _expired, ...rest } = c;
+        return { ...rest, status: "confirmed", deposit: { ...c.deposit, paid: true } };
       }),
   };
 }

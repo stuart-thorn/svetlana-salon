@@ -7,7 +7,7 @@ export default function Home() {
     <section id="home" className="pt-16">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 md:py-20">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Hair salon · London E14</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Unisex salon · Canary Wharf, E14</p>
           <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl lg:text-6xl">
             {salon.name}
           </h1>
@@ -26,6 +26,7 @@ export default function Home() {
               Discover the salon
             </a>
           </div>
+          <p className="mt-6 text-xs text-muted">{salon.launchNote}</p>
         </div>
         <div className="relative">
           <img
@@ -35,8 +36,8 @@ export default function Home() {
             fetchPriority="high"
           />
           <div className="absolute -bottom-5 left-5 rounded-xl bg-white px-5 py-3 shadow-lg shadow-black/5 sm:left-auto sm:right-6">
-            <p className="font-serif text-lg">Open 6 days</p>
-            <p className="text-xs text-muted">Late evenings Tue – Fri</p>
+            <p className="font-serif text-lg">Open 7 days</p>
+            <p className="text-xs text-muted">From 8am on weekdays</p>
           </div>
         </div>
       </div>

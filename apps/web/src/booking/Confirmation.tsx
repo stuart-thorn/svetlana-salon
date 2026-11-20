@@ -10,9 +10,9 @@ function downloadIcs(c: BookingConfirmation, catalog: Catalog) {
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Canary Wharf Salon//Booking//EN",
+    `PRODID:-//${salon.name}//Booking//EN`,
     "BEGIN:VEVENT",
-    `UID:${c.reference}@canarywharfsalon`,
+    `UID:${c.reference}@ngcanarywharf`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
     `DTSTART;TZID=Europe/London:${stamp(c.date, c.time)}`,
     `DTEND;TZID=Europe/London:${stamp(c.date, c.endTime)}`,

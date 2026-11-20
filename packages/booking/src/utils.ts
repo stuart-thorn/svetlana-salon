@@ -37,6 +37,10 @@ export const formatPrice = (pounds: number): string => {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(pounds);
 };
 
+/** A service's price as shown on menus: "£40", "from £70", or "Free". */
+export const formatServicePrice = (service: Pick<Service, "price" | "priceFrom">): string =>
+  service.price === 0 ? "Free" : `${service.priceFrom ? "from " : ""}${formatPrice(service.price)}`;
+
 /**
  * Deposit taken online for these services, in pounds, rounded per service to the penny the same way the
  * booking API does. The API's figure on the booking is authoritative; this is for showing it up front.

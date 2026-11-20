@@ -1,8 +1,8 @@
-import { openingHours, salon } from "../data/content";
+import { hoursNote, openingHours, salon } from "../data/content";
 
 export default function Contact() {
   return (
-    <section id="contact" className="py-20 md:py-28">
+    <section id="contact" className="bg-stone-50/60 py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Contact</p>
@@ -21,6 +21,7 @@ export default function Contact() {
                   </span>
                 ))}
               </address>
+              <p className="mt-2 text-xs text-muted">Opening soon. {salon.launchNote}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium uppercase tracking-widest text-muted">Get in touch</h3>
@@ -43,13 +44,14 @@ export default function Contact() {
                   </div>
                 ))}
               </dl>
+              <p className="mt-3 text-xs leading-relaxed text-muted">{hoursNote}</p>
             </div>
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-line">
             <iframe
-              title="Map showing Canary Wharf, London"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-0.0300%2C51.4990%2C-0.0110%2C51.5085&layer=mapnik&marker=51.5045%2C-0.0195"
+              title="Map showing Jubilee Place, Canary Wharf, London"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=-0.0281%2C51.4990%2C-0.0091%2C51.5085&layer=mapnik&marker=51.5035%2C-0.0186"
               className="h-80 w-full lg:h-full lg:min-h-[28rem]"
               loading="lazy"
             />

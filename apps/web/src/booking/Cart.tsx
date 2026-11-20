@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   formatDuration,
   formatPrice,
+  formatServicePrice,
   minutesToTime,
   servicesById,
   timeToMinutes,
@@ -89,7 +90,7 @@ function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
                   <p>{s.name}</p>
                   <p className="text-xs text-muted">{formatDuration(s.durationMin)}</p>
                 </div>
-                <p className="shrink-0">{formatPrice(s.price)}</p>
+                <p className="shrink-0">{formatServicePrice(s)}</p>
               </li>
             ))}
           </ul>
@@ -98,7 +99,7 @@ function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
 
       <div className="flex items-baseline justify-between border-t border-line pt-4">
         <p className="font-medium">Total</p>
-        <p className="text-lg font-medium">{services.length ? formatPrice(price) : "Free"}</p>
+        <p className="text-lg font-medium">{services.length ? `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}` : "Free"}</p>
       </div>
     </>
   );
@@ -129,7 +130,7 @@ export function CartBar({ catalog, draft, action }: { catalog: Catalog; draft: D
       )}
       <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="min-w-0 text-left">
-          <p className="font-medium">{services.length ? formatPrice(price) : "Free"}</p>
+          <p className="font-medium">{services.length ? `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}` : "Free"}</p>
           <p className="truncate text-xs text-muted">
             {services.length
               ? `${services.length} service${services.length > 1 ? "s" : ""} · ${formatDuration(durationMin)}`

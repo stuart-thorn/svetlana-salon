@@ -5,6 +5,7 @@ import Home from "./components/Home";
 import About from "./components/About";
 import Bookings from "./components/Bookings";
 import Contact from "./components/Contact";
+import Offers from "./components/Offers";
 import Footer from "./components/Footer";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
@@ -27,6 +28,7 @@ export default function App() {
         <Home />
         <About />
         <Bookings />
+        <Offers />
         <Contact />
       </main>
       <Footer />

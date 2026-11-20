@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
+import { BookingExpiredError, SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
 import { Link, navigate, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
 import Payment from "./Payment";
+import { salon } from "../data/content";
 import { isDemo, isTestMode, provider } from "./provider";
 import { STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
 import DateStep from "./steps/DateStep";
@@ -43,7 +44,7 @@ export default function BookingPage() {
   }, [step, requested, confirmation, pending]);
 
   useEffect(() => {
-    document.title = "Book an appointment | Canary Wharf Salon";
+    document.title = `Book an appointment | ${salon.name}`;
   }, []);
 
   const goTo = (s: Step) => {
@@ -75,7 +76,11 @@ export default function BookingPage() {
       window.scrollTo(0, 0);
     } catch (e) {
       setTime(null);
-      setSlotError(e instanceof SlotUnavailableError ? e.message : "Something went wrong. Please choose a time and try again.");
+      setSlotError(
+        e instanceof SlotUnavailableError || e instanceof BookingExpiredError || (e instanceof Error && /still processing/.test(e.message))
+          ? e.message
+          : "Something went wrong. Please choose a time and try again.",
+      );
       goTo("time");
     } finally {
       setSubmitting(false);
@@ -139,7 +144,7 @@ export default function BookingPage() {
               </ol>
             </nav>
           )}
-          {(confirmation || pending) && <p className="flex-1 font-serif text-lg">Canary Wharf Salon</p>}
+          {(confirmation || pending) && <p className="flex-1 font-serif text-lg">{catalog?.salonName ?? salon.name}</p>}
 
           <Link to="/" aria-label="Close booking" className="-mr-2 flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>

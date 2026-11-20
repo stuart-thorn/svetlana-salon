@@ -1,16 +1,16 @@
-# Canary Wharf Salon
+# N&G Canary Wharf
 
-Single-page website for Canary Wharf Salon. It's a pnpm + Turborepo monorepo, and the site is built with Vite, React, TypeScript and Tailwind CSS v4.
+Single-page website for N&G Canary Wharf (N&G Canary Wharf Ltd, Unit 38C, Jubilee Place, London E14 5NY), first tenant of the Bookable platform. It's a pnpm + Turborepo monorepo, and the site is built with Vite, React, TypeScript and Tailwind CSS v4.
 
 ## Structure
 
 ```
-apps/web          # the SPA (sections: Home, About us, Bookings, Contact) + /book flow
+apps/web          # the SPA (sections: Home, About, Prices, Offers, Contact) + /book flow
 packages/booking  # @salon/booking: catalogue, availability types, mock provider (+ tests)
 ```
 
 Editable copy (opening hours, contact details) lives in `apps/web/src/data/content.ts`.
-Services, prices, stylists and their rotas live in `packages/booking/src/catalog.ts`.
+Services, prices, stylists and their rotas live in `packages/booking/src/catalog.ts` (indicative launch menu, mirrored in bookable-agent's seed). Packages, memberships and the Family Visit offer are information only, in `content.ts`.
 
 ## Scripts
 

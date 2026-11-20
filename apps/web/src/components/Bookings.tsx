@@ -1,4 +1,5 @@
-import { catalog, formatDuration, formatPrice } from "@salon/booking";
+import { catalog, formatDuration, formatServicePrice } from "@salon/booking";
+import { hoursNote } from "../data/content";
 import clippers from "../assets/clippers.jpg";
 import { Link } from "../router";
 
@@ -13,6 +14,7 @@ export default function Bookings() {
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">Services & appointments</h2>
           <p className="mt-4 leading-relaxed text-muted">
             See our prices below, then book online in under a minute, with live availability for every stylist.
+            {" "}{hoursNote}
           </p>
         </div>
 
@@ -31,12 +33,16 @@ export default function Bookings() {
                           {s.name}
                           <span className="ml-2 text-xs text-muted">{formatDuration(s.durationMin)}</span>
                         </span>
-                        <span className="shrink-0 font-medium">{formatPrice(s.price)}</span>
+                        <span className="shrink-0 font-medium">{formatServicePrice(s)}</span>
                       </li>
                     ))}
                 </ul>
               </div>
             ))}
+            <p className="text-xs leading-relaxed text-muted">
+              Indicative prices, subject to the final launch menu. "From" prices depend on hair length and the
+              time needed, and are confirmed at your consultation.
+            </p>
           </div>
 
           {/* Book online CTA */}
@@ -65,7 +71,9 @@ export default function Bookings() {
               >
                 Book an appointment
               </Link>
-              <p className="mt-3 text-center text-xs text-muted">No payment taken online.</p>
+              <p className="mt-3 text-center text-xs text-muted">
+                Colour and highlights need a 50% deposit online. Everything else is paid in the salon.
+              </p>
             </div>
           </div>
         </div>

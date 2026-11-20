@@ -1,4 +1,4 @@
-import { eligibleStylists, formatDuration, formatPrice, type Catalog } from "@salon/booking";
+import { eligibleStylists, formatDuration, formatServicePrice, type Catalog } from "@salon/booking";
 import { ANY } from "../state";
 import { Check, Plus } from "../ui";
 
@@ -75,7 +75,10 @@ export default function ServicesStep({ catalog, stylist, selectedIds, onToggle }
                               No single professional offers this with your current selection.
                             </span>
                           )}
-                          <span className="mt-3 block font-medium">{formatPrice(s.price)}</span>
+                          <span className="mt-3 block font-medium">
+                            {formatServicePrice(s)}
+                            {s.deposit && <span className="ml-2 text-xs font-normal text-muted">Deposit online</span>}
+                          </span>
                         </span>
                         <span
                           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${

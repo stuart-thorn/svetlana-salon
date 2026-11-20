@@ -69,6 +69,29 @@ describe("REST provider", () => {
     expect(catalog.openingHours[1]).toBeNull();
   });
 
+  it("keeps the API's catalogue order and maps 'from' prices", async () => {
+    const { provider } = fakeApi({
+      "GET /v1/catalog": {
+        body: {
+          tenant: { name: "N&G Canary Wharf", policies: { payment: { kind: "none" } } },
+          locations: [],
+          categories: [{ id: "women", name: "Women" }, { id: "men", name: "Men" }],
+          offerings: [
+            { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, basePrice: gbp(7000), priceFrom: true },
+            { id: "mens-cut", categoryId: "men", name: "Men's standard cut", durationMin: 45, basePrice: gbp(4000) },
+          ],
+          providers: [{ id: "tom", name: "Tom" }, { id: "aisha", name: "Aisha" }],
+          skills: [],
+        },
+      },
+    });
+    const catalog = await provider.getCatalog();
+    expect(catalog.categories.map((c) => c.id)).toEqual(["women", "men"]);
+    expect(catalog.stylists.map((s) => s.id)).toEqual(["tom", "aisha"]);
+    expect(catalog.services[0]).toMatchObject({ id: "womens-cut", price: 70, priceFrom: true });
+    expect(catalog.services[1]!.priceFrom).toBeUndefined();
+  });
+
   it("queries availability and maps providerIds to stylistIds", async () => {
     const { provider, calls } = fakeApi({
       "GET /v1/availability/slots": { body: [{ time: "09:00", providerIds: ["elena", "marco"] }] },
@@ -102,6 +125,17 @@ describe("REST provider", () => {
     expect((calls[0]!.init?.headers as Record<string, string>)["Idempotency-Key"]).toMatch(/^[0-9a-f-]{36}$/);
   });
 
+  it("reuses the Idempotency-Key when the same booking is retried, and not for a different one", async () => {
+    const { provider, calls } = fakeApi({ "POST /v1/bookings": { status: 201, body: booking() } });
+    const request = { stylistId: "elena", serviceIds: ["womens-cut"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } };
+    await provider.createBooking(request);
+    await provider.createBooking(request);
+    await provider.createBooking({ ...request, time: "11:00" });
+    const keys = calls.map((c) => (c.init?.headers as Record<string, string>)["Idempotency-Key"]);
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[2]).not.toBe(keys[0]);
+  });
+
   it("turns API problems into the SPA's errors", async () => {
     const taken = fakeApi({ "POST /v1/bookings": { status: 409, body: { code: "slot_unavailable" } } });
     await expect(
@@ -110,5 +144,9 @@ describe("REST provider", () => {
     const expired = fakeApi({ "POST /v1/bookings/bk_1/simulate-payment": { status: 409, body: { code: "booking_expired" } } });
     const pending = { reference: "CWS-ABC123", bookingId: "bk_1", stylistId: "elena", serviceIds: [], date: "2026-11-25", time: "10:00", endTime: "11:00", durationMin: 60, total: 65 };
     await expect(expired.provider.completeSimulatedPayment(pending)).rejects.toBeInstanceOf(BookingExpiredError);
+    const inFlight = fakeApi({ "POST /v1/bookings": { status: 409, body: { code: "idempotency_conflict" } } });
+    await expect(
+      inFlight.provider.createBooking({ stylistId: "elena", serviceIds: ["a"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } }),
+    ).rejects.toThrow(/still processing/);
   });
 });

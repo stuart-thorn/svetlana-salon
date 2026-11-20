@@ -36,7 +36,15 @@ interface ApiCatalog {
   tenant: { name: string; policies: { payment: ApiPayment } };
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
   categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
-  offerings: ({ id: string; categoryId: string; name: string; description?: string; durationMin: number; basePrice: ApiMoney } & ApiPolicyOverrides)[];
+  offerings: ({
+    id: string;
+    categoryId: string;
+    name: string;
+    description?: string;
+    durationMin: number;
+    basePrice: ApiMoney;
+    priceFrom?: boolean;
+  } & ApiPolicyOverrides)[];
   providers: { id: string; name: string; title?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
 }
@@ -90,6 +98,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
         ...(o.description && { description: o.description }),
         durationMin: o.durationMin,
         price: pounds(o.basePrice),
+        ...(o.priceFrom && { priceFrom: true }),
         ...(deposit && { deposit }),
       };
     }),
@@ -139,8 +148,20 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
     const problem = (await res.json().catch(() => ({}))) as ApiProblem;
     if (problem.code === "slot_unavailable") throw new SlotUnavailableError();
     if (problem.code === "booking_expired") throw new BookingExpiredError();
+    if (problem.code === "idempotency_conflict") {
+      throw new Error("We're still processing your booking. Please wait a moment, then check your email before trying again.");
+    }
     throw new Error(problem.detail ?? `Booking service error (${res.status})`);
   }
+
+  // One Idempotency-Key per distinct booking request, so a retry of the same request (double click,
+  // network retry) replays the API's stored response instead of making a second booking.
+  const idempotencyKeys = new Map<string, string>();
+  const idempotencyKeyFor = (body: string) => {
+    let k = idempotencyKeys.get(body);
+    if (!k) idempotencyKeys.set(body, (k = crypto.randomUUID()));
+    return k;
+  };
 
   const query = (params: Record<string, string | null | undefined>) =>
     new URLSearchParams(Object.entries(params).filter((e): e is [string, string] => !!e[1])).toString();
@@ -160,21 +181,19 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
       return slots.map((s) => ({ time: s.time, stylistIds: s.providerIds }));
     },
 
-    createBooking: async (request: BookingRequest) =>
-      toConfirmation(
-        await call<ApiBooking>("/bookings", {
-          method: "POST",
-          headers: { "Idempotency-Key": crypto.randomUUID() },
-          body: JSON.stringify({
-            locationId,
-            providerId: request.stylistId,
-            offeringIds: request.serviceIds,
-            date: request.date,
-            time: request.time,
-            customer: request.customer,
-          }),
-        }),
-      ),
+    createBooking: async (request: BookingRequest) => {
+      const body = JSON.stringify({
+        locationId,
+        providerId: request.stylistId,
+        offeringIds: request.serviceIds,
+        date: request.date,
+        time: request.time,
+        customer: request.customer,
+      });
+      return toConfirmation(
+        await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body) }, body }),
+      );
+    },
 
     completeSimulatedPayment: async (c) => {
       if (!c.bookingId) throw new Error("Missing booking ID");

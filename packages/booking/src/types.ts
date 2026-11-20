@@ -14,8 +14,10 @@ export interface Service {
   name: string;
   description?: string;
   durationMin: number;
-  /** Price in whole pounds (GBP). */
+  /** Price in whole pounds (GBP). With `priceFrom`, the starting price. */
   price: number;
+  /** Shown as "from £X": the final price depends on hair length, stylist or consultation. */
+  priceFrom?: boolean;
   /** Part of the price paid online when booking: a percentage, or a fixed amount in pounds. Absent = none. */
   deposit?: { percent: number } | { amount: number };
 }

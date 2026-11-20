@@ -42,7 +42,7 @@ export default function Header() {
           {salon.name}
         </a>
 
-        <ul className="hidden items-center gap-8 md:flex">
+        <ul className="hidden items-center gap-6 md:flex lg:gap-8">
           {navLinks.map(({ id, label }) => (
             <li key={id}>
               <a
