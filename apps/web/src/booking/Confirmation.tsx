@@ -82,6 +82,18 @@ export default function Confirmation({
           <span>Total</span>
           <span>{formatPrice(c.total)}</span>
         </div>
+        {c.deposit && (
+          <div className="mt-2 space-y-1 text-sm">
+            <div className="flex justify-between text-muted">
+              <span>{c.deposit.paid ? "Deposit paid" : "Deposit due"}</span>
+              <span>{formatPrice(c.deposit.now)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>To pay in the salon</span>
+              <span>{formatPrice(c.deposit.atSalon)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">

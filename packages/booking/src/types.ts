@@ -84,6 +84,22 @@ export interface BookingConfirmation {
   endTime: ClockTime;
   durationMin: number;
   total: number;
+  /** Booking ID on the booking API (absent for the mock). */
+  bookingId?: string;
+  /** "pending_payment" = a deposit must be paid before the booking is confirmed. Absent = confirmed. */
+  status?: "confirmed" | "pending_payment";
+  /** Present when part of the price is paid online, in pounds. */
+  deposit?: { now: number; atSalon: number; paid: boolean };
+  /** While pending payment: when the slot is released (ISO instant). */
+  expiresAt?: string;
+}
+
+/** The time held while paying ran out; the customer needs to choose a time again. */
+export class BookingExpiredError extends Error {
+  constructor(message = "The time we held for you has run out. Please choose a time again.") {
+    super(message);
+    this.name = "BookingExpiredError";
+  }
 }
 
 export class SlotUnavailableError extends Error {
@@ -99,4 +115,6 @@ export interface BookingProvider {
   getAvailableDates(query: AvailabilityQuery & { from: ISODate; to: ISODate }): Promise<DayAvailability[]>;
   getTimeSlots(query: AvailabilityQuery & { date: ISODate }): Promise<TimeSlot[]>;
   createBooking(request: BookingRequest): Promise<BookingConfirmation>;
+  /** Test mode only: completes a pending deposit without taking money. */
+  completeSimulatedPayment?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
 }

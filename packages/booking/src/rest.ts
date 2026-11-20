@@ -1,0 +1,164 @@
+import {
+  BookingExpiredError,
+  SlotUnavailableError,
+  type BookingConfirmation,
+  type BookingProvider,
+  type BookingRequest,
+  type Catalog,
+  type DayAvailability,
+  type OpeningHours,
+} from "./types";
+import { timeToMinutes } from "./utils";
+
+/** Talks to the Bookable public API (bookable-agent, /v1). */
+export interface RestProviderOptions {
+  /** e.g. "http://localhost:7100/v1" */
+  baseUrl: string;
+  /** Publishable key, pk_live_… or pk_test_… */
+  apiKey: string;
+  locationId: string;
+  fetch?: typeof fetch;
+}
+
+// ── API shapes (subset of bookable-agent's @bookable/types) ────────────────────────
+interface ApiMoney {
+  amount: number;
+  currency: string;
+}
+interface ApiCatalog {
+  tenant: { name: string };
+  locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
+  categories: { id: string; name: string }[];
+  offerings: { id: string; categoryId: string; name: string; description?: string; durationMin: number; basePrice: ApiMoney }[];
+  providers: { id: string; name: string; title?: string }[];
+  skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
+}
+interface ApiBooking {
+  id: string;
+  reference: string;
+  status: string;
+  providerId: string;
+  items: { offeringId: string }[];
+  date: string;
+  time: string;
+  endTime: string;
+  durationMin: number;
+  total: ApiMoney;
+  depositDue: ApiMoney;
+  balanceDue: ApiMoney;
+  amountPaid: ApiMoney;
+  expiresAt?: string;
+}
+interface ApiProblem {
+  code?: string;
+  detail?: string;
+}
+
+const pounds = (m: ApiMoney) => m.amount / 100;
+
+export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
+  const location = api.locations.find((l) => l.id === locationId);
+  const openingHours: (OpeningHours | null)[] = Array.from({ length: 7 }, (_, d) => {
+    const h = location?.openingHours?.[d];
+    return h ? { open: timeToMinutes(h.open), close: timeToMinutes(h.close) } : null;
+  });
+  return {
+    salonName: api.tenant.name,
+    categories: api.categories.map(({ id, name }) => ({ id, name })),
+    services: api.offerings.map((o) => ({
+      id: o.id,
+      categoryId: o.categoryId,
+      name: o.name,
+      ...(o.description && { description: o.description }),
+      durationMin: o.durationMin,
+      price: pounds(o.basePrice),
+    })),
+    stylists: api.providers.map((p) => ({
+      id: p.id,
+      name: p.name,
+      role: p.title ?? "",
+      serviceIds: api.skills.filter((s) => s.providerId === p.id).map((s) => s.offeringId),
+      // Working patterns live in the API's availability; only the mock uses this.
+      workingDays: [0, 1, 2, 3, 4, 5, 6],
+    })),
+    openingHours,
+  };
+}
+
+export function toConfirmation(b: ApiBooking): BookingConfirmation {
+  const hasDeposit = b.depositDue.amount > 0;
+  return {
+    reference: b.reference,
+    stylistId: b.providerId,
+    serviceIds: b.items.map((i) => i.offeringId),
+    date: b.date,
+    time: b.time,
+    endTime: b.endTime,
+    durationMin: b.durationMin,
+    total: pounds(b.total),
+    bookingId: b.id,
+    status: b.status === "pending_payment" ? "pending_payment" : "confirmed",
+    ...(hasDeposit && {
+      deposit: { now: pounds(b.depositDue), atSalon: pounds(b.balanceDue), paid: b.amountPaid.amount >= b.depositDue.amount },
+    }),
+    ...(b.expiresAt && { expiresAt: b.expiresAt }),
+  };
+}
+
+export function createRestProvider(options: RestProviderOptions): BookingProvider &
+  Required<Pick<BookingProvider, "completeSimulatedPayment">> {
+  const { baseUrl, apiKey, locationId } = options;
+  const doFetch = options.fetch ?? ((input, init) => fetch(input, init));
+
+  async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
+    const res = await doFetch(`${baseUrl.replace(/\/$/, "")}${path}`, {
+      ...init,
+      headers: { "X-Api-Key": apiKey, ...(init.body ? { "Content-Type": "application/json" } : {}), ...init.headers },
+    });
+    if (res.ok) return (await res.json()) as T;
+    const problem = (await res.json().catch(() => ({}))) as ApiProblem;
+    if (problem.code === "slot_unavailable") throw new SlotUnavailableError();
+    if (problem.code === "booking_expired") throw new BookingExpiredError();
+    throw new Error(problem.detail ?? `Booking service error (${res.status})`);
+  }
+
+  const query = (params: Record<string, string | null | undefined>) =>
+    new URLSearchParams(Object.entries(params).filter((e): e is [string, string] => !!e[1])).toString();
+
+  return {
+    getCatalog: async () => toCatalog(await call<ApiCatalog>(`/catalog?${query({ locationId })}`), locationId),
+
+    getAvailableDates: ({ from, to, stylistId, serviceIds }) =>
+      call<DayAvailability[]>(
+        `/availability/dates?${query({ locationId, offeringIds: serviceIds.join(","), providerId: stylistId, from, to })}`,
+      ),
+
+    getTimeSlots: async ({ date, stylistId, serviceIds }) => {
+      const slots = await call<{ time: string; providerIds: string[] }[]>(
+        `/availability/slots?${query({ locationId, offeringIds: serviceIds.join(","), providerId: stylistId, date })}`,
+      );
+      return slots.map((s) => ({ time: s.time, stylistIds: s.providerIds }));
+    },
+
+    createBooking: async (request: BookingRequest) =>
+      toConfirmation(
+        await call<ApiBooking>("/bookings", {
+          method: "POST",
+          headers: { "Idempotency-Key": crypto.randomUUID() },
+          body: JSON.stringify({
+            locationId,
+            providerId: request.stylistId,
+            offeringIds: request.serviceIds,
+            date: request.date,
+            time: request.time,
+            customer: request.customer,
+          }),
+        }),
+      ),
+
+    completeSimulatedPayment: async (c) => {
+      if (!c.bookingId) throw new Error("Missing booking ID");
+      return toConfirmation(await call<ApiBooking>(`/bookings/${encodeURIComponent(c.bookingId)}/simulate-payment`, { method: "POST" }));
+    },
+  };
+}

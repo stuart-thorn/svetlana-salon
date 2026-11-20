@@ -6,3 +6,6 @@ dist
 *.local
 *.tsbuildinfo
 temp/
+.env
+.env.*
+!.env.example

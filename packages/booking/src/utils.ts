@@ -31,8 +31,11 @@ export const formatDuration = (min: number): string => {
   return m ? `${h} hr ${m} min` : `${h} hr`;
 };
 
-export const formatPrice = (pounds: number): string =>
-  new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(pounds);
+/** "£65", or "£92.50" when there are pence. */
+export const formatPrice = (pounds: number): string => {
+  const digits = Number.isInteger(pounds) ? 0 : 2;
+  return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(pounds);
+};
 
 export const servicesById = (catalog: Catalog, ids: string[]): Service[] =>
   ids.map((id) => catalog.services.find((s) => s.id === id)).filter((s): s is Service => !!s);

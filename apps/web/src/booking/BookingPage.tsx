@@ -3,7 +3,8 @@ import { SlotUnavailableError, type BookingConfirmation, type Customer } from "@
 import { Link, navigate, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
-import { isDemo, provider } from "./provider";
+import Payment from "./Payment";
+import { isDemo, isTestMode, provider } from "./provider";
 import { STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
 import DateStep from "./steps/DateStep";
 import DetailsStep, { DETAILS_FORM_ID, validateCustomer, type CustomerErrors } from "./steps/DetailsStep";
@@ -25,6 +26,8 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [slotError, setSlotError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  /** A booking waiting for its deposit (the slot is held until it expires). */
+  const [pending, setPending] = useState<BookingConfirmation | null>(null);
 
   // The URL drives the step, but you can't skip ahead of what you've chosen.
   const requested = search.get("step");
@@ -36,8 +39,8 @@ export default function BookingPage() {
       : furthest;
 
   useEffect(() => {
-    if (!confirmation && requested !== step) navigate(`/book?step=${step}`, { replace: true });
-  }, [step, requested, confirmation]);
+    if (!confirmation && !pending && requested !== step) navigate(`/book?step=${step}`, { replace: true });
+  }, [step, requested, confirmation, pending]);
 
   useEffect(() => {
     document.title = "Book an appointment | Canary Wharf Salon";
@@ -63,8 +66,12 @@ export default function BookingPage() {
         time: draft.time,
         customer,
       });
-      setConfirmation(result);
-      reset();
+      if (result.status === "pending_payment") {
+        setPending(result);
+      } else {
+        setConfirmation(result);
+        reset();
+      }
       window.scrollTo(0, 0);
     } catch (e) {
       setTime(null);
@@ -87,7 +94,7 @@ export default function BookingPage() {
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          {!confirmation && (
+          {!confirmation && !pending && (
             <button
               type="button"
               onClick={back}
@@ -98,7 +105,7 @@ export default function BookingPage() {
             </button>
           )}
 
-          {!confirmation && (
+          {!confirmation && !pending && (
             <nav aria-label="Booking steps" className="min-w-0 flex-1">
               <p className="text-sm sm:hidden">
                 <span className="text-muted">
@@ -128,7 +135,7 @@ export default function BookingPage() {
               </ol>
             </nav>
           )}
-          {confirmation && <p className="flex-1 font-serif text-lg">Canary Wharf Salon</p>}
+          {(confirmation || pending) && <p className="flex-1 font-serif text-lg">Canary Wharf Salon</p>}
 
           <Link to="/" aria-label="Close booking" className="-mr-2 flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
@@ -141,6 +148,11 @@ export default function BookingPage() {
             Demo mode: availability is simulated and no real bookings are made.
           </p>
         )}
+        {isTestMode && (
+          <p className="bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
+            Test mode: bookings go to the test booking system and payments are simulated.
+          </p>
+        )}
       </header>
 
       {catalogError ? (
@@ -151,6 +163,26 @@ export default function BookingPage() {
         <div className="flex items-center justify-center gap-3 py-24 text-muted">
           <Spinner /> Loading…
         </div>
+      ) : pending ? (
+        <main className="px-4 py-10 sm:px-6">
+          <Payment
+            booking={pending}
+            catalog={catalog}
+            onPay={(b) => provider.completeSimulatedPayment!(b)}
+            onPaid={(b) => {
+              setPending(null);
+              setConfirmation(b);
+              reset();
+              window.scrollTo(0, 0);
+            }}
+            onExpired={(message) => {
+              setPending(null);
+              setTime(null);
+              setSlotError(message);
+              goTo("time");
+            }}
+          />
+        </main>
       ) : confirmation ? (
         <main className="px-4 py-10 sm:px-6">
           <Confirmation
