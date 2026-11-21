@@ -40,7 +40,7 @@ describe("REST provider", () => {
     const { provider, calls } = fakeApi({
       "GET /v1/catalog": {
         body: {
-          tenant: { name: "Canary Wharf Salon", policies: { payment: { kind: "none" } } },
+          tenant: { name: "Canary Wharf Salon", policies: { payment: { kind: "none" } }, audiencesPrompt: "Who's it for?" },
           locations: [{ id: "cw", kind: "physical", openingHours: [{ open: "10:00", close: "16:00" }, null, null, null, null, null, null] }],
           categories: [
             { id: "cut", name: "Cut & Style" },
@@ -64,6 +64,7 @@ describe("REST provider", () => {
     expect(calls[0]!.url).toBe("http://api.test/v1/catalog?locationId=cw");
     expect((calls[0]!.init?.headers as Record<string, string>)["X-Api-Key"]).toBe("pk_test_x");
     expect(catalog.salonName).toBe("Canary Wharf Salon");
+    expect(catalog.audiencesPrompt).toBe("Who's it for?");
     expect(catalog.services[0]).toMatchObject({ id: "womens-cut", price: 65, durationMin: 60 });
     expect(catalog.services.map((s) => s.deposit)).toEqual([undefined, { percent: 50 }, undefined]);
     // Rounded per service like the API: 50% of £33.33 = £16.67.

@@ -210,7 +210,9 @@ export default function BookingPage() {
       ) : (
         <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-10 px-4 pt-8 pb-36 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-16">
           <main>
-            <h1 className="mb-8 font-serif text-3xl sm:text-4xl">{STEP_TITLES[step]}</h1>
+            <h1 className="mb-8 font-serif text-3xl sm:text-4xl">
+              {(step === "audience" && catalog.audiencesPrompt) || STEP_TITLES[step]}
+            </h1>
 
             {step === "audience" && (
               <AudienceStep

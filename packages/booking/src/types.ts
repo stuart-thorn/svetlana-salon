@@ -57,6 +57,8 @@ export interface Catalog {
   categories: Category[];
   /** In display order. Empty = no audience filter. */
   audiences: Audience[];
+  /** The business's question above `audiences`, e.g. "Who's the appointment for?". Absent = the site's own wording. */
+  audiencesPrompt?: string;
   /** In menu order, which is also the order add-ons are performed in. */
   services: Service[];
   stylists: Stylist[];

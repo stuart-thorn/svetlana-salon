@@ -13,8 +13,9 @@ export const STEP_LABELS: Record<Step, string> = {
   details: "Details",
 };
 
+/** Headings per step. The business can set its own for `audience` (`Catalog.audiencesPrompt`). */
 export const STEP_TITLES: Record<Step, string> = {
-  audience: "What are you booking?",
+  audience: "Who's the appointment for?",
   professional: "Select a professional",
   services: "Select services",
   date: "Select a date",
