@@ -23,7 +23,7 @@ interface Props {
 }
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-gold aria-[invalid=true]:border-red-400";
+  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition-colors focus:border-gold aria-[invalid=true]:border-red-400";
 
 const FIELDS = [
   { key: "name", label: "Full name", type: "text", autoComplete: "name" },
