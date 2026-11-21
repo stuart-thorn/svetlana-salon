@@ -20,6 +20,14 @@ export function useLocation() {
   return { pathname: url.pathname, search: url.searchParams };
 }
 
+/**
+ * Jumps to the top of a new page. Instant, overriding the CSS `scroll-behavior: smooth` (meant for in-page
+ * anchors): a smooth scroll from far down gets cut short when the next page renders.
+ */
+export function scrollToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}
+
 export function navigate(to: string, { replace = false }: { replace?: boolean } = {}) {
   if (to === snapshot()) return;
   window.history[replace ? "replaceState" : "pushState"](null, "", to);
@@ -33,7 +41,7 @@ export function Link({ to, onClick, ...props }: AnchorHTMLAttributes<HTMLAnchorE
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     navigate(to);
-    window.scrollTo(0, 0);
+    scrollToTop();
   };
   return <a href={to} onClick={handle} {...props} />;
 }

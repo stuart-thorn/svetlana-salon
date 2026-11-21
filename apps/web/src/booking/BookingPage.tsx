@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BookingExpiredError, SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
-import { Link, navigate, useLocation } from "../router";
+import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
 import Payment from "./Payment";
@@ -50,7 +50,7 @@ export default function BookingPage() {
 
   const goTo = (s: Step) => {
     navigate(`/book?step=${s}`);
-    window.scrollTo(0, 0);
+    scrollToTop();
   };
   const next = () => goTo(STEPS[stepIndex(step) + 1]!);
   const back = () => (step === first ? navigate("/") : goTo(STEPS[stepIndex(step) - 1]!));
@@ -74,7 +74,7 @@ export default function BookingPage() {
         setConfirmation(result);
         reset();
       }
-      window.scrollTo(0, 0);
+      scrollToTop();
     } catch (e) {
       setTime(null);
       setSlotError(
@@ -184,7 +184,7 @@ export default function BookingPage() {
               setPending(null);
               setConfirmation(b);
               reset();
-              window.scrollTo(0, 0);
+              scrollToTop();
             }}
             onExpired={(message) => {
               setPending(null);
