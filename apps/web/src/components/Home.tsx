@@ -15,6 +15,7 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               to="/book"
+              data-book-cta
               className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
             >
               Book an appointment

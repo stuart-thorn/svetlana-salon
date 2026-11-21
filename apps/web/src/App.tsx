@@ -7,6 +7,7 @@ import Bookings from "./components/Bookings";
 import Contact from "./components/Contact";
 import Offers from "./components/Offers";
 import Footer from "./components/Footer";
+import StickyBookBar from "./components/StickyBookBar";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
 
@@ -32,6 +33,7 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
+      <StickyBookBar />
     </>
   );
 }
