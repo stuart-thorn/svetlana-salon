@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Canary Wharf Salon - TLS certificate for the site's own domain (deploy to us-east-1, for CloudFront)
+
+# CloudFront only accepts certificates from us-east-1. Validation records are written into the Route 53 zone
+# (infra/dns.yml) by CloudFormation, so the zone's nameservers must already be set at the registrar, or the
+# stack waits until they are.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: ngcanarywharf.co.uk
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames: [!Sub "www.${DomainName}"]
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+        - DomainName: !Sub "www.${DomainName}"
+          HostedZoneId: !Ref HostedZoneId
+
+Outputs:
+  CertificateArn:
+    Value: !Ref Certificate

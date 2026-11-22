@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.ngcanarywharf.co.uk/sitemap.xml

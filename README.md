@@ -46,13 +46,28 @@ AWS_PROFILE=admin-CanaryWharfSalon pnpm deploy:aws --infra  # also create/update
 
 Live URL: https://d3pgslnze1o1uf.cloudfront.net
 
-DNS for `ngcanarywharf.co.uk` is a Route 53 hosted zone in the same account (`infra/dns.yml`, stack
-`canary-wharf-salon-dns`, retained on delete), delegated from 123-reg. It's not wired to the site yet: see
-[`docs/client-decisions.md`](docs/client-decisions.md).
+### Custom domain (www.ngcanarywharf.co.uk)
+
+`www.ngcanarywharf.co.uk` is the site's main address. The bare domain and the cloudfront.net address redirect
+to it (301), handled by a CloudFront Function in `infra/site.yml`. It takes three stacks:
+
+1. **DNS:** `infra/dns.yml`, stack `canary-wharf-salon-dns` (eu-west-2). A Route 53 hosted zone, kept if the
+   stack is deleted. The nameservers are set at 123-reg.
+2. **Certificate:** `infra/cert.yml`, stack `canary-wharf-salon-cert`, **us-east-1** (CloudFront requires it).
+   It's validated through DNS records in the zone, so it can only be issued once the nameservers point to Route 53.
+3. **Site:** `infra/site.yml`. `deploy.sh --infra` passes `infra/params/<stack>.env` as parameters. The domain is
+   switched on only when `DomainName`, `HostedZoneId` and `CertificateArn` are all set. Staging has no params
+   file, so it stays on cloudfront.net.
 
 ```bash
-AWS_PROFILE=admin-CanaryWharfSalon aws cloudformation deploy --region eu-west-2 \
-  --stack-name canary-wharf-salon-dns --template-file infra/dns.yml
+dig +short NS ngcanarywharf.co.uk          # should list awsdns-… nameservers first
+AWS_PROFILE=admin-CanaryWharfSalon aws cloudformation deploy --region us-east-1 \
+  --stack-name canary-wharf-salon-cert --template-file infra/cert.yml \
+  --parameter-overrides HostedZoneId=Z01045481U8YIZF1ZRA0E
+AWS_PROFILE=admin-CanaryWharfSalon aws cloudformation describe-stacks --region us-east-1 \
+  --stack-name canary-wharf-salon-cert --query "Stacks[0].Outputs[0].OutputValue" --output text
+# put the ARN in infra/params/canary-wharf-salon-site.env, commit and push, then:
+AWS_PROFILE=admin-CanaryWharfSalon pnpm deploy:aws --infra
 ```
 
 `deploy.sh` refuses to run unless the working tree is clean and every commit is pushed to its upstream

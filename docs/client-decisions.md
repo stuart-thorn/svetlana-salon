@@ -23,6 +23,12 @@ What this means for us:
   keep a written tipping policy and keep tip records for 3 years. Per-stylist tip records help the salon
   comply with that.
 
+Status (2026-11-22): **tips are done for payments taken in the salon** (bookable-agent). Staff enter a
+tip for each stylist when they record a cash or card-machine payment, or add a tip on its own once the booking
+is paid. Finances shows total tips, split by cash and card machine, tips per stylist for payroll, and the tip
+on each payment, including in the CSV. Tips never count as takings or sales. Online tips and tip prompts on a
+Stripe card reader are parked with Stripe, and will use the same tip records.
+
 ### 2. Payment provider: Stripe
 
 - Stripe for online bookings and deposits **and** for payments in the salon.
@@ -58,6 +64,11 @@ Status (2026-11-22):
   `ns-1446.awsdns-52.org`, `ns-335.awsdns-41.com`, `ns-1708.awsdns-21.co.uk`, `ns-990.awsdns-59.net`
 - Current DNS at 123-reg (`ns11/ns12.domaincontrol.com`) has only parking A records, with no MX or TXT
   records, so nothing needs copying across.
-- Next, once the nameservers are switched: an ACM certificate in us-east-1 for the apex and `www`, both names
-  added to the CloudFront distribution, apex and `www` alias records, and a CloudFront Function that 301s the
-  apex to `www`.
+- Ready to deploy (README, "Custom domain"): the certificate stack (`infra/cert.yml`, us-east-1), and the
+  domain, alias records and apex → `www` redirect in `infra/site.yml`. These are waiting for Svetlana to switch
+  the nameservers.
+- Open: **hello@ngcanarywharf.co.uk, shown on the site, has no mailbox.** The domain has no MX records yet. Ask
+  Svetlana which email provider she wants (Google Workspace, Microsoft 365 or 123-reg email), then add its MX
+  and SPF records in Route 53.
+- Open: when production moves from demo mode to the live booking API, add `https://www.ngcanarywharf.co.uk`
+  to the live API key's allowed origins (admin app → Settings → API keys).

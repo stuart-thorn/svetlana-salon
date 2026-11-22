@@ -1,6 +1,28 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Canary Wharf Salon - static SPA hosting (private S3 + CloudFront with OAC)
 
+# Optional custom domain: with all three parameters set, the site answers on the apex and www, www is the
+# address everyone ends up on (other hosts get a 301), and Route 53 points both names at CloudFront.
+Parameters:
+  DomainName:
+    Type: String
+    Default: ""
+    Description: Apex domain, e.g. ngcanarywharf.co.uk. Empty for no custom domain.
+  CertificateArn:
+    Type: String
+    Default: ""
+    Description: ACM certificate in us-east-1 covering the apex and www (infra/cert.yml).
+  HostedZoneId:
+    Type: String
+    Default: ""
+    Description: Route 53 hosted zone for DomainName (infra/dns.yml).
+
+Conditions:
+  HasDomain: !And
+    - !Not [!Equals [!Ref DomainName, ""]]
+    - !Not [!Equals [!Ref CertificateArn, ""]]
+    - !Not [!Equals [!Ref HostedZoneId, ""]]
+
 Resources:
   SiteBucket:
     Type: AWS::S3::Bucket
@@ -47,12 +69,47 @@ Resources:
             ReferrerPolicy: strict-origin-when-cross-origin
             Override: true
 
+  # Sends the apex and the cloudfront.net address to https://www.<domain>, keeping the path and query.
+  CanonicalHostFunction:
+    Type: AWS::CloudFront::Function
+    Condition: HasDomain
+    Properties:
+      Name: !Sub "${AWS::StackName}-canonical-host"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Redirect other hosts to www
+        Runtime: cloudfront-js-2.0
+      FunctionCode: !Sub |
+        var CANONICAL = "www.${DomainName}";
+        function handler(event) {
+          var request = event.request;
+          var host = request.headers.host ? request.headers.host.value : "";
+          if (host === CANONICAL) return request;
+          var query = Object.keys(request.querystring).map(function (k) {
+            var q = request.querystring[k];
+            var all = q.multiValue ? q.multiValue : [q];
+            return all.map(function (v) { return v.value === "" ? k : k + "=" + v.value; }).join("&");
+          }).join("&");
+          return {
+            statusCode: 301,
+            statusDescription: "Moved Permanently",
+            headers: { location: { value: "https://" + CANONICAL + request.uri + (query ? "?" + query : "") } },
+          };
+        }
+
   Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Comment: !Ref AWS::StackName
         Enabled: true
+        Aliases: !If [HasDomain, [!Ref DomainName, !Sub "www.${DomainName}"], !Ref AWS::NoValue]
+        ViewerCertificate: !If
+          - HasDomain
+          - AcmCertificateArn: !Ref CertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
         HttpVersion: http2and3
         IPV6Enabled: true
         PriceClass: PriceClass_100
@@ -71,6 +128,11 @@ Resources:
           CachedMethods: [GET, HEAD]
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
           ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
+          FunctionAssociations: !If
+            - HasDomain
+            - - EventType: viewer-request
+                FunctionARN: !GetAtt CanonicalHostFunction.FunctionMetadata.FunctionARN
+            - !Ref AWS::NoValue
         CustomErrorResponses:
           # SPA fallback: unknown paths serve index.html
           - ErrorCode: 403
@@ -99,10 +161,30 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
 
+  # Z2FDTNDATAQYW2 is CloudFront's fixed hosted zone for alias records.
+  ApexRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: HasDomain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref DomainName
+          Type: A
+          AliasTarget: { DNSName: !GetAtt Distribution.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Ref DomainName
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt Distribution.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Sub "www.${DomainName}"
+          Type: A
+          AliasTarget: { DNSName: !GetAtt Distribution.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+        - Name: !Sub "www.${DomainName}"
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt Distribution.DomainName, HostedZoneId: Z2FDTNDATAQYW2 }
+
 Outputs:
   BucketName:
     Value: !Ref SiteBucket
   DistributionId:
     Value: !Ref Distribution
   SiteUrl:
-    Value: !Sub "https://${Distribution.DomainName}"
+    Value: !If [HasDomain, !Sub "https://www.${DomainName}", !Sub "https://${Distribution.DomainName}"]

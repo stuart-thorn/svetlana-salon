@@ -28,8 +28,18 @@ if [[ -n "$MODE" && ! -f "$ROOT/apps/web/.env.$MODE" ]]; then
 fi
 
 if [[ "$INFRA" == true ]]; then
+  # Per-stack parameters (KEY=VALUE lines, # comments) from infra/params/<stack>.env, if there is one.
+  PARAMS=()
+  PARAMS_FILE="$ROOT/infra/params/$STACK.env"
+  if [[ -f "$PARAMS_FILE" ]]; then
+    while IFS= read -r line; do
+      [[ -z "$line" || "$line" == \#* ]] && continue
+      PARAMS+=("$line")
+    done < "$PARAMS_FILE"
+  fi
   aws cloudformation deploy --region "$REGION" --stack-name "$STACK" \
-    --template-file "$ROOT/infra/site.yml" --no-fail-on-empty-changeset
+    --template-file "$ROOT/infra/site.yml" --no-fail-on-empty-changeset \
+    ${PARAMS[@]+--parameter-overrides "${PARAMS[@]}"}
 fi
 
 out() {
