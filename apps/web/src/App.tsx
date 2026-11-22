@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
-import { useLocation } from "./router";
+import { lazy, Suspense, useEffect } from "react";
+import { isPrelaunch } from "./data/content";
+import { navigate, useLocation } from "./router";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import About from "./components/About";
@@ -15,6 +16,12 @@ const Privacy = lazy(() => import("./components/Privacy"));
 export default function App() {
   const { pathname } = useLocation();
 
+  // Pre-launch: no booking flow. A /book link lands on the home page instead.
+  const toBook = pathname.startsWith("/book");
+  useEffect(() => {
+    if (isPrelaunch && toBook) navigate("/", { replace: true });
+  }, [toBook]);
+
   if (pathname === "/privacy") {
     return (
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
@@ -24,7 +31,7 @@ export default function App() {
     );
   }
 
-  if (pathname.startsWith("/book")) {
+  if (toBook && !isPrelaunch) {
     return (
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <BookingPage />
@@ -43,7 +50,7 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
-      <StickyBookBar />
+      {!isPrelaunch && <StickyBookBar />}
     </>
   );
 }

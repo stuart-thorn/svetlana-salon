@@ -1,5 +1,5 @@
 import interior from "../assets/salon-interior.jpg";
-import { salon } from "../data/content";
+import { isPrelaunch, prelaunchNote, salon } from "../data/content";
 import { Link } from "../router";
 
 export default function Home() {
@@ -12,14 +12,22 @@ export default function Home() {
             {salon.name}
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">{salon.tagline}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/book"
-              data-book-cta
-              className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
-            >
-              Book an appointment
-            </Link>
+          {isPrelaunch && (
+            <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-2 text-sm font-medium text-gold-dark">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
+              {prelaunchNote}
+            </p>
+          )}
+          <div className={`${isPrelaunch ? "mt-6" : "mt-8"} flex flex-wrap gap-3`}>
+            {!isPrelaunch && (
+              <Link
+                to="/book"
+                data-book-cta
+                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
+              >
+                Book an appointment
+              </Link>
+            )}
             <a
               href="#about"
               className="rounded-full border border-ink/20 px-7 py-3 text-sm font-medium transition-colors hover:border-gold hover:text-gold"

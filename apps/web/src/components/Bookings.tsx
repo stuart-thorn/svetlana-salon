@@ -1,5 +1,5 @@
 import { catalog, formatDuration, formatServicePrice } from "@salon/booking";
-import { hoursNote } from "../data/content";
+import { hoursNote, isPrelaunch, prelaunchNote } from "../data/content";
 import clippers from "../assets/clippers.jpg";
 import { Link } from "../router";
 
@@ -13,7 +13,9 @@ export default function Bookings() {
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Bookings</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">Services & appointments</h2>
           <p className="mt-4 leading-relaxed text-muted">
-            See our prices below, then book online in under a minute, with live availability for every stylist.
+            {isPrelaunch
+              ? "See our prices below. Online booking, with live availability for every stylist, is coming shortly."
+              : "See our prices below, then book online in under a minute, with live availability for every stylist."}
             {" "}{hoursNote}
           </p>
         </div>
@@ -54,7 +56,12 @@ export default function Bookings() {
               className="aspect-[16/9] w-full object-cover"
             />
             <div className="p-6 sm:p-8">
-              <h3 className="font-serif text-2xl">Book online</h3>
+              <h3 className="font-serif text-2xl">{isPrelaunch ? "Online booking opens soon" : "Book online"}</h3>
+              {isPrelaunch && (
+                <p className="mt-3 text-sm leading-relaxed text-muted">
+                  {prelaunchNote} Here's how it will work:
+                </p>
+              )}
               <ol className="mt-5 space-y-3">
                 {steps.map((s, i) => (
                   <li key={s} className="flex items-center gap-3 text-sm">
@@ -65,13 +72,22 @@ export default function Bookings() {
                   </li>
                 ))}
               </ol>
-              <Link
-                to="/book"
-                data-book-cta
-                className="mt-8 block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-gold"
-              >
-                Book an appointment
-              </Link>
+              {isPrelaunch ? (
+                <a
+                  href="#contact"
+                  className="mt-8 block rounded-full border border-ink/20 px-7 py-3.5 text-center text-sm font-medium transition-colors hover:border-gold hover:text-gold"
+                >
+                  Find us
+                </a>
+              ) : (
+                <Link
+                  to="/book"
+                  data-book-cta
+                  className="mt-8 block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-gold"
+                >
+                  Book an appointment
+                </Link>
+              )}
               <p className="mt-3 text-center text-xs text-muted">
                 Colour and highlights need a 50% deposit online. Everything else is paid in the salon.
               </p>

@@ -53,3 +53,7 @@ export const offers: Offer[] = [
     details: ["Excludes colour and complex technical services."],
   },
 ];
+
+/** Pre-launch build (`--mode prelaunch`): no booking buttons, and a note that online booking is coming. */
+export const isPrelaunch = import.meta.env.VITE_PRELAUNCH === "true";
+export const prelaunchNote = "Our new website and online booking are coming shortly.";
