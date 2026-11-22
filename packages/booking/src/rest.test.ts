@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRestProvider } from "./rest";
 import { depositFor } from "./utils";
-import { BookingExpiredError, IncompatibleServicesError, SlotUnavailableError } from "./types";
+import { BookingExpiredError, IncompatibleServicesError, PaymentsUnavailableError, SlotUnavailableError } from "./types";
 
 const gbp = (amount: number) => ({ amount, currency: "GBP" });
 
@@ -128,6 +128,26 @@ describe("REST provider", () => {
     const sent = JSON.parse(calls[0]!.init!.body as string);
     expect(sent).toMatchObject({ locationId: "cw", providerId: null, offeringIds: ["balayage"] });
     expect((calls[0]!.init?.headers as Record<string, string>)["Idempotency-Key"]).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("hands over Stripe's payment details for the deposit, and polls the booking's status", async () => {
+    const stripe = { kind: "client_secret", gateway: "stripe", paymentRef: "pi_1", clientSecret: "pi_1_secret", publishableKey: "pk_test_p", accountRef: "acct_ng" };
+    const { provider } = fakeApi({
+      "POST /v1/bookings": { status: 201, body: booking({ status: "pending_payment", depositDue: gbp(3250), payment: stripe }) },
+      "GET /v1/bookings/bk_1/status": { body: booking({ status: "confirmed", depositDue: gbp(3250), amountPaid: gbp(3250), payment: null }) },
+    });
+    const c = await provider.createBooking({ stylistId: "elena", serviceIds: ["colour"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } });
+    expect(c.payment).toEqual({ kind: "stripe", clientSecret: "pi_1_secret", publishableKey: "pk_test_p", accountRef: "acct_ng" });
+    const now = await provider.getBookingStatus(c);
+    expect(now).toMatchObject({ status: "confirmed", deposit: { paid: true } });
+    expect(now.payment).toBeUndefined();
+  });
+
+  it("says when the salon can't take deposits online", async () => {
+    const { provider } = fakeApi({ "POST /v1/bookings": { status: 402, body: { code: "payment_required" } } });
+    await expect(
+      provider.createBooking({ stylistId: "elena", serviceIds: ["colour"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } }),
+    ).rejects.toBeInstanceOf(PaymentsUnavailableError);
   });
 
   it("reuses the Idempotency-Key when the same booking is retried, and not for a different one", async () => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookingExpiredError, SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
+import { BookingExpiredError, PaymentsUnavailableError, SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
@@ -95,7 +95,10 @@ export default function BookingPage() {
     } catch (e) {
       setTime(null);
       setSlotError(
-        e instanceof SlotUnavailableError || e instanceof BookingExpiredError || (e instanceof Error && /still processing/.test(e.message))
+        e instanceof SlotUnavailableError ||
+          e instanceof BookingExpiredError ||
+          e instanceof PaymentsUnavailableError ||
+          (e instanceof Error && /still processing/.test(e.message))
           ? e.message
           : "Something went wrong. Please choose a time and try again.",
       );
@@ -197,6 +200,7 @@ export default function BookingPage() {
             booking={pending}
             catalog={catalog}
             onPay={(b) => provider.completeSimulatedPayment!(b)}
+            {...(provider.getBookingStatus && { getStatus: (b: BookingConfirmation) => provider.getBookingStatus!(b) })}
             onPaid={(b) => {
               setPending(null);
               setConfirmation(b);

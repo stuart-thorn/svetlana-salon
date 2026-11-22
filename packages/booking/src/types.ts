@@ -116,6 +116,24 @@ export interface BookingConfirmation {
   deposit?: { now: number; atSalon: number; paid: boolean };
   /** While pending payment: when the slot is released (ISO instant). */
   expiresAt?: string;
+  /** While pending payment: how to take the deposit. Absent = a simulated (test) payment. */
+  payment?: OnlinePayment;
+}
+
+/**
+ * How the deposit is taken: Stripe's Payment Element, on the salon's own Stripe account (`accountRef`), or a
+ * simulated payment in test mode.
+ */
+export type OnlinePayment =
+  | { kind: "stripe"; clientSecret: string; publishableKey: string; accountRef?: string }
+  | { kind: "simulated" };
+
+/** The salon can't take the deposit online right now (no payment account connected). */
+export class PaymentsUnavailableError extends Error {
+  constructor(message = "We can't take deposits online at the moment. Please call us to book.") {
+    super(message);
+    this.name = "PaymentsUnavailableError";
+  }
 }
 
 /** The time held while paying ran out; the customer needs to choose a time again. */
@@ -162,6 +180,8 @@ export interface BookingProvider {
   createBooking(request: BookingRequest): Promise<BookingConfirmation>;
   /** Test mode only: completes a pending deposit without taking money. */
   completeSimulatedPayment?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
+  /** The booking as it stands now (after paying a deposit, until the payment has confirmed it). */
+  getBookingStatus?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
   /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
   getCustomerProfile?(): Promise<CustomerProfile>;
 }

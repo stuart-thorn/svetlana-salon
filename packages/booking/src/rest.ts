@@ -1,6 +1,7 @@
 import {
   BookingExpiredError,
   IncompatibleServicesError,
+  PaymentsUnavailableError,
   SlotUnavailableError,
   type BookingConfirmation,
   type BookingProvider,
@@ -8,6 +9,7 @@ import {
   type Catalog,
   type CustomerProfile,
   type DayAvailability,
+  type OnlinePayment,
   type OpeningHours,
   type Service,
 } from "./types";
@@ -70,6 +72,11 @@ interface ApiBooking {
   balanceDue: ApiMoney;
   amountPaid: ApiMoney;
   expiresAt?: string;
+  payment?:
+    | { kind: "client_secret"; gateway: string; clientSecret: string; publishableKey?: string; accountRef?: string }
+    | { kind: "simulated" }
+    | { kind: string }
+    | null;
 }
 interface ApiCustomerProfile {
   email: string;
@@ -154,11 +161,19 @@ export function toConfirmation(b: ApiBooking): BookingConfirmation {
       deposit: { now: pounds(b.depositDue), atSalon: pounds(b.balanceDue), paid: b.amountPaid.amount >= b.depositDue.amount },
     }),
     ...(b.expiresAt && { expiresAt: b.expiresAt }),
+    ...(b.status === "pending_payment" && b.payment && { payment: toOnlinePayment(b.payment) }),
   };
 }
 
+function toOnlinePayment(p: NonNullable<ApiBooking["payment"]>): OnlinePayment {
+  if (p.kind === "client_secret" && "clientSecret" in p && p.publishableKey) {
+    return { kind: "stripe", clientSecret: p.clientSecret, publishableKey: p.publishableKey, ...(p.accountRef && { accountRef: p.accountRef }) };
+  }
+  return { kind: "simulated" };
+}
+
 export function createRestProvider(options: RestProviderOptions): BookingProvider &
-  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile">> {
+  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile" | "getBookingStatus">> {
   const { baseUrl, apiKey, locationId, customerToken } = options;
   const signedIn = (): Record<string, string> => {
     const token = customerToken?.();
@@ -175,6 +190,7 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
     const problem = (await res.json().catch(() => ({}))) as ApiProblem;
     if (problem.code === "slot_unavailable") throw new SlotUnavailableError();
     if (problem.code === "booking_expired") throw new BookingExpiredError();
+    if (problem.code === "payment_required") throw new PaymentsUnavailableError();
     if (problem.code === "incompatible_offerings") throw new IncompatibleServicesError(problem.detail);
     if (problem.code === "idempotency_conflict") {
       throw new Error("We're still processing your booking. Please wait a moment, then check your email before trying again.");
@@ -247,6 +263,11 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
           },
         }),
       };
+    },
+
+    getBookingStatus: async (c) => {
+      if (!c.bookingId) throw new Error("Missing booking ID");
+      return toConfirmation(await call<ApiBooking>(`/bookings/${encodeURIComponent(c.bookingId)}/status`, { cache: "no-store" }));
     },
 
     completeSimulatedPayment: async (c) => {
