@@ -7,7 +7,7 @@ export default function Home() {
     <section id="home" className="pt-16">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 md:py-20">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Unisex salon · Canary Wharf, E14</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Family hair salon · Canary Wharf, E14</p>
           <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl lg:text-6xl">
             {salon.name}
           </h1>

@@ -45,7 +45,7 @@ export default function About() {
             Accessible premium hair in the middle of the city
           </h2>
           <p className="mt-6 leading-relaxed text-muted">
-            N&G Canary Wharf is a unisex salon for everyone: commuters on a lunch break, families at the
+            N&G Canary Wharf is a family hair salon for everyone: commuters on a lunch break, families at the
             weekend and anyone who wants premium results without the fuss. Every appointment begins
             with a proper consultation, so we understand your hair, your routine and the look you want.
           </p>
