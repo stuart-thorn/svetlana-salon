@@ -1,4 +1,4 @@
-import { createMockProvider, createRestProvider, type BookingProvider } from "@salon/booking";
+import { createCustomerAuth, createMockProvider, createRestProvider, type BookingProvider, type CustomerAuth } from "@salon/booking";
 
 /**
  * The availability data source used by the booking flow.
@@ -9,8 +9,17 @@ const apiUrl = import.meta.env.VITE_BOOKING_API_URL as string | undefined;
 const apiKey = (import.meta.env.VITE_BOOKING_API_KEY as string | undefined) ?? "";
 const locationId = (import.meta.env.VITE_BOOKING_LOCATION_ID as string | undefined) ?? "";
 
+const customerPoolClientId = import.meta.env.VITE_CUSTOMER_POOL_CLIENT_ID as string | undefined;
+
+/**
+ * Customer sign-in (email code), when the booking API is real and a customer pool is configured. Off in demo
+ * mode: there's no one to look up.
+ */
+export const customerAuth: CustomerAuth | undefined =
+  apiUrl && customerPoolClientId ? createCustomerAuth({ clientId: customerPoolClientId }) : undefined;
+
 export const provider: BookingProvider = apiUrl
-  ? createRestProvider({ baseUrl: apiUrl, apiKey, locationId })
+  ? createRestProvider({ baseUrl: apiUrl, apiKey, locationId, customerToken: () => customerAuth?.session()?.idToken })
   : createMockProvider();
 
 /** Shows a "demo mode" banner while availability is simulated. */

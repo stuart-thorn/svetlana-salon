@@ -6,6 +6,7 @@ import {
   type BookingProvider,
   type BookingRequest,
   type Catalog,
+  type CustomerProfile,
   type DayAvailability,
   type OpeningHours,
   type Service,
@@ -20,6 +21,8 @@ export interface RestProviderOptions {
   apiKey: string;
   locationId: string;
   fetch?: typeof fetch;
+  /** The signed-in customer's ID token, sent with bookings and profile reads (customer sign-in, §4.4). */
+  customerToken?: () => string | undefined;
 }
 
 // ── API shapes (subset of bookable-agent's @bookable/types) ────────────────────────
@@ -67,6 +70,16 @@ interface ApiBooking {
   balanceDue: ApiMoney;
   amountPaid: ApiMoney;
   expiresAt?: string;
+}
+interface ApiCustomerProfile {
+  email: string;
+  customer?: {
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    lastVisit?: { date: string; providerId?: string; providerName?: string; services: string[]; offeringIds?: string[] };
+  };
 }
 interface ApiProblem {
   code?: string;
@@ -145,8 +158,12 @@ export function toConfirmation(b: ApiBooking): BookingConfirmation {
 }
 
 export function createRestProvider(options: RestProviderOptions): BookingProvider &
-  Required<Pick<BookingProvider, "completeSimulatedPayment">> {
-  const { baseUrl, apiKey, locationId } = options;
+  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile">> {
+  const { baseUrl, apiKey, locationId, customerToken } = options;
+  const signedIn = (): Record<string, string> => {
+    const token = customerToken?.();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
   const doFetch = options.fetch ?? ((input, init) => fetch(input, init));
 
   async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -202,8 +219,34 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
         customer: request.customer,
       });
       return toConfirmation(
-        await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body) }, body }),
+        await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
       );
+    },
+
+    getCustomerProfile: async (): Promise<CustomerProfile> => {
+      const p = await call<ApiCustomerProfile>("/me", { headers: signedIn() });
+      const c = p.customer;
+      const v = c?.lastVisit;
+      return {
+        email: p.email,
+        ...(c && {
+          customer: {
+            name: c.name,
+            ...(c.firstName && { firstName: c.firstName }),
+            ...(c.lastName && { lastName: c.lastName }),
+            ...(c.phone && { phone: c.phone }),
+            ...(v && {
+              lastVisit: {
+                date: v.date,
+                ...(v.providerId && { stylistId: v.providerId }),
+                ...(v.providerName && { stylistName: v.providerName }),
+                services: v.services,
+                serviceIds: v.offeringIds ?? [],
+              },
+            }),
+          },
+        }),
+      };
     },
 
     completeSimulatedPayment: async (c) => {

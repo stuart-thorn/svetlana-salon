@@ -279,9 +279,13 @@ flowchart LR
 
 ### 4.4 Customers
 
-No customer accounts in v1. The confirmation email contains a **manage link**
+Customers can book without an account, or sign in with a code sent by email (step=audience, "Been with us
+before?"). Signed in, the booking suggests the stylist they saw last (step=professional) and fills in their
+details (step=details). bookable-agent holds the customer database: every booking records the customer, staff
+search it by name, phone or email in the admin app, and Svetlana's existing customers come in through the
+admin spreadsheet upload. The confirmation email contains a **manage link**
 (`/manage/<reference>?t=<token>`) that lets the customer view, cancel or reschedule. The token is random,
-256-bit and stored hashed. Customer accounts or passwordless login are a later option (§12).
+256-bit and stored hashed.
 
 ## 5. DynamoDB single-table design
 

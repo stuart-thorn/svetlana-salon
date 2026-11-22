@@ -1,4 +1,5 @@
 import { navLinks, salon } from "../data/content";
+import { Link } from "../router";
 
 const credits = [
   ["Tile Merchant Ireland", "https://unsplash.com/@tilemerchantireland"],
@@ -21,7 +22,12 @@ export default function Footer() {
             </li>
           ))}
         </ul>
-        <p className="text-muted">© {new Date().getFullYear()} {salon.legalName}</p>
+        <p className="text-muted">
+          © {new Date().getFullYear()} {salon.legalName} ·{" "}
+          <Link to="/privacy" className="hover:text-gold">
+            Privacy
+          </Link>
+        </p>
       </div>
       <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted/80 sm:px-6">
         Photos via Unsplash:{" "}

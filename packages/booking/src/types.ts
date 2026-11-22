@@ -142,6 +142,19 @@ export class SlotUnavailableError extends Error {
 }
 
 /** The contract any availability backend (mock, REST API, third-party) must satisfy. */
+/** The signed-in customer as the salon knows them (GET /me), for filling in the form and "last time with…". */
+export interface CustomerProfile {
+  email: string;
+  /** Absent for someone the salon hasn't seen before. */
+  customer?: {
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    lastVisit?: { date: ISODate; stylistId?: string; stylistName?: string; services: string[]; serviceIds: string[] };
+  };
+}
+
 export interface BookingProvider {
   getCatalog(): Promise<Catalog>;
   getAvailableDates(query: AvailabilityQuery & { from: ISODate; to: ISODate }): Promise<DayAvailability[]>;
@@ -149,4 +162,6 @@ export interface BookingProvider {
   createBooking(request: BookingRequest): Promise<BookingConfirmation>;
   /** Test mode only: completes a pending deposit without taking money. */
   completeSimulatedPayment?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
+  /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
+  getCustomerProfile?(): Promise<CustomerProfile>;
 }

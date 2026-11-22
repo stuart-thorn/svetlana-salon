@@ -7,15 +7,18 @@ interface Props {
   /** Only professionals who offer something to this audience are listed. */
   audience: string | null;
   selected: string | null;
+  /** Who a signed-in customer saw last time: marked, and listed first. */
+  lastStylistId?: string;
   onSelect: (stylist: string) => void;
 }
 
-export default function ProfessionalStep({ catalog, audience, selected, onSelect }: Props) {
+export default function ProfessionalStep({ catalog, audience, selected, lastStylistId, onSelect }: Props) {
   const options = [
     { id: ANY, name: "Any professional", role: "For maximum availability", index: 0, stylist: undefined },
     ...catalog.stylists
       .map((s, index) => ({ id: s.id, name: s.name, role: s.role, index, stylist: s }))
-      .filter((o) => servesAudience(catalog, o.id, audience)),
+      .filter((o) => servesAudience(catalog, o.id, audience))
+      .sort((a, b) => Number(b.id === lastStylistId) - Number(a.id === lastStylistId)),
   ];
 
   return (
@@ -36,6 +39,9 @@ export default function ProfessionalStep({ catalog, audience, selected, onSelect
                 <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white">
                   <Check size={14} />
                 </span>
+              )}
+              {o.id === lastStylistId && (
+                <span className="absolute top-3 left-3 rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-medium text-ink">Last time</span>
               )}
               <Avatar stylist={o.stylist} index={o.index} size="lg" />
               <span>

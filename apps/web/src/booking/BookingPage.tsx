@@ -3,6 +3,8 @@ import { BookingExpiredError, SlotUnavailableError, depositFor, servicesById, to
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
+import { useCustomer } from "./customer";
+import { CustomerSignIn } from "./CustomerSignIn";
 import Payment from "./Payment";
 import { salon } from "../data/content";
 import { isDemo, isTestMode, provider } from "./provider";
@@ -24,6 +26,21 @@ export default function BookingPage() {
   const { draft, chooseStylist, chooseAudience, selectService, setDate, setTime, reset } = useDraft(catalog);
 
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
+  const { state: customerState, signedIn, signOut } = useCustomer();
+  const signedInEmail = customerState.status === "signed_in" ? customerState.session.email : undefined;
+  const profile = customerState.status === "signed_in" ? customerState.profile : undefined;
+  const lastVisit = profile?.customer?.lastVisit;
+
+  // Signed in: the booking is in their (verified) email, and what the salon knows fills the gaps.
+  useEffect(() => {
+    if (!signedInEmail) return;
+    setCustomer((c) => ({
+      ...c,
+      email: signedInEmail,
+      name: c.name || profile?.customer?.name || "",
+      phone: c.phone || profile?.customer?.phone || "",
+    }));
+  }, [signedInEmail, profile]);
   const [customerErrors, setCustomerErrors] = useState<CustomerErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [slotError, setSlotError] = useState<string | null>(null);
@@ -215,6 +232,19 @@ export default function BookingPage() {
             </h1>
 
             {step === "audience" && (
+              <div className="mb-6">
+                <CustomerSignIn
+                  state={customerState}
+                  onSignedIn={signedIn}
+                  onSignOut={() => {
+                    signOut();
+                    setCustomer(emptyCustomer);
+                  }}
+                />
+              </div>
+            )}
+
+            {step === "audience" && (
               <AudienceStep
                 catalog={catalog}
                 selected={draft.audience}
@@ -230,6 +260,7 @@ export default function BookingPage() {
                 catalog={catalog}
                 audience={draft.audience}
                 selected={draft.stylist}
+                lastStylistId={lastVisit?.stylistId}
                 onSelect={(id) => {
                   chooseStylist(id);
                   goTo("services");
@@ -294,6 +325,7 @@ export default function BookingPage() {
                 }}
                 onSubmit={submit}
                 deposit={deposit}
+                signedInEmail={signedInEmail}
               />
             )}
           </main>

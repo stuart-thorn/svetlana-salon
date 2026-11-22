@@ -20,10 +20,12 @@ interface Props {
   onSubmit: () => void;
   /** Amounts in pounds when part of the price is paid online. */
   deposit?: { now: number; atSalon: number };
+  /** A signed-in customer books in the email they proved, so it can't be changed here. */
+  signedInEmail?: string;
 }
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition-colors focus:border-gold aria-[invalid=true]:border-red-400";
+  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition-colors focus:border-gold aria-[invalid=true]:border-red-400 read-only:bg-stone-50 read-only:text-muted";
 
 const FIELDS = [
   { key: "name", label: "Full name", type: "text", autoComplete: "name" },
@@ -31,7 +33,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit, deposit }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -51,10 +53,12 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
             autoComplete={f.autoComplete}
             value={value[f.key]}
             onChange={(e) => onChange({ ...value, [f.key]: e.target.value })}
+            readOnly={f.key === "email" && !!signedInEmail}
             aria-invalid={errors[f.key] ? true : undefined}
             aria-describedby={errors[f.key] ? `customer-${f.key}-error` : undefined}
             className={inputClass}
           />
+          {f.key === "email" && signedInEmail && <p className="mt-1 text-xs text-muted">You're signed in with this email.</p>}
           {errors[f.key] && (
             <p id={`customer-${f.key}-error`} className="mt-1 text-xs text-red-600">
               {errors[f.key]}
@@ -79,7 +83,11 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
       <p className="text-xs text-muted">
         {deposit
           ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`
-          : "No payment is taken online. We'll email your confirmation."}
+          : "No payment is taken online. We'll email your confirmation."}{" "}
+        <a href="/privacy" target="_blank" rel="noreferrer" className="underline underline-offset-2">
+          How we use your details
+        </a>
+        .
       </p>
     </form>
   );

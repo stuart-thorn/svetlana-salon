@@ -10,9 +10,19 @@ import Footer from "./components/Footer";
 import StickyBookBar from "./components/StickyBookBar";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
+const Privacy = lazy(() => import("./components/Privacy"));
 
 export default function App() {
   const { pathname } = useLocation();
+
+  if (pathname === "/privacy") {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <Privacy />
+        <Footer />
+      </Suspense>
+    );
+  }
 
   if (pathname.startsWith("/book")) {
     return (

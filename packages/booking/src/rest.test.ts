@@ -5,7 +5,7 @@ import { BookingExpiredError, IncompatibleServicesError, SlotUnavailableError } 
 
 const gbp = (amount: number) => ({ amount, currency: "GBP" });
 
-function fakeApi(routes: Record<string, { status?: number; body: unknown }>) {
+function fakeApi(routes: Record<string, { status?: number; body: unknown }>, customerToken?: () => string | undefined) {
   const calls: { url: string; init?: RequestInit }[] = [];
   const fetch = (async (url: string, init?: RequestInit) => {
     calls.push({ url, init });
@@ -14,7 +14,7 @@ function fakeApi(routes: Record<string, { status?: number; body: unknown }>) {
     if (!route) throw new Error(`Unexpected ${key}`);
     return new Response(JSON.stringify(route.body), { status: route.status ?? 200 });
   }) as typeof globalThis.fetch;
-  const provider = createRestProvider({ baseUrl: "http://api.test/v1/", apiKey: "pk_test_x", locationId: "cw", fetch });
+  const provider = createRestProvider({ baseUrl: "http://api.test/v1/", apiKey: "pk_test_x", locationId: "cw", fetch, ...(customerToken && { customerToken }) });
   return { provider, calls };
 }
 
@@ -155,5 +155,26 @@ describe("REST provider", () => {
     await expect(
       inFlight.provider.createBooking({ stylistId: "elena", serviceIds: ["a"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } }),
     ).rejects.toThrow(/still processing/);
+  });
+
+  it("sends the signed-in customer's token with bookings and reads their profile", async () => {
+    const { provider, calls } = fakeApi(
+      {
+        "POST /v1/bookings": { status: 201, body: booking() },
+        "GET /v1/me": {
+          body: {
+            email: "ana@example.com",
+            customer: { name: "Ana Lee", firstName: "Ana", phone: "07700 900123", lastVisit: { date: "2026-10-03", providerId: "elena", providerName: "Elena", services: ["Cut"], offeringIds: ["womens-cut"] } },
+          },
+        },
+      },
+      () => "id.token",
+    );
+    await provider.createBooking({ stylistId: "elena", serviceIds: ["womens-cut"], date: "2026-11-25", time: "10:00", customer: { name: "Ana Lee", email: "ana@example.com", phone: "07700 900123" } });
+    expect((calls[0]!.init!.headers as Record<string, string>).Authorization).toBe("Bearer id.token");
+    expect(await provider.getCustomerProfile()).toEqual({
+      email: "ana@example.com",
+      customer: { name: "Ana Lee", firstName: "Ana", phone: "07700 900123", lastVisit: { date: "2026-10-03", stylistId: "elena", stylistName: "Elena", services: ["Cut"], serviceIds: ["womens-cut"] } },
+    });
   });
 });
