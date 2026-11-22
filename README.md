@@ -31,6 +31,7 @@ pnpm preview    # serve the production build
   which simulates a diary of existing appointments. To go live, implement `BookingProvider` against a real
   backend, swap it in `apps/web/src/booking/provider.ts`, and set `isDemo = false` to remove the demo banner.
   The planned backend (multi-tenant bookings and payments platform, separate repo) is designed in [`docs/backend.md`](docs/backend.md).
+- Client decisions (payments, tips, Stripe, domain) are in [`docs/client-decisions.md`](docs/client-decisions.md).
 - Photos are from Unsplash (credited in the footer).
 
 ## Deployment (AWS CloudFront)
