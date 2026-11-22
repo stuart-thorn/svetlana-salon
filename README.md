@@ -46,6 +46,15 @@ AWS_PROFILE=admin-CanaryWharfSalon pnpm deploy:aws --infra  # also create/update
 
 Live URL: https://d3pgslnze1o1uf.cloudfront.net
 
+DNS for `ngcanarywharf.co.uk` is a Route 53 hosted zone in the same account (`infra/dns.yml`, stack
+`canary-wharf-salon-dns`, retained on delete), delegated from 123-reg. It's not wired to the site yet: see
+[`docs/client-decisions.md`](docs/client-decisions.md).
+
+```bash
+AWS_PROFILE=admin-CanaryWharfSalon aws cloudformation deploy --region eu-west-2 \
+  --stack-name canary-wharf-salon-dns --template-file infra/dns.yml
+```
+
 `deploy.sh` refuses to run unless the working tree is clean and every commit is pushed to its upstream
 (`scripts/check-pushed.sh`; `ALLOW_DIRTY=1` overrides in an emergency).
 

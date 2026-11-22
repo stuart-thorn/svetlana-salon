@@ -48,3 +48,16 @@ To connect it to the site (CloudFront, `infra/site.yml`):
   and a `www` CNAME to CloudFront), and 123-reg forwards the apex to `www`.
 - **Before moving the nameservers**, check whether she uses email on the domain through 123-reg. If she does,
   its MX records have to be copied into Route 53 first.
+
+Status (2026-11-22):
+
+- Decision: delegate to Route 53. The site's canonical host is **`www.ngcanarywharf.co.uk`**, and the apex
+  `ngcanarywharf.co.uk` redirects to it.
+- Hosted zone created by the `canary-wharf-salon-dns` stack (`infra/dns.yml`, zone `Z01045481U8YIZF1ZRA0E`).
+  Nameservers for Svetlana to set in 123-reg:
+  `ns-1446.awsdns-52.org`, `ns-335.awsdns-41.com`, `ns-1708.awsdns-21.co.uk`, `ns-990.awsdns-59.net`
+- Current DNS at 123-reg (`ns11/ns12.domaincontrol.com`) has only parking A records, with no MX or TXT
+  records, so nothing needs copying across.
+- Next, once the nameservers are switched: an ACM certificate in us-east-1 for the apex and `www`, both names
+  added to the CloudFront distribution, apex and `www` alias records, and a CloudFront Function that 301s the
+  apex to `www`.

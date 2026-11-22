@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Canary Wharf Salon - Route 53 hosted zone for ngcanarywharf.co.uk (registered at 123-reg)
+
+# Kept apart from site.yml so the zone (and its nameservers, set at 123-reg) outlives any site stack.
+# Site records (www + apex alias to CloudFront, ACM validation) are added once the certificate is set up.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: ngcanarywharf.co.uk
+
+Resources:
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneConfig:
+        Comment: N&G Canary Wharf - nameservers delegated from 123-reg
+
+Outputs:
+  HostedZoneId:
+    Value: !Ref HostedZone
+    Export:
+      Name: !Sub "${AWS::StackName}-HostedZoneId"
+  NameServers:
+    Value: !Join [", ", !GetAtt HostedZone.NameServers]
