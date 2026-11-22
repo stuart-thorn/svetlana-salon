@@ -10,7 +10,7 @@ const COLOUR_DEPOSIT: Service["deposit"] = { percent: 50 };
  * a colour; a beard trim can follow a men's cut; one cut and one colour per visit. The consultation and patch
  * test stand alone because the patch test has to be done before the colour appointment.
  */
-const COLOUR_SERVICES = ["root-colour", "full-colour", "highlights", "balayage"];
+const COLOUR_SERVICES = ["root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"];
 const mens = { audienceIds: ["men"] };
 const womens = { audienceIds: ["women"] };
 const adults = { audienceIds: ["men", "women"] };
@@ -20,7 +20,8 @@ const colour = { ...adults, exclusiveGroup: "colour", deposit: COLOUR_DEPOSIT };
 /**
  * N&G Canary Wharf's indicative launch menu, subject to final confirmation.
  * Mirrored in bookable-agent's seed (infra/local/src/fixtures/canary-wharf-salon.ts): keep them in step.
- * Durations, the beard trim price and the consultation price are placeholders until the client confirms them.
+ * Durations are the client's chair times (Nov 2026); ranges are booked at their upper end. Prices for the beard
+ * trim, consultation, buzz cut, T-section, half head highlights and keratin smoothing are placeholders.
  */
 export const catalog: Catalog = {
   salonName: "N&G Canary Wharf",
@@ -36,9 +37,10 @@ export const catalog: Catalog = {
     { id: "children", name: "Children's haircuts", description: "Cuts for boys and girls" },
   ],
   services: [
-    { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 30, price: 25, ...mens, ...cut },
+    { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 15, price: 25, ...mens, ...cut },
+    { id: "mens-buzz", categoryId: "men", name: "Buzz cut", durationMin: 15, price: 20, ...mens, ...cut },
     { id: "mens-graded", categoryId: "men", name: "Graded cut", durationMin: 30, price: 30, ...mens, ...cut },
-    { id: "mens-cut", categoryId: "men", name: "Men's standard cut", durationMin: 45, price: 40, description: "Scissor or clipper cut, wash and style.", ...mens, ...cut },
+    { id: "mens-cut", categoryId: "men", name: "Men's standard cut", durationMin: 30, price: 40, description: "Scissor or clipper cut, wash and style.", ...mens, ...cut },
     { id: "skin-fade", categoryId: "men", name: "Skin fade", durationMin: 45, price: 45, ...mens, ...cut },
     { id: "mens-long", categoryId: "men", name: "Men's longer hair cut", durationMin: 60, price: 50, ...mens, ...cut },
     { id: "beard-trim", categoryId: "men", name: "Beard trim & shape", durationMin: 20, price: 15, ...mens, addOnTo: { categoryIds: ["men"] } },
@@ -66,11 +68,23 @@ export const catalog: Catalog = {
       ...womens,
       ...cut,
     },
+    {
+      id: "keratin",
+      categoryId: "women",
+      name: "Keratin smoothing",
+      durationMin: 180,
+      price: 150,
+      priceFrom: true,
+      description: "Smoothing and straightening treatment. Up to 3 hours, depending on hair length.",
+      ...womens,
+    },
     { id: "kids-cut", categoryId: "children", name: "Children's haircut", durationMin: 30, price: 30, priceFrom: true, audienceIds: ["children"], exclusiveGroup: "haircut" },
     { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Recommended before your first colour appointment.", ...adults },
     { id: "root-colour", categoryId: "colour", name: "Root colour", durationMin: 90, price: 70, priceFrom: true, ...colour },
-    { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 120, price: 95, priceFrom: true, ...colour },
-    { id: "highlights", categoryId: "colour", name: "Highlights", durationMin: 150, price: 120, priceFrom: true, ...colour, description: "Foil highlights, half or full head. Includes toner." },
+    { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 75, price: 95, priceFrom: true, ...colour },
+    { id: "t-section", categoryId: "colour", name: "T-section highlights", durationMin: 30, price: 60, priceFrom: true, ...colour, description: "Highlights along the parting and hairline. Includes toner." },
+    { id: "half-highlights", categoryId: "colour", name: "Half head highlights / colour", durationMin: 60, price: 90, priceFrom: true, ...colour, description: "Foil highlights or colour on the top and sides. Includes toner." },
+    { id: "highlights", categoryId: "colour", name: "Full head highlights", durationMin: 150, price: 120, priceFrom: true, ...colour, description: "Foil highlights through the whole head. Includes toner." },
     { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 180, price: 150, priceFrom: true, ...colour, description: "Hand-painted, natural-looking lightening. Includes toner. Up to £180." },
   ],
   // Placeholder team until the client confirms its stylists.
@@ -79,28 +93,28 @@ export const catalog: Catalog = {
       id: "elena",
       name: "Elena",
       role: "Senior Stylist",
-      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "kids-cut", "colour-consultation", "root-colour", "full-colour", "highlights", "balayage"],
+      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "keratin", "kids-cut", "colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"],
       workingDays: [1, 2, 3, 4, 6],
     },
     {
       id: "marco",
       name: "Marco",
       role: "Colour Specialist",
-      serviceIds: ["colour-consultation", "root-colour", "full-colour", "highlights", "balayage", "blow-dry"],
+      serviceIds: ["colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage", "blow-dry", "keratin"],
       workingDays: [0, 3, 4, 5, 6],
     },
     {
       id: "aisha",
       name: "Aisha",
       role: "Stylist",
-      serviceIds: ["womens-cut", "blow-dry", "kids-cut", "mens-two-number", "mens-graded", "mens-cut"],
+      serviceIds: ["womens-cut", "blow-dry", "kids-cut", "mens-two-number", "mens-buzz", "mens-graded", "mens-cut"],
       workingDays: [0, 1, 2, 5, 6],
     },
     {
       id: "tom",
       name: "Tom",
       role: "Barber",
-      serviceIds: ["mens-two-number", "mens-graded", "mens-cut", "skin-fade", "mens-long", "beard-trim", "mens-hair-design", "kids-cut"],
+      serviceIds: ["mens-two-number", "mens-buzz", "mens-graded", "mens-cut", "skin-fade", "mens-long", "beard-trim", "mens-hair-design", "kids-cut"],
       workingDays: [1, 2, 3, 4, 6],
     },
   ],

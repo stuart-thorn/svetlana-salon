@@ -31,8 +31,8 @@ describe("resolveVisit (N&G menu)", () => {
 describe("canAdd / prune", () => {
   it("offers add-ons that fit the current visit", () => {
     const fits = (ids: string[]) => catalog.services.filter((s) => canAdd(catalog, ids, s.id)).map((s) => s.id);
-    expect(fits(["mens-cut"])).toEqual(["beard-trim", "root-colour", "full-colour", "highlights", "balayage"]);
-    expect(fits(["womens-cut"])).toEqual(["root-colour", "full-colour", "highlights", "balayage"]);
+    expect(fits(["mens-cut"])).toEqual(["beard-trim", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"]);
+    expect(fits(["womens-cut"])).toEqual(["root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"]);
     expect(fits(["full-colour"])).toContain("blow-dry");
     expect(fits(["full-colour"])).not.toContain("root-colour");
     expect(fits(["kids-cut"])).toEqual([]);

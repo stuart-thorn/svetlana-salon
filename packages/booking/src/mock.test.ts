@@ -122,7 +122,7 @@ describe("mock booking provider", () => {
     for (let n = 1; !slot && n < 14; n++) [slot] = await p.getTimeSlots((query = { ...query, date: addDays(date, n) }));
     const conf = await p.createBooking({ ...query, time: slot!.time, customer: { name: "V", email: "v@v.co", phone: "07000000000" } });
     expect(conf.serviceIds).toEqual(["full-colour", "womens-cut"]);
-    expect(conf.durationMin).toBe(180);
+    expect(conf.durationMin).toBe(135);
   });
 
   it("assigns a free stylist when booking with 'any professional'", async () => {
