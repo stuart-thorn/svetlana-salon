@@ -26,8 +26,12 @@ What this means for us:
 Status (2026-11-22): **tips are done for payments taken in the salon** (bookable-agent). Staff enter a
 tip for each stylist when they record a cash or card-machine payment, or add a tip on its own once the booking
 is paid. Finances shows total tips, split by cash and card machine, tips per stylist for payroll, and the tip
-on each payment, including in the CSV. Tips never count as takings or sales. Online tips and tip prompts on a
-Stripe card reader are parked with Stripe, and will use the same tip records.
+on each payment, including in the CSV. Tips never count as takings or sales.
+
+Status (2026-11-23): **Stripe card readers are built** (bookable-agent, design §8.8). The owner pairs a reader
+on the Payments page, and staff send the amount from a booking. The reader asks for a tip (10 / 12.5 / 15%),
+which is shared between the stylists on the booking by the price of their services, into the same per-stylist
+tip records. Still to check with a real reader: on-reader tipping in GBP. Online tips are not built yet.
 
 ### 2. Payment provider: Stripe
 
