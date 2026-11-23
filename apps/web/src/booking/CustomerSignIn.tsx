@@ -19,12 +19,15 @@ export function CustomerSignIn({
   onSignedIn,
   onSignOut,
   startOpen = false,
+  memberships = false,
 }: {
   state: CustomerState;
   onSignedIn: (s: CustomerSession) => void;
   onSignOut: () => void;
   /** Show the email box straight away (where signing in is required, not optional). */
   startOpen?: boolean;
+  /** The salon sells memberships: say signing in is how they're used. */
+  memberships?: boolean;
 }) {
   const [phase, setPhase] = useState<"closed" | "email" | "code">(startOpen ? "email" : "closed");
   const [email, setEmail] = useState("");
@@ -60,9 +63,9 @@ export function CustomerSignIn({
   if (phase === "closed") {
     return (
       <p className="text-sm text-muted">
-        Been with us before?{" "}
+        {memberships ? "Have a membership or been with us before?" : "Been with us before?"}{" "}
         <button type="button" className={linkClass} onClick={() => setPhase("email")}>
-          Sign in for faster booking
+          {memberships ? "Sign in to use your visits and book faster" : "Sign in for faster booking"}
         </button>
       </p>
     );

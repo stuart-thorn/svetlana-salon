@@ -77,7 +77,37 @@ export default function BuyPage() {
             <Spinner /> Loading…
           </p>
         )}
-        {catalog && !product && <Notice>This isn't available to buy online. Please ask in the salon.</Notice>}
+        {catalog && !product && productId && <Notice>This isn't available to buy online. Please ask in the salon.</Notice>}
+        {catalog && !productId && (
+          <>
+            <h1 className="font-serif text-3xl">Memberships and packages</h1>
+            <p className="mt-3 text-muted">Pay once, then your included visits are used automatically when you book signed in.</p>
+            {(catalog.products ?? []).length === 0 ? (
+              <div className="mt-6">
+                <Notice>Nothing is available to buy online at the moment. Please ask in the salon.</Notice>
+              </div>
+            ) : (
+              <ul className="mt-8 space-y-4">
+                {(catalog.products ?? []).map((p) => (
+                  <li key={p.id} className="rounded-2xl border border-line p-6">
+                    <p className="flex justify-between gap-4 font-medium">
+                      <span>{p.name}</span>
+                      <span>{formatPrice(p.price)}</span>
+                    </p>
+                    {p.membership && <p className="mt-1 text-sm text-muted">{productDetail(p)}</p>}
+                    {p.description && <p className="mt-2 text-sm text-muted">{p.description}</p>}
+                    <Link
+                      to={`/buy?product=${encodeURIComponent(p.id)}`}
+                      className="mt-4 inline-block rounded-full bg-ink px-5 py-2 text-sm font-medium text-white hover:bg-gold"
+                    >
+                      Buy
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
         {product && !purchase && (
           <>
             <h1 className="font-serif text-3xl">{product.name}</h1>

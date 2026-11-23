@@ -42,7 +42,7 @@ interface ApiPolicyOverrides {
   policyOverrides?: { payment?: ApiPayment };
 }
 interface ApiCatalog {
-  tenant: { name: string; policies: { payment: ApiPayment }; audiencesPrompt?: string };
+  tenant: { name: string; policies: { payment: ApiPayment }; audiencesPrompt?: string; sellsMemberships?: boolean };
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
   categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
   /** Absent from catalogues published before audiences existed. */
@@ -167,6 +167,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   return {
     salonName: api.tenant.name,
     ...(api.tenant.audiencesPrompt && { audiencesPrompt: api.tenant.audiencesPrompt }),
+    ...(api.tenant.sellsMemberships && { sellsMemberships: true }),
     categories: api.categories.map(({ id, name }) => ({ id, name })),
     audiences: (api.audiences ?? []).map(({ id, name, description }) => ({ id, name, ...(description && { description }) })),
     services: api.offerings.map((o): Service => {

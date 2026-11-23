@@ -251,12 +251,22 @@ export default function BookingPage() {
               <div className="mb-6">
                 <CustomerSignIn
                   state={customerState}
+                  memberships={!!catalog?.sellsMemberships}
                   onSignedIn={signedIn}
                   onSignOut={() => {
                     signOut();
                     setCustomer(emptyCustomer);
                   }}
                 />
+                {(catalog?.products ?? []).some((p) => p.kind === "membership") && (
+                  <p className="mt-2 text-sm text-muted">
+                    Come often?{" "}
+                    <Link to="/buy" className="underline underline-offset-2 hover:text-ink">
+                      See memberships and packages
+                    </Link>{" "}
+                    to save on your visits.
+                  </p>
+                )}
               </div>
             )}
 

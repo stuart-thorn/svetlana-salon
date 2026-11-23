@@ -68,6 +68,8 @@ export interface Catalog {
   openingHours: (OpeningHours | null)[];
   /** Memberships, packages and products the salon sells online (live booking system only). */
   products?: Product[];
+  /** The salon sells memberships or packages with included visits (online or in person). */
+  sellsMemberships?: boolean;
 }
 
 /** Something the salon sells online outside a booking: a membership, a package or a retail product. */
