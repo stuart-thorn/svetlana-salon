@@ -1,34 +1,7 @@
 import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
-import { salon } from "../data/content";
-import { Link } from "../router";
+import { Link, navigate, scrollToTop, useLocation } from "../router";
+import CalendarChoice from "./CalendarChoice";
 import { Avatar, Check, formatLongDate } from "./ui";
-
-function downloadIcs(c: BookingConfirmation, catalog: Catalog) {
-  const stamp = (date: string, time: string) => `${date.replaceAll("-", "")}T${time.replace(":", "")}00`;
-  const services = servicesById(catalog, c.serviceIds).map((s) => s.name).join(", ");
-  const stylist = catalog.stylists.find((s) => s.id === c.stylistId)?.name ?? "";
-  const ics = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    `PRODID:-//${salon.name}//Booking//EN`,
-    "BEGIN:VEVENT",
-    `UID:${c.reference}@ngcanarywharf`,
-    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
-    `DTSTART;TZID=Europe/London:${stamp(c.date, c.time)}`,
-    `DTEND;TZID=Europe/London:${stamp(c.date, c.endTime)}`,
-    `SUMMARY:${catalog.salonName}: ${services}`,
-    `DESCRIPTION:With ${stylist}. Ref ${c.reference}`,
-    `LOCATION:${salon.address.join(", ")}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${c.reference}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export default function Confirmation({
   confirmation: c,
@@ -44,6 +17,12 @@ export default function Confirmation({
   const index = catalog.stylists.findIndex((s) => s.id === c.stylistId);
   const stylist = catalog.stylists[index];
   const services = servicesById(catalog, c.serviceIds);
+  const { pathname, search } = useLocation();
+
+  if (search.get("view") === "calendar") {
+    // Only reachable from the summary below (the confirmation lives in memory), so back is always the summary.
+    return <CalendarChoice confirmation={c} catalog={catalog} onBack={() => window.history.back()} />;
+  }
 
   return (
     <div className="mx-auto max-w-lg py-6 text-center">
@@ -99,7 +78,10 @@ export default function Confirmation({
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <button
           type="button"
-          onClick={() => downloadIcs(c, catalog)}
+          onClick={() => {
+            navigate(`${pathname}?view=calendar`);
+            scrollToTop();
+          }}
           className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
         >
           Add to calendar
