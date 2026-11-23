@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { ISODate, Stylist } from "@salon/booking";
 import { parseISODate } from "@salon/booking";
 
@@ -16,6 +16,24 @@ export function Avatar({ stylist, index = 0, size = "md" }: { stylist?: Stylist;
           <path d="M16.5 14.2c2.3.2 4 1.7 4.5 4.3" />
         </svg>
       </span>
+    );
+  }
+  return <StylistAvatar stylist={stylist} index={index} dims={dims} />;
+}
+
+/** Their photo when there is one (and it loads), else their initial on a tone. Decorative: the name is beside it. */
+function StylistAvatar({ stylist, index, dims }: { stylist: Stylist; index: number; dims: string }) {
+  const [failed, setFailed] = useState<string | null>(null);
+  if (stylist.photoUrl && failed !== stylist.photoUrl) {
+    return (
+      <img
+        src={stylist.photoUrl}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        onError={() => setFailed(stylist.photoUrl!)}
+        className={`${dims} shrink-0 rounded-full bg-stone-100 object-cover`}
+      />
     );
   }
   return (

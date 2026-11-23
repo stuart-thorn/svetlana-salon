@@ -57,7 +57,7 @@ interface ApiCatalog {
     priceFrom?: boolean;
   } & ApiPolicyOverrides &
     Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup">)[];
-  providers: { id: string; name: string; title?: string }[];
+  providers: { id: string; name: string; title?: string; photoUrl?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
   products?: {
     id: string;
@@ -191,6 +191,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
       id: p.id,
       name: p.name,
       role: p.title ?? "",
+      ...(p.photoUrl && { photoUrl: p.photoUrl }),
       serviceIds: api.skills.filter((s) => s.providerId === p.id).map((s) => s.offeringId),
       // Working patterns live in the API's availability; only the mock uses this.
       workingDays: [0, 1, 2, 3, 4, 5, 6],

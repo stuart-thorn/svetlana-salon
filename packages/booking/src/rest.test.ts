@@ -52,7 +52,7 @@ describe("REST provider", () => {
             { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), policyOverrides: { payment: { kind: "none" } } },
           ],
           audiences: [{ id: "women", name: "Women's hair", description: "Cuts and colour", sortOrder: 1 }],
-          providers: [{ id: "elena", name: "Elena", title: "Senior Stylist" }],
+          providers: [{ id: "elena", name: "Elena", title: "Senior Stylist", photoUrl: "https://media.example/elena.webp" }],
           skills: [{ providerId: "elena", offeringId: "womens-cut", price: gbp(6500), durationMin: 60 }],
         },
       },
@@ -69,7 +69,7 @@ describe("REST provider", () => {
     expect(catalog.services.map((s) => s.deposit)).toEqual([undefined, { percent: 50 }, undefined]);
     // Rounded per service like the API: 50% of £33.33 = £16.67.
     expect(depositFor(catalog.services)).toBe(16.67);
-    expect(catalog.stylists[0]).toMatchObject({ id: "elena", role: "Senior Stylist", serviceIds: ["womens-cut"] });
+    expect(catalog.stylists[0]).toMatchObject({ id: "elena", role: "Senior Stylist", photoUrl: "https://media.example/elena.webp", serviceIds: ["womens-cut"] });
     expect(catalog.openingHours[0]).toEqual({ open: 600, close: 960 });
     expect(catalog.openingHours[1]).toBeNull();
   });

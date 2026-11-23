@@ -41,6 +41,8 @@ export interface Stylist {
   id: string;
   name: string;
   role: string;
+  /** Their headshot, when the salon has added one (from the booking system's catalogue). */
+  photoUrl?: string;
   serviceIds: string[];
   /** Days of week worked, 0 = Sunday … 6 = Saturday. */
   workingDays: number[];
