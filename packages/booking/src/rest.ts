@@ -96,7 +96,7 @@ interface ApiMembership {
   validFrom: string;
   validTo?: string;
   current: boolean;
-  allowances: { id: string; label: string; count: number }[];
+  allowances: { id: string; label: string; count: number; offeringIds?: string[] }[];
   remaining: Record<string, number>;
 }
 interface ApiOrder {
@@ -134,7 +134,7 @@ function toMembership(m: ApiMembership): MembershipSummary {
     validFrom: m.validFrom,
     ...(m.validTo && { validTo: m.validTo }),
     current: m.current,
-    allowances: m.allowances.map((a) => ({ label: a.label, count: a.count, left: m.remaining[a.id] ?? 0 })),
+    allowances: m.allowances.map((a) => ({ label: a.label, count: a.count, left: m.remaining[a.id] ?? 0, offeringIds: a.offeringIds ?? [] })),
   };
 }
 

@@ -7,7 +7,9 @@ import {
   servicesById,
   timeToMinutes,
   totals,
+  withMembershipVisits,
   type Catalog,
+  type MembershipSummary,
 } from "@salon/booking";
 import { salon } from "../data/content";
 import { ANY, type Draft } from "./state";
@@ -37,8 +39,8 @@ function ActionButton({ action, className = "" }: { action: CartAction; classNam
   );
 }
 
-function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
-  const services = servicesById(catalog, draft.serviceIds);
+function CartBody({ catalog, draft, memberships }: { catalog: Catalog; draft: Draft; memberships?: MembershipSummary[] }) {
+  const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
   const { durationMin, price } = totals(services);
   const stylistIndex = catalog.stylists.findIndex((s) => s.id === draft.stylist);
   const stylist = catalog.stylists[stylistIndex];
@@ -92,8 +94,13 @@ function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
                     {i > 0 && "Add-on · "}
                     {formatDuration(s.durationMin)}
                   </p>
+                  {s.included && (
+                    <p className="text-xs text-gold-dark">
+                      Included in your {s.included.membershipName} ({s.included.label})
+                    </p>
+                  )}
                 </div>
-                <p className="shrink-0">{formatServicePrice(s)}</p>
+                <p className="shrink-0">{s.included ? "Included" : formatServicePrice(s)}</p>
               </li>
             ))}
           </ul>
@@ -102,33 +109,33 @@ function CartBody({ catalog, draft }: { catalog: Catalog; draft: Draft }) {
 
       <div className="flex items-baseline justify-between border-t border-line pt-4">
         <p className="font-medium">Total</p>
-        <p className="text-lg font-medium">{services.length ? `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}` : "Free"}</p>
+        <p className="text-lg font-medium">{services.length ? (price === 0 ? formatPrice(0) : `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}`) : "Free"}</p>
       </div>
     </>
   );
 }
 
 /** Desktop: sticky side panel. */
-export function CartPanel({ catalog, draft, action }: { catalog: Catalog; draft: Draft; action?: CartAction }) {
+export function CartPanel({ catalog, draft, action, memberships }: { catalog: Catalog; draft: Draft; action?: CartAction; memberships?: MembershipSummary[] }) {
   return (
     <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
-      <CartBody catalog={catalog} draft={draft} />
+      <CartBody catalog={catalog} draft={draft} memberships={memberships} />
       {action && <ActionButton action={action} className="mt-6 w-full" />}
     </div>
   );
 }
 
 /** Mobile: fixed bottom bar with an expandable summary. */
-export function CartBar({ catalog, draft, action }: { catalog: Catalog; draft: Draft; action?: CartAction }) {
+export function CartBar({ catalog, draft, action, memberships }: { catalog: Catalog; draft: Draft; action?: CartAction; memberships?: MembershipSummary[] }) {
   const [open, setOpen] = useState(false);
-  const services = servicesById(catalog, draft.serviceIds);
+  const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
   const { durationMin, price } = totals(services);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
       {open && (
         <div className="max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-          <CartBody catalog={catalog} draft={draft} />
+          <CartBody catalog={catalog} draft={draft} memberships={memberships} />
         </div>
       )}
       <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

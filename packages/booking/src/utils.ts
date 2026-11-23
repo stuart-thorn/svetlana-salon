@@ -1,4 +1,4 @@
-import type { Catalog, ClockTime, ISODate, Service, Stylist } from "./types";
+import type { Catalog, ClockTime, ISODate, MembershipSummary, PricedService, Service, Stylist } from "./types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -52,6 +52,29 @@ export const depositFor = (services: Service[]): number =>
     const due = "percent" in s.deposit ? Math.round((pence * s.deposit.percent) / 100) : Math.min(Math.round(s.deposit.amount * 100), pence);
     return sum + due;
   }, 0) / 100;
+
+/**
+ * The basket priced for a signed-in customer: a service one of their memberships covers uses a visit and costs
+ * nothing (no deposit), as the booking API will do. Visits come from the membership ending soonest (no expiry
+ * last), one per service. The API's figures on the booking are authoritative; this is for showing them up front.
+ */
+export function withMembershipVisits(services: readonly Service[], memberships: readonly MembershipSummary[] = []): PricedService[] {
+  const usable = memberships
+    .filter((m) => m.current)
+    .sort((a, b) => (a.validTo ?? "\uffff").localeCompare(b.validTo ?? "\uffff") || a.validFrom.localeCompare(b.validFrom))
+    .map((m) => ({ name: m.name, allowances: m.allowances.map((a) => ({ ...a })) }));
+  return services.map((s) => {
+    for (const m of usable) {
+      const a = m.allowances.find((x) => x.left > 0 && x.offeringIds.includes(s.id));
+      if (a) {
+        a.left -= 1;
+        const { deposit: _deposit, ...rest } = s;
+        return { ...rest, price: 0, priceFrom: false, included: { membershipName: m.name, label: a.label } };
+      }
+    }
+    return s;
+  });
+}
 
 export const servicesById = (catalog: Catalog, ids: string[]): Service[] =>
   ids.map((id) => catalog.services.find((s) => s.id === id)).filter((s): s is Service => !!s);

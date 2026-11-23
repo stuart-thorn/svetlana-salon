@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { BookingExpiredError, PaymentsUnavailableError, SlotUnavailableError, depositFor, servicesById, totals, type BookingConfirmation, type Customer } from "@salon/booking";
+import {
+  BookingExpiredError,
+  PaymentsUnavailableError,
+  SlotUnavailableError,
+  depositFor,
+  servicesById,
+  totals,
+  withMembershipVisits,
+  type BookingConfirmation,
+  type Customer,
+} from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
 import Confirmation from "./Confirmation";
@@ -108,7 +118,9 @@ export default function BookingPage() {
     }
   };
 
-  const selected = catalog ? servicesById(catalog, draft.serviceIds) : [];
+  // Signed in: services their membership covers use a visit (free, no deposit), as the booking will.
+  const memberships = profile?.memberships;
+  const selected = catalog ? withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships) : [];
   const depositNow = depositFor(selected);
   const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
 
@@ -279,6 +291,7 @@ export default function BookingPage() {
                 audience={draft.audience}
                 selectedIds={draft.serviceIds}
                 onSelect={selectService}
+                includedIds={new Set((memberships ?? []).filter((m) => m.current).flatMap((m) => m.allowances.filter((a) => a.left > 0).flatMap((a) => a.offeringIds)))}
               />
             )}
 
@@ -336,10 +349,10 @@ export default function BookingPage() {
 
           <aside className="hidden lg:block">
             <div className="sticky top-28">
-              <CartPanel catalog={catalog} draft={draft} action={action} />
+              <CartPanel catalog={catalog} draft={draft} action={action} memberships={memberships} />
             </div>
           </aside>
-          <CartBar catalog={catalog} draft={draft} action={action} />
+          <CartBar catalog={catalog} draft={draft} action={action} memberships={memberships} />
         </div>
       )}
     </div>

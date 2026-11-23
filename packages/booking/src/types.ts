@@ -90,8 +90,12 @@ export interface MembershipSummary {
   validTo?: ISODate;
   /** In force today (false = starts later). */
   current: boolean;
-  allowances: { label: string; count: number; left: number }[];
+  /** `offeringIds`: the services a visit can be used for. */
+  allowances: { label: string; count: number; left: number; offeringIds: string[] }[];
 }
+
+/** A service in the basket, with the membership visit that will pay for it (signed-in customers). */
+export type PricedService = Service & { included?: { membershipName: string; label: string } };
 
 /** A purchase made on the site: pending until its payment goes through, then paid with its memberships. */
 export interface Purchase {

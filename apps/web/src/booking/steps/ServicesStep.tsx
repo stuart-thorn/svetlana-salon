@@ -10,6 +10,8 @@ interface Props {
   /** The visit so far, main first. */
   selectedIds: string[];
   onSelect: (id: string) => void;
+  /** Services the signed-in customer's memberships still have visits for. */
+  includedIds?: ReadonlySet<string>;
 }
 
 /**
@@ -24,14 +26,14 @@ const STATE_WORDS: Record<CardState, string> = {
   unavailable: "can't be combined with your visit",
 };
 
-function ServiceCard({ service, state, addOn, onClick }: { service: Service; state: CardState; addOn: boolean; onClick: () => void }) {
+function ServiceCard({ service, state, addOn, included, onClick }: { service: Service; state: CardState; addOn: boolean; included: boolean; onClick: () => void }) {
   const chosen = state === "chosen";
   const off = state === "unavailable";
   const meta = [
     addOn ? "Add-on" : undefined,
     formatDuration(service.durationMin),
-    formatServicePrice(service),
-    service.deposit && service.price > 0 ? "Deposit online" : undefined,
+    included ? "Included in your membership" : formatServicePrice(service),
+    !included && service.deposit && service.price > 0 ? "Deposit online" : undefined,
   ].filter(Boolean);
   return (
     <button
@@ -63,7 +65,7 @@ function ServiceCard({ service, state, addOn, onClick }: { service: Service; sta
   );
 }
 
-export default function ServicesStep({ catalog, stylist, audience, selectedIds, onSelect }: Props) {
+export default function ServicesStep({ catalog, stylist, audience, selectedIds, onSelect, includedIds }: Props) {
   const specific = stylist && stylist !== ANY ? catalog.stylists.find((s) => s.id === stylist) : undefined;
   const visible = catalog.services.filter((s) => (!specific || specific.serviceIds.includes(s.id)) && forAudience(audience, s));
 
@@ -100,6 +102,7 @@ export default function ServicesStep({ catalog, stylist, audience, selectedIds, 
                 service={s}
                 state={stateOf(s)}
                 addOn={selectedIds.indexOf(s.id) > 0 || (s.standalone === false && !selectedIds.includes(s.id))}
+                included={includedIds?.has(s.id) ?? false}
                 onClick={() => onSelect(s.id)}
               />
             </li>
