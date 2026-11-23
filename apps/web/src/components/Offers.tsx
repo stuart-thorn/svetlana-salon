@@ -31,7 +31,7 @@ export default function Offers() {
           {offers.map((o) => (
             <li
               key={o.title}
-              className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-gold bg-gold/5" : "border-line"}`}
+              className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-gold" : "border-line"}`}
             >
               {o.featured && <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-dark">Weekday off-peak</p>}
               <h3 className={`font-serif text-2xl ${o.featured ? "mt-2" : ""}`}>{o.title}</h3>
