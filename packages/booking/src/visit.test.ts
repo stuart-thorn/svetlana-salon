@@ -17,12 +17,14 @@ describe("resolveVisit (N&G menu)", () => {
     expect(resolveVisit(catalog, ["full-colour", "womens-cut", "womens-hair-design"])).toBeNull();
     expect(resolveVisit(catalog, ["root-colour", "highlights"])).toBeNull();
     expect(resolveVisit(catalog, ["womens-cut", "blow-dry"])).toBeNull();
+    // A cut & finish already includes the finish: a colour takes a cut or a blow-dry, not both.
+    expect(resolveVisit(catalog, ["balayage", "womens-cut", "blow-dry"])).toBeNull();
     expect(resolveVisit(catalog, ["colour-consultation", "full-colour"])).toBeNull();
   });
 
   it("puts the main first and add-ons after, in menu order", () => {
     expect(resolveVisit(catalog, ["womens-cut", "full-colour"])).toEqual(["full-colour", "womens-cut"]);
-    expect(resolveVisit(catalog, ["blow-dry", "womens-cut", "balayage"])).toEqual(["balayage", "womens-cut", "blow-dry"]);
+    expect(resolveVisit(catalog, ["blow-dry", "balayage"])).toEqual(["balayage", "blow-dry"]);
     expect(resolveVisit(catalog, ["beard-trim", "root-colour", "skin-fade"])).toEqual(["root-colour", "skin-fade", "beard-trim"]);
     expect(resolveVisit(catalog, ["beard-trim", "mens-cut"])).toEqual(["mens-cut", "beard-trim"]);
   });

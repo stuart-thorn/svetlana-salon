@@ -7,7 +7,7 @@ const COLOUR_DEPOSIT: Service["deposit"] = { percent: 50 };
 
 /**
  * One person's visit (see visit.ts): a main service plus add-ons. Cuts, beard trims and blow-dries can follow
- * a colour; a beard trim can follow a men's cut; one cut and one colour per visit. The consultation and patch
+ * a colour; a beard trim can follow a men's cut; one colour, and one cut or blow-dry, per visit. The consultation and patch
  * test stand alone because the patch test has to be done before the colour appointment.
  */
 const COLOUR_SERVICES = ["root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"];
@@ -56,7 +56,7 @@ export const catalog: Catalog = {
       ...cut,
     },
     { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. £70–£90.", ...womens, ...cut },
-    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 45, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves.", ...womens, addOnTo: { offeringIds: COLOUR_SERVICES } },
+    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 45, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves.", ...womens, exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } },
     {
       id: "womens-hair-design",
       categoryId: "women",
