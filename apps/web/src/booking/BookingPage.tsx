@@ -343,6 +343,7 @@ export default function BookingPage() {
                 onSubmit={submit}
                 deposit={deposit}
                 signedInEmail={signedInEmail}
+                {...(customerState.status === "signed_out" && { onSignedIn: signedIn })}
               />
             )}
           </main>

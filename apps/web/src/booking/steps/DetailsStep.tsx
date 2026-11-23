@@ -1,5 +1,7 @@
-import type { FormEvent } from "react";
-import { formatPrice, type Customer } from "@salon/booking";
+import { useState, type FormEvent } from "react";
+import { CodeError, formatPrice, type Customer, type CustomerSession } from "@salon/booking";
+import { customerAuth } from "../provider";
+import { Spinner } from "../ui";
 
 export type CustomerErrors = Partial<Record<keyof Customer, string>>;
 
@@ -22,6 +24,8 @@ interface Props {
   deposit?: { now: number; atSalon: number };
   /** A signed-in customer books in the email they proved, so it can't be changed here. */
   signedInEmail?: string;
+  /** Not signed in, where sign-in is offered: confirming the typed email here signs them in. */
+  onSignedIn?: (s: CustomerSession) => void;
 }
 
 const inputClass =
@@ -33,7 +37,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, onSignedIn }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -59,6 +63,7 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
             className={inputClass}
           />
           {f.key === "email" && signedInEmail && <p className="mt-1 text-xs text-muted">You're signed in with this email.</p>}
+          {f.key === "email" && !signedInEmail && onSignedIn && customerAuth && <ConfirmEmail email={value.email} onSignedIn={onSignedIn} />}
           {errors[f.key] && (
             <p id={`customer-${f.key}-error`} className="mt-1 text-xs text-red-600">
               {errors[f.key]}
@@ -90,5 +95,112 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
         .
       </p>
     </form>
+  );
+}
+
+const linkClass = "underline underline-offset-2 hover:text-ink";
+
+/**
+ * "Got a membership or been with us before? Confirm this email": signs them in with a code sent to the email
+ * they typed, without leaving the form, so their membership visits and details apply. The same offer for
+ * everyone: it never reveals whether an email belongs to a member.
+ */
+function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: CustomerSession) => void }) {
+  const [phase, setPhase] = useState<"offer" | "code">("offer");
+  const [sentTo, setSentTo] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const auth = customerAuth!;
+  const valid = /^\S+@\S+\.\S+$/.test(email.trim());
+
+  const run = async (work: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await work();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const send = () =>
+    run(async () => {
+      await auth.sendCode(email.trim());
+      setSentTo(email.trim());
+      setCode("");
+      setNote(null);
+      setPhase("code");
+    });
+  const verify = () =>
+    run(async () => {
+      try {
+        const result = await auth.verifyCode(code);
+        if (result === "code_sent") {
+          setCode("");
+          setNote("Thanks, your email is confirmed. We've sent one more code to sign you in.");
+        } else onSignedIn(result);
+      } catch (err) {
+        if (err instanceof CodeError) setCode("");
+        throw err;
+      }
+    });
+
+  // The email changed after the code was sent: start again.
+  if (phase === "code" && sentTo !== email.trim()) setPhase("offer");
+
+  return (
+    <div className="mt-2 text-xs text-muted">
+      {phase === "offer" ? (
+        <p>
+          Got a membership or been with us before?{" "}
+          <button type="button" className={linkClass} disabled={busy || !valid} onClick={() => void send()}>
+            {busy ? "Sending a code…" : "Confirm this email"}
+          </button>{" "}
+          to use your visits and fill in your details.
+        </p>
+      ) : (
+        <div className="space-y-2 rounded-xl border border-line p-3">
+          <p role="status">{note ?? `We've sent a 6-digit code to ${sentTo}. It may take a minute to arrive.`}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              aria-label="Code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={8}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => {
+                // Inside the booking form: Enter confirms the code, not the booking.
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (code.replace(/\D/g, "").length >= 6) void verify();
+                }
+              }}
+              className="w-32 rounded-lg border border-line px-3 py-2 text-sm tracking-widest outline-none focus:border-gold"
+              autoFocus
+            />
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-medium text-white disabled:opacity-50"
+              disabled={busy || code.replace(/\D/g, "").length < 6}
+              onClick={() => void verify()}
+            >
+              {busy && <Spinner />} Confirm
+            </button>
+            <button type="button" className={linkClass} onClick={() => void send()} disabled={busy}>
+              Resend
+            </button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-1 text-red-700">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
