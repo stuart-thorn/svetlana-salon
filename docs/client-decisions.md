@@ -2,6 +2,53 @@
 
 Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 
+## 2026-11-23: contact, hours, menu, offers, company details
+
+Two emails from Svetlana, plus a table of the men's memberships. The full breakdown and the platform gaps are
+in bookable-agent's `docs/clients/ng-canary-wharf.md`.
+
+- **Contact.** Phone 020 7512 9890 (being transferred through the liquidator). Email: she wants a mailbox on
+  the domain, e.g. **info@ngcanarywharf.co.uk**, on her phone and linked to the POS. The site now shows
+  info@ (it replaces hello@). Link Instagram (handle still to come); Google Business Profile later.
+- **Address.** Lead with the **Mezzanine Floor**, not the unit number. Directions: main central hall of
+  Jubilee Place, behind Café Brera, near Starbucks and Pret, up the escalator from the main walkway; not
+  the passage by Wagamama.
+- **Hours.** Mon–Fri 08:00–19:00, Thu/Fri possibly to 20:00. Bank holidays usually 11:00–18:00. Longer hours
+  over Christmas (to about 20:00/20:30), to be confirmed. Weekends weren't restated, so the site keeps
+  Sat–Sun 10:00–18:00 and "Open 7 days" until she confirms.
+- **Positioning.** "Family Hair Salon": warm, clear, easy to read. Highlight precision Asian hair styling and
+  technical cutting (chopping, texturing, thinning, crops), and cuts from a reference photo.
+- **Menu.** One price tier for all stylists. Women's cut & finish from £70 (£70–£90 by length and thickness);
+  blow-dry from £40 (to £55); colour / regrowth from £70 (about 30 min applying, then 40–45 min developing);
+  balayage from £180 (2.5 h or more); Nanoplasty (organic, formaldehyde-free smoothing) from £250, replacing
+  keratin; deep treatment from £40 (to £50, about 30 min); Personalised Hair Design & Cut from £45 men / £75
+  women, price agreed in advance.
+- **Deposit.** 50% of the "from" price on online bookings. Extra work, toner or product is agreed with the
+  client and paid in the salon. Applied to colour, highlights and Nanoplasty (assumed, to confirm).
+- **Patch test.** Ideally 48 hours before colour, at least 24 hours. For an urgent booking, a client who has
+  had colour before can sign a waiver.
+- **Offers.**
+  - Blow-dry package: £180 for 4, the 5th free, no expiry.
+  - Men's haircut memberships, men's cuts only, one payment upfront (no Direct Debit), unused visits expire at
+    the end of the term, Wallet pass with QR check-in:
+    Junior 3 months, 5 visits (3 full cuts + 2 back & sides), £162;
+    Executive 6 months, 10 visits (6 + 4), £306;
+    Founder 12 months, 20 visits (12 + 8), £576.
+  - Family Visit: 15% off for 3 or more family members on the same day, not combined with other discounts.
+  - Student offer (to highlight): 10% off haircuts Mon–Fri 14:00–17:00 with a valid student ID, not combined
+    with other discounts or memberships.
+- **Footer.** N&G CANARY WHARF LTD, company number 17349131, registered office 124–128 City Road, London
+  EC1V 2NX.
+- **Privacy.** Retention agreed: client records 2 years after the last visit, payment records 6 years (the
+  privacy page already says this).
+- **Domain.** She will switch the 123-reg nameservers to Route 53 when ready to go live.
+- **Email.** Still to choose a provider (Google Workspace or Microsoft 365 suit a phone and most POS
+  systems). Once chosen, add its MX, SPF, DKIM and DMARC records to `infra/dns.yml`.
+
+Open with Svetlana: weekend hours, the Instagram handle, which menu items are "full haircut" and "back &
+sides", which services take a deposit, the unlisted colour services and prices, whether Junior is for
+children, and the email provider.
+
 ## 2026-11-22: payments, payment provider, domain
 
 ### 1. Payment flow and stylist payouts
@@ -71,7 +118,7 @@ Status (2026-11-22):
 - Ready to deploy (README, "Custom domain"): the certificate stack (`infra/cert.yml`, us-east-1), and the
   domain, alias records and apex → `www` redirect in `infra/site.yml`. These are waiting for Svetlana to switch
   the nameservers.
-- Open: **hello@ngcanarywharf.co.uk, shown on the site, has no mailbox.** The domain has no MX records yet. Ask
+- Open: **the email shown on the site (now info@ngcanarywharf.co.uk, 23 Nov) has no mailbox.** The domain has no MX records yet. Ask
   Svetlana which email provider she wants (Google Workspace, Microsoft 365 or 123-reg email), then add its MX
   and SPF records in Route 53.
 - Open: when production moves from demo mode to the live booking API, add `https://www.ngcanarywharf.co.uk`

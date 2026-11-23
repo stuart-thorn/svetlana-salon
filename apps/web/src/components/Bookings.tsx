@@ -42,8 +42,9 @@ export default function Bookings() {
               </div>
             ))}
             <p className="text-xs leading-relaxed text-muted">
-              Indicative prices, subject to the final launch menu. "From" prices depend on hair length and the
-              time needed, and are confirmed at your consultation.
+              Indicative prices, subject to the final launch menu. "From" prices depend on hair length, thickness
+              and the time needed, and are confirmed at your consultation. Colour needs a patch test at least 24
+              hours before (ideally 48).
             </p>
           </div>
 
@@ -89,7 +90,8 @@ export default function Bookings() {
                 </Link>
               )}
               <p className="mt-3 text-center text-xs text-muted">
-                Colour and highlights need a 50% deposit online. Everything else is paid in the salon.
+                Colour, highlights and Nanoplasty need a deposit online: 50% of the starting price. Any extra work or
+                toner is agreed with you and paid in the salon, as is everything else.
               </p>
             </div>
           </div>

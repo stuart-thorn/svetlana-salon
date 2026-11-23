@@ -7,12 +7,16 @@ const highlights = [
     text: "Precision men's grooming and fades, women's cutting and blow-dries, and relaxed children's cuts, all under one roof.",
   },
   {
+    title: "Precision cutting, including Asian hair",
+    text: "Our stylists are experienced in precision Asian hair styling and technical techniques: chopping, texturing, thinning and crops. Not sure how to describe the cut? Bring a photo or a celebrity look and we'll tailor it to suit you.",
+  },
+  {
     title: "Technical colour",
-    text: "Colour, highlights and balayage from specialists, starting with a consultation and patch test.",
+    text: "Colour, highlights, balayage and Nanoplasty smoothing, starting with a consultation and a patch test at least 24 hours before.",
   },
   {
     title: "Personalised Hair Design & Cut",
-    text: "A consultation-led cut designed around your hair, face shape and routine.",
+    text: "A tailored consultation and a bespoke cut designed around your face shape, hair texture and lifestyle.",
   },
   {
     title: "Right in Canary Wharf",

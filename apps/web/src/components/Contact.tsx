@@ -21,6 +21,7 @@ export default function Contact() {
                   </span>
                 ))}
               </address>
+              <p className="mt-3 text-sm leading-relaxed text-muted">{salon.directions}</p>
               <p className="mt-2 text-xs text-muted">Opening soon. {salon.launchNote}</p>
             </div>
             <div>
@@ -32,6 +33,11 @@ export default function Contact() {
                 <a href={`mailto:${salon.email}`} className="block break-all hover:text-gold">
                   {salon.email}
                 </a>
+                {salon.instagram && (
+                  <a href={salon.instagram} className="block hover:text-gold" target="_blank" rel="noreferrer">
+                    Instagram
+                  </a>
+                )}
               </p>
             </div>
             <div className="sm:col-span-2 lg:col-span-1">

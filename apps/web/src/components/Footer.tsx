@@ -29,6 +29,10 @@ export default function Footer() {
           </Link>
         </p>
       </div>
+      <p className="mx-auto max-w-6xl px-4 pb-2 text-xs text-muted/80 sm:px-6">
+        {salon.company.name}. Registered in England and Wales, company number {salon.company.number}. Registered
+        office: {salon.company.registeredOffice}.
+      </p>
       <p className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted/80 sm:px-6">
         Photos via Unsplash:{" "}
         {credits.map(([name, url], i) => (

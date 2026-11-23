@@ -49,10 +49,11 @@ describe("mock booking provider", () => {
     const slots = await p.getTimeSlots({ date, stylistId: "elena", serviceIds: ["balayage"] });
     const close = catalog.openingHours[dayOfWeek(date)]!.close;
     const busy = p.busyIntervals("elena", date);
+    const duration = catalog.services.find((s) => s.id === "balayage")!.durationMin;
     for (const s of slots) {
       const start = timeToMinutes(s.time);
-      expect(start + 180).toBeLessThanOrEqual(close);
-      expect(busy.some((b) => b.start < start + 180 && start < b.end)).toBe(false);
+      expect(start + duration).toBeLessThanOrEqual(close);
+      expect(busy.some((b) => b.start < start + duration && start < b.end)).toBe(false);
     }
   });
 
@@ -139,7 +140,7 @@ describe("mock booking provider", () => {
     const query = { date, stylistId: "marco", serviceIds: ["balayage"] };
     const [slot] = await p.getTimeSlots(query);
     const pending = await p.createBooking({ ...query, time: slot!.time, customer: { name: "D", email: "d@d.co", phone: "07000000000" } });
-    expect(pending).toMatchObject({ status: "pending_payment", total: 150, deposit: { now: 75, atSalon: 75, paid: false } });
+    expect(pending).toMatchObject({ status: "pending_payment", total: 180, deposit: { now: 90, atSalon: 90, paid: false } });
     expect(pending.expiresAt).toBeDefined();
     expect((await p.getTimeSlots(query)).find((s) => s.time === slot!.time)).toBeUndefined();
 

@@ -2,8 +2,8 @@ import type { Catalog, Service } from "./types";
 
 const h = (hours: number, minutes = 0) => hours * 60 + minutes;
 
-/** Complex technical colour and highlights take a 50% deposit online (client brief, Nov 2026). */
-const COLOUR_DEPOSIT: Service["deposit"] = { percent: 50 };
+/** Colour, highlights and Nanoplasty take 50% of the "from" price online; extras are paid in the salon (client, 23 Nov 2026). */
+const DEPOSIT: Service["deposit"] = { percent: 50 };
 
 /**
  * One person's visit (see visit.ts): a main service plus add-ons. Cuts, beard trims and blow-dries can follow
@@ -15,13 +15,15 @@ const mens = { audienceIds: ["men"] };
 const womens = { audienceIds: ["women"] };
 const adults = { audienceIds: ["men", "women"] };
 const cut = { exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } };
-const colour = { ...adults, exclusiveGroup: "colour", deposit: COLOUR_DEPOSIT };
+const colour = { ...adults, exclusiveGroup: "colour", deposit: DEPOSIT };
+const designDescription =
+  "A tailored consultation and a bespoke cut designed around your face shape, head shape, hair texture, density, natural growth and lifestyle. The final price is agreed in advance.";
 
 /**
- * N&G Canary Wharf's indicative launch menu, subject to final confirmation.
- * Mirrored in bookable-agent's seed (infra/local/src/fixtures/canary-wharf-salon.ts): keep them in step.
- * Durations are the client's chair times (Nov 2026); ranges are booked at their upper end. Prices for the beard
- * trim, consultation, buzz cut, T-section, half head highlights and keratin smoothing are placeholders.
+ * N&G Canary Wharf's launch menu (prices updated 23 Nov 2026), subject to final confirmation.
+ * Mirrored in bookable-agent's salon template (packages/templates/src/salon.ts): keep them in step.
+ * Durations are the client's chair times; ranges are booked at their upper end. Prices for the beard trim,
+ * consultation, buzz cut, full head colour, T-section and half/full head highlights are still unconfirmed.
  */
 export const catalog: Catalog = {
   salonName: "N&G Canary Wharf",
@@ -51,12 +53,12 @@ export const catalog: Catalog = {
       durationMin: 60,
       price: 45,
       priceFrom: true,
-      description: "A consultation-led cut designed around your hair, face shape and routine.",
+      description: designDescription,
       ...mens,
       ...cut,
     },
-    { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. £70–£90.", ...womens, ...cut },
-    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 45, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves.", ...womens, exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } },
+    { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. From £70, depending on hair length and thickness.", ...womens, ...cut },
+    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 40, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves. £40 for shorter hair up to £55 for longer hair.", ...womens, exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } },
     {
       id: "womens-hair-design",
       categoryId: "women",
@@ -64,28 +66,30 @@ export const catalog: Catalog = {
       durationMin: 90,
       price: 75,
       priceFrom: true,
-      description: "An in-depth consultation and a cut designed around your hair, face shape and routine.",
+      description: designDescription,
       ...womens,
       ...cut,
     },
     {
-      id: "keratin",
+      id: "nanoplasty",
       categoryId: "women",
-      name: "Keratin smoothing",
+      name: "Nanoplasty smoothing",
       durationMin: 180,
-      price: 150,
+      price: 250,
       priceFrom: true,
-      description: "Smoothing and straightening treatment. Up to 3 hours, depending on hair length.",
+      description: "Organic, formaldehyde-free smoothing. 3 hours or more, depending on hair length and thickness.",
+      deposit: DEPOSIT,
       ...womens,
     },
+    { id: "deep-treatment", categoryId: "women", name: "Deep treatment", durationMin: 30, price: 40, priceFrom: true, description: "An intensive conditioning treatment. £40 for shorter hair up to £50 for longer hair.", ...womens },
     { id: "kids-cut", categoryId: "children", name: "Children's haircut", durationMin: 30, price: 30, priceFrom: true, audienceIds: ["children"], exclusiveGroup: "haircut" },
-    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Recommended before your first colour appointment.", ...adults },
-    { id: "root-colour", categoryId: "colour", name: "Root colour", durationMin: 90, price: 70, priceFrom: true, ...colour },
+    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Needed at least 24 hours (ideally 48) before your first colour appointment.", ...adults },
+    { id: "root-colour", categoryId: "colour", name: "Colour / regrowth", durationMin: 75, price: 70, priceFrom: true, ...colour, description: "About 30 minutes applying, then 40–45 minutes developing." },
     { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 75, price: 95, priceFrom: true, ...colour },
     { id: "t-section", categoryId: "colour", name: "T-section highlights", durationMin: 30, price: 60, priceFrom: true, ...colour, description: "Highlights along the parting and hairline. Includes toner." },
     { id: "half-highlights", categoryId: "colour", name: "Half head highlights / colour", durationMin: 60, price: 90, priceFrom: true, ...colour, description: "Foil highlights or colour on the top and sides. Includes toner." },
     { id: "highlights", categoryId: "colour", name: "Full head highlights", durationMin: 150, price: 120, priceFrom: true, ...colour, description: "Foil highlights through the whole head. Includes toner." },
-    { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 180, price: 150, priceFrom: true, ...colour, description: "Hand-painted, natural-looking lightening. Includes toner. Up to £180." },
+    { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 150, price: 180, priceFrom: true, ...colour, description: "Hand-painted, natural-looking lightening. Includes toner. About 2.5 hours or more." },
   ],
   // Placeholder team until the client confirms its stylists.
   stylists: [
@@ -93,14 +97,14 @@ export const catalog: Catalog = {
       id: "elena",
       name: "Elena",
       role: "Senior Stylist",
-      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "keratin", "kids-cut", "colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"],
+      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "nanoplasty", "deep-treatment", "kids-cut", "colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"],
       workingDays: [1, 2, 3, 4, 6],
     },
     {
       id: "marco",
       name: "Marco",
       role: "Colour Specialist",
-      serviceIds: ["colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage", "blow-dry", "keratin"],
+      serviceIds: ["colour-consultation", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage", "blow-dry", "nanoplasty", "deep-treatment"],
       workingDays: [0, 3, 4, 5, 6],
     },
     {
