@@ -64,6 +64,46 @@ export interface Catalog {
   stylists: Stylist[];
   /** Indexed by day of week, 0 = Sunday. `null` = closed. */
   openingHours: (OpeningHours | null)[];
+  /** Memberships, packages and products the salon sells online (live booking system only). */
+  products?: Product[];
+}
+
+/** Something the salon sells online outside a booking: a membership, a package or a retail product. */
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  kind: "membership" | "retail";
+  /** In pounds. */
+  price: number;
+  /** For memberships: the term, the tier and the visits included. */
+  membership?: { termMonths?: number; tier?: string; allowances: { id: string; label: string; count: number }[] };
+}
+
+/** One of the signed-in customer's memberships, with the visits they have left. */
+export interface MembershipSummary {
+  id: string;
+  name: string;
+  tier?: string;
+  validFrom: ISODate;
+  /** Last day it can be used. Absent = no expiry. */
+  validTo?: ISODate;
+  /** In force today (false = starts later). */
+  current: boolean;
+  allowances: { label: string; count: number; left: number }[];
+}
+
+/** A purchase made on the site: pending until its payment goes through, then paid with its memberships. */
+export interface Purchase {
+  orderId: string;
+  reference: string;
+  status: "pending_payment" | "part_paid" | "paid" | "cancelled" | "refunded";
+  /** In pounds. */
+  total: number;
+  lines: { name: string; quantity: number }[];
+  memberships: MembershipSummary[];
+  /** While pending: how to pay. */
+  payment?: OnlinePayment;
 }
 
 /** "closed" = salon closed, outside the booking window, or no suitable professional working. */
@@ -171,6 +211,8 @@ export interface CustomerProfile {
     phone?: string;
     lastVisit?: { date: ISODate; stylistId?: string; stylistName?: string; services: string[]; serviceIds: string[] };
   };
+  /** Their memberships in force or still to come. */
+  memberships?: MembershipSummary[];
 }
 
 export interface BookingProvider {
@@ -184,4 +226,10 @@ export interface BookingProvider {
   getBookingStatus?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
   /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
   getCustomerProfile?(): Promise<CustomerProfile>;
+  /** The signed-in customer buys products (pending until paid). Absent where buying online isn't offered. */
+  buyProducts?(request: { lines: { productId: string; quantity: number }[]; customer: { name: string; email: string; phone?: string } }): Promise<Purchase>;
+  /** A purchase as it stands now (after paying, until the payment has gone through). */
+  getPurchase?(purchase: Purchase): Promise<Purchase>;
+  /** Test mode only: completes a purchase's payment without taking money. */
+  completeSimulatedPurchase?(purchase: Purchase): Promise<Purchase>;
 }

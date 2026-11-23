@@ -12,6 +12,7 @@ import StickyBookBar from "./components/StickyBookBar";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
 const Privacy = lazy(() => import("./components/Privacy"));
+const BuyPage = lazy(() => import("./booking/BuyPage"));
 
 export default function App() {
   const { pathname } = useLocation();
@@ -27,6 +28,14 @@ export default function App() {
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <Privacy />
         <Footer />
+      </Suspense>
+    );
+  }
+
+  if (pathname === "/buy" && !isPrelaunch) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <BuyPage />
       </Suspense>
     );
   }

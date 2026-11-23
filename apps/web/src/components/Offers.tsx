@@ -1,4 +1,33 @@
-import { memberships, offers, salon } from "../data/content";
+import { useEffect, useState } from "react";
+import type { Product } from "@salon/booking";
+import { isPrelaunch, memberships, offers, salon } from "../data/content";
+import { provider } from "../booking/provider";
+import { Link } from "../router";
+
+/**
+ * Memberships the live booking system sells online, so a tier can show "Buy online". None in demo or
+ * pre-launch mode, or when the salon sells them only in person.
+ */
+function useOnlineMemberships(): Product[] {
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    if (isPrelaunch || !provider.buyProducts) return;
+    let cancelled = false;
+    provider.getCatalog().then(
+      (c) => !cancelled && setProducts((c.products ?? []).filter((p) => p.kind === "membership")),
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return products;
+}
+
+/** The product for a tier: by its tier name, else a product named after it. */
+const productFor = (products: readonly Product[], tier: string) =>
+  products.find((p) => p.membership?.tier?.toLowerCase() === tier.toLowerCase()) ??
+  products.find((p) => p.name.toLowerCase().startsWith(tier.toLowerCase()));
 
 const gbp = (pounds: number) => `£${pounds}`;
 
@@ -16,6 +45,7 @@ function Bullets({ items }: { items: string[] }) {
 }
 
 export default function Offers() {
+  const online = useOnlineMemberships();
   return (
     <section id="offers" className="py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -69,6 +99,14 @@ export default function Offers() {
                       <span className="block text-xs text-gold-dark">
                         {t.discount}% off, save {gbp(t.standard - t.price)}
                       </span>
+                      {productFor(online, t.name) && (
+                        <Link
+                          to={`/buy?product=${encodeURIComponent(productFor(online, t.name)!.id)}`}
+                          className="mt-2 inline-block rounded-full bg-ink px-4 py-1.5 text-xs font-medium text-white hover:bg-gold"
+                        >
+                          Buy online
+                        </Link>
+                      )}
                     </td>
                   </tr>
                 ))}

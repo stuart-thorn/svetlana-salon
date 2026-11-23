@@ -198,3 +198,63 @@ describe("REST provider", () => {
     });
   });
 });
+
+describe("memberships and purchases", () => {
+  const gbp = (amount: number) => ({ amount, currency: "GBP" });
+  const order = (status: string) => ({
+    id: "ord_1",
+    reference: "NGC-ABC123",
+    status,
+    lines: [{ productId: "junior", name: "Junior membership", quantity: 1, price: gbp(16200) }],
+    total: gbp(16200),
+    memberships:
+      status === "paid"
+        ? [
+            {
+              id: "mem_1",
+              name: "Junior membership",
+              tier: "Junior",
+              status: "active",
+              validFrom: "2026-11-24",
+              validTo: "2027-02-23",
+              current: true,
+              allowances: [
+                { id: "full-cut", label: "Full haircut", offeringIds: ["mens-cut"], count: 3 },
+                { id: "back-sides", label: "Back & sides", offeringIds: ["mens-graded"], count: 2 },
+              ],
+              remaining: { "full-cut": 2, "back-sides": 2 },
+            },
+          ]
+        : [],
+    payment: status === "pending_payment" ? { clientAction: { kind: "simulated" } } : null,
+  });
+
+  it("buys signed in, then reads the purchase with its membership's visits left", async () => {
+    const calls: { url: string; init?: RequestInit }[] = [];
+    const responses = [order("pending_payment"), { ok: true }, order("paid")];
+    const p = createRestProvider({
+      baseUrl: "https://api.example/v1",
+      apiKey: "pk_test_x",
+      locationId: "loc",
+      customerToken: () => "token",
+      fetch: async (url, init) => {
+        calls.push({ url: String(url), init });
+        return new Response(JSON.stringify(responses.shift()), { status: 200 });
+      },
+    });
+    const pending = await p.buyProducts({ lines: [{ productId: "junior", quantity: 1 }], customer: { name: "Raj", email: "raj@example.com" } });
+    expect(pending).toMatchObject({ orderId: "ord_1", status: "pending_payment", total: 162, payment: { kind: "simulated" } });
+    expect(calls[0]).toMatchObject({ url: "https://api.example/v1/me/orders", init: { method: "POST", headers: { Authorization: "Bearer token" } } });
+
+    const paid = await p.completeSimulatedPurchase(pending);
+    expect(paid.status).toBe("paid");
+    expect(paid.memberships[0]).toMatchObject({
+      name: "Junior membership",
+      current: true,
+      allowances: [
+        { label: "Full haircut", count: 3, left: 2 },
+        { label: "Back & sides", count: 2, left: 2 },
+      ],
+    });
+  });
+});

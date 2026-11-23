@@ -10,7 +10,10 @@ import {
   type CustomerProfile,
   type DayAvailability,
   type OnlinePayment,
+  type MembershipSummary,
   type OpeningHours,
+  type Product,
+  type Purchase,
   type Service,
 } from "./types";
 import { timeToMinutes } from "./utils";
@@ -56,6 +59,14 @@ interface ApiCatalog {
     Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup">)[];
   providers: { id: string; name: string; title?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
+  products?: {
+    id: string;
+    name: string;
+    description?: string;
+    kind: "membership" | "retail";
+    price: ApiMoney;
+    membership?: { termMonths?: number; tier?: string; allowances?: { id: string; label: string; count: number }[] };
+  }[];
 }
 interface ApiBooking {
   id: string;
@@ -78,7 +89,27 @@ interface ApiBooking {
     | { kind: string }
     | null;
 }
+interface ApiMembership {
+  id: string;
+  name: string;
+  tier?: string;
+  validFrom: string;
+  validTo?: string;
+  current: boolean;
+  allowances: { id: string; label: string; count: number }[];
+  remaining: Record<string, number>;
+}
+interface ApiOrder {
+  id: string;
+  reference: string;
+  status: Purchase["status"];
+  lines: { name: string; quantity: number }[];
+  total: ApiMoney;
+  memberships: ApiMembership[];
+  payment: { clientAction: NonNullable<ApiBooking["payment"]> } | null;
+}
 interface ApiCustomerProfile {
+  memberships?: ApiMembership[];
   email: string;
   customer?: {
     name: string;
@@ -94,6 +125,30 @@ interface ApiProblem {
 }
 
 const pounds = (m: ApiMoney) => m.amount / 100;
+
+function toMembership(m: ApiMembership): MembershipSummary {
+  return {
+    id: m.id,
+    name: m.name,
+    ...(m.tier && { tier: m.tier }),
+    validFrom: m.validFrom,
+    ...(m.validTo && { validTo: m.validTo }),
+    current: m.current,
+    allowances: m.allowances.map((a) => ({ label: a.label, count: a.count, left: m.remaining[a.id] ?? 0 })),
+  };
+}
+
+export function toPurchase(o: ApiOrder): Purchase {
+  return {
+    orderId: o.id,
+    reference: o.reference,
+    status: o.status,
+    total: pounds(o.total),
+    lines: o.lines.map((l) => ({ name: l.name, quantity: l.quantity })),
+    memberships: o.memberships.map(toMembership),
+    ...(o.status === "pending_payment" && o.payment && { payment: toOnlinePayment(o.payment.clientAction) }),
+  };
+}
 
 /** What is paid online for a service: offering override, else category override, else tenant default. */
 function depositOf(payment: ApiPayment): Service["deposit"] {
@@ -141,6 +196,24 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
       workingDays: [0, 1, 2, 3, 4, 5, 6],
     })),
     openingHours,
+    ...(api.products?.length && {
+      products: api.products.map(
+        (p): Product => ({
+          id: p.id,
+          name: p.name,
+          ...(p.description && { description: p.description }),
+          kind: p.kind,
+          price: pounds(p.price),
+          ...(p.membership && {
+            membership: {
+              ...(p.membership.termMonths && { termMonths: p.membership.termMonths }),
+              ...(p.membership.tier && { tier: p.membership.tier }),
+              allowances: (p.membership.allowances ?? []).map(({ id, label, count }) => ({ id, label, count })),
+            },
+          }),
+        }),
+      ),
+    }),
   };
 }
 
@@ -173,7 +246,7 @@ function toOnlinePayment(p: NonNullable<ApiBooking["payment"]>): OnlinePayment {
 }
 
 export function createRestProvider(options: RestProviderOptions): BookingProvider &
-  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile" | "getBookingStatus">> {
+  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile" | "getBookingStatus" | "buyProducts" | "getPurchase" | "completeSimulatedPurchase">> {
   const { baseUrl, apiKey, locationId, customerToken } = options;
   const signedIn = (): Record<string, string> => {
     const token = customerToken?.();
@@ -262,7 +335,23 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
             }),
           },
         }),
+        ...(p.memberships?.length && { memberships: p.memberships.map(toMembership) }),
       };
+    },
+
+    buyProducts: async (request) => {
+      const body = JSON.stringify({ lines: request.lines, customer: request.customer });
+      return toPurchase(
+        await call<ApiOrder>("/me/orders", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
+      );
+    },
+
+    getPurchase: async (p) =>
+      toPurchase(await call<ApiOrder>(`/me/orders/${encodeURIComponent(p.orderId)}`, { headers: signedIn(), cache: "no-store" })),
+
+    completeSimulatedPurchase: async (p) => {
+      await call<{ ok: boolean }>(`/orders/${encodeURIComponent(p.orderId)}/simulate-payment`, { method: "POST" });
+      return toPurchase(await call<ApiOrder>(`/me/orders/${encodeURIComponent(p.orderId)}`, { headers: signedIn(), cache: "no-store" }));
     },
 
     getBookingStatus: async (c) => {

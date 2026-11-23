@@ -3,6 +3,7 @@ import { CodeError, type CustomerSession } from "@salon/booking";
 import type { CustomerState } from "./customer";
 import { customerAuth } from "./provider";
 import { Spinner } from "./ui";
+import { visitsText } from "./memberships";
 
 const inputClass =
   "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-gold sm:text-sm";
@@ -13,8 +14,19 @@ const linkClass = "underline underline-offset-2 hover:text-ink";
  * "Been with us before?": an optional sign-in with a code sent by email, so the booking can suggest who they
  * saw last and fill in their details. Signed in, it says who they are, with a way out.
  */
-export function CustomerSignIn({ state, onSignedIn, onSignOut }: { state: CustomerState; onSignedIn: (s: CustomerSession) => void; onSignOut: () => void }) {
-  const [phase, setPhase] = useState<"closed" | "email" | "code">("closed");
+export function CustomerSignIn({
+  state,
+  onSignedIn,
+  onSignOut,
+  startOpen = false,
+}: {
+  state: CustomerState;
+  onSignedIn: (s: CustomerSession) => void;
+  onSignOut: () => void;
+  /** Show the email box straight away (where signing in is required, not optional). */
+  startOpen?: boolean;
+}) {
+  const [phase, setPhase] = useState<"closed" | "email" | "code">(startOpen ? "email" : "closed");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,14 +38,22 @@ export function CustomerSignIn({ state, onSignedIn, onSignOut }: { state: Custom
 
   if (state.status === "signed_in") {
     const first = state.profile?.customer?.firstName ?? state.profile?.customer?.name.split(" ")[0];
+    const memberships = (state.profile?.memberships ?? []).filter((m) => m.current && m.allowances.length > 0);
     return (
-      <p className="text-sm text-muted">
-        {first ? `Welcome back, ${first}. ` : "Signed in. "}
-        You're booking as <span className="text-ink">{state.session.email}</span>.{" "}
-        <button type="button" className={linkClass} onClick={onSignOut}>
-          Not you?
-        </button>
-      </p>
+      <div className="text-sm text-muted">
+        <p>
+          {first ? `Welcome back, ${first}. ` : "Signed in. "}
+          You're booking as <span className="text-ink">{state.session.email}</span>.{" "}
+          <button type="button" className={linkClass} onClick={onSignOut}>
+            Not you?
+          </button>
+        </p>
+        {memberships.map((m) => (
+          <p key={m.id} className="mt-1 text-ink">
+            Your {m.name}: {visitsText(m)}. Visits are used automatically for the services they cover.
+          </p>
+        ))}
+      </div>
     );
   }
 
