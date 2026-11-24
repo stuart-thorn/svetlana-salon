@@ -22,13 +22,42 @@ const shiftMonth = (m: ISODate, by: number) => {
 };
 const monthEnd = (m: ISODate) => addDays(shiftMonth(m, 1), -1);
 
+const MAX_ROWS = 6;
+
+const mondayIndex = (d: ISODate) => (parseISODate(d).getDay() + 6) % 7;
+
+/**
+ * The dates on a month's page. The current month's page has today's week on its top row and runs on into next
+ * month, to the end of it or to the sixth row; other months are shown whole.
+ */
+function pageRange(month: ISODate, today: ISODate): { first: ISODate; last: ISODate } {
+  if (month !== monthStart(today)) return { first: month, last: monthEnd(month) };
+  const monday = addDays(today, -mondayIndex(today));
+  const lastCell = addDays(monday, MAX_ROWS * 7 - 1);
+  const nextEnd = monthEnd(shiftMonth(month, 1));
+  return { first: monday < month ? month : monday, last: lastCell < nextEnd ? lastCell : nextEnd };
+}
+
+/** "December 2026", "November – December 2026" or "December 2026 – January 2027". */
+function rangeTitle(first: ISODate, last: ISODate): string {
+  const long = (d: ISODate) => parseISODate(d).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  if (monthStart(first) === monthStart(last)) return long(last);
+  const sameYear = first.slice(0, 4) === last.slice(0, 4);
+  return `${sameYear ? parseISODate(first).toLocaleDateString("en-GB", { month: "long" }) : long(first)} – ${long(last)}`;
+}
+
 export default function DateStep({ stylistId, serviceIds, selected, onSelect }: Props) {
   const today = toISODate(new Date());
   const lastDay = addDays(today, MAX_DAYS_AHEAD);
-  const [month, setMonth] = useState(() => monthStart(selected ?? today));
+  const thisMonth = monthStart(today);
+  const [month, setMonth] = useState(() =>
+    !selected || selected <= pageRange(thisMonth, today).last ? thisMonth : monthStart(selected),
+  );
 
-  const from = month < today ? today : month;
-  const to = monthEnd(month) > lastDay ? lastDay : monthEnd(month);
+  const { first, last } = pageRange(month, today);
+  const straddles = monthStart(first) !== monthStart(last);
+  const from = first < today ? today : first;
+  const to = last > lastDay ? lastDay : last;
 
   const { data, loading, error } = useAsync(
     () => provider.getAvailableDates({ from, to, stylistId, serviceIds }),
@@ -37,31 +66,36 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
   const statusFor = new Map<ISODate, DayStatus>(data?.map((d) => [d.date, d.status]));
   const hasAvailability = data?.some((d) => d.status === "available");
 
-  const first = parseISODate(month);
-  const leadingBlanks = (first.getDay() + 6) % 7; // Monday-first grid
-  const days = Array.from({ length: parseISODate(monthEnd(month)).getDate() }, (_, i) => addDays(month, i));
-  const canPrev = month > monthStart(today);
-  const canNext = shiftMonth(month, 1) <= lastDay;
+  const leadingBlanks = mondayIndex(first); // Monday-first grid
+  const days: ISODate[] = [];
+  for (let d = first; d <= last; d = addDays(d, 1)) days.push(d);
+
+  // The page after this one starts at the first month not shown in full; going back skips a month the straddling page already covers.
+  const nextMonth = monthStart(addDays(last, 1));
+  const prevMonth = shiftMonth(month, -1);
+  const prevTarget = monthEnd(prevMonth) <= pageRange(thisMonth, today).last ? thisMonth : prevMonth;
+  const canPrev = month > thisMonth;
+  const canNext = nextMonth <= lastDay;
 
   return (
     <div className="max-w-md">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-serif text-xl">{first.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</h2>
+        <h2 className="font-serif text-xl">{rangeTitle(first, last)}</h2>
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setMonth(shiftMonth(month, -1))}
+            onClick={() => setMonth(prevTarget)}
             disabled={!canPrev}
-            aria-label="Previous month"
+            aria-label="Earlier dates"
             className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-accent disabled:opacity-30"
           >
             <Chevron dir="left" />
           </button>
           <button
             type="button"
-            onClick={() => setMonth(shiftMonth(month, 1))}
+            onClick={() => setMonth(nextMonth)}
             disabled={!canNext}
-            aria-label="Next month"
+            aria-label="Later dates"
             className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-accent disabled:opacity-30"
           >
             <Chevron />
@@ -103,6 +137,11 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
                       : "text-muted/40"
               } ${d === today && !isSelected ? "ring-1 ring-line" : ""}`}
             >
+              {straddles && d === monthStart(d) && (
+                <span className="absolute top-1 text-[10px] leading-none font-medium" aria-hidden>
+                  {parseISODate(d).toLocaleDateString("en-GB", { month: "short" })}
+                </span>
+              )}
               {parseISODate(d).getDate()}
               {available && !isSelected && <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-accent" aria-hidden />}
             </button>
@@ -121,10 +160,10 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
       {!loading && data && !hasAvailability && (
         <div className="mt-6">
           <Notice>
-            No availability this month.{" "}
+            {straddles ? "No availability on these dates." : "No availability this month."}{" "}
             {canNext && (
-              <button type="button" onClick={() => setMonth(shiftMonth(month, 1))} className="font-medium text-ink underline underline-offset-2">
-                Try next month
+              <button type="button" onClick={() => setMonth(nextMonth)} className="font-medium text-ink underline underline-offset-2">
+                {straddles ? "Try later dates" : "Try next month"}
               </button>
             )}
           </Notice>
