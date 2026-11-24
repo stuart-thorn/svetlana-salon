@@ -68,9 +68,8 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
           {f.key === "email" && signedInEmail && <p className="mt-1 text-xs text-muted">You're signed in with this email.</p>}
           {f.key === "name" && accountName && (
             <p className="mt-1 text-xs text-muted">
-              Bookings are in the name on your account.{" "}
               <Link to="/account" className="underline underline-offset-2 hover:text-ink">
-                Change it on My account
+                Manage your account
               </Link>
             </p>
           )}
