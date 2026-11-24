@@ -32,7 +32,7 @@ function ActionButton({ action, className = "" }: { action: CartAction; classNam
       form={action.form}
       onClick={action.form ? undefined : action.onClick}
       disabled={action.disabled || action.busy}
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-medium text-white cta-hover disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
     >
       {action.busy && <Spinner />}
       {action.label}

@@ -7,7 +7,7 @@
   --color-muted: #6b6560;
   --color-accent: #1e4687; /* the logo's royal blue (client, 24 Nov 2026) */
   --color-accent-dark: #163463;
-  --color-accent-light: #4169e1; /* buttons on hover: the brighter royal blue, still AA with white text */
+  --color-accent-light: #2d5ba7; /* buttons on hover: the logo blue, slightly lighter (same hue) */
   --color-line: #ebe7e2;
 }
 
@@ -21,6 +21,14 @@
   section[id] {
     scroll-margin-top: 4.5rem;
   }
+  /* Tailwind 4 leaves buttons with the arrow cursor. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled),
+  label:has(input:is([type="checkbox"], [type="radio"]):not(:disabled)) {
+    cursor: pointer;
+  }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;
   }
@@ -29,5 +37,16 @@
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Booking buttons on hover: slightly lighter, with a soft shadow in the logo blue. */
+@utility cta-hover {
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background-color: var(--color-accent-light);
+      box-shadow: 0 6px 16px -4px rgb(30 70 135 / 0.45);
+    }
   }
 }

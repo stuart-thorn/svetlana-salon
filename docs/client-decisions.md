@@ -5,7 +5,7 @@ Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 ## 2026-11-24 (second batch): blue buttons, walk-ins, children, hair types, blow-dry, terms
 
 - **Brand.** The royal blue is the signature accent: the booking buttons ("Book now", "Book an appointment" and
-  the booking steps) are the logo blue `#1e4687`, a lighter royal blue `#4169e1` on hover.
+  the booking steps) are the logo blue `#1e4687`, slightly lighter `#2d5ba7` on hover.
 - **Deposits and walk-ins.** 50% deposit on every online booking, except membership/package visits and walk-ins
   when there's a free slot. Walk-ins aren't guaranteed, especially at lunchtime and in the evening; booking ahead,
   even the same day, is recommended. Membership and package visits still need booking (no deposit).

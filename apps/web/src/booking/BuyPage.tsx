@@ -11,7 +11,7 @@ import { useAsync } from "./useAsync";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
 const button =
-  "mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-60";
+  "mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white cta-hover disabled:opacity-60";
 const input = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-accent sm:text-sm";
 
 const CONFIRM_TIMEOUT_MS = 30_000;
@@ -106,7 +106,7 @@ export default function BuyPage() {
                     {p.description && <p className="mt-2 text-sm text-muted">{p.description}</p>}
                     <Link
                       to={`/buy?product=${encodeURIComponent(p.id)}${from ? `&from=${from}` : ""}`}
-                      className="mt-4 inline-block rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-light"
+                      className="mt-4 inline-block rounded-full bg-accent px-5 py-2 text-sm font-medium text-white cta-hover"
                     >
                       Buy
                     </Link>

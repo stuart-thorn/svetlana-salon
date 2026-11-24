@@ -20,7 +20,7 @@ import { useCustomer } from "./customer";
 import { CustomerSignIn } from "./CustomerSignIn";
 import Payment from "./Payment";
 import { salon } from "../data/content";
-import { isDemo, isTestMode, provider } from "./provider";
+import { isDemo, provider } from "./provider";
 import { FAMILY, STEPS, STEP_LABELS, STEP_TITLES, furthestStep, isStep, stepIndex, stylistIdOrNull, useDraft, type Step } from "./state";
 import AudienceStep from "./steps/AudienceStep";
 import DateStep from "./steps/DateStep";
@@ -206,11 +206,6 @@ export default function BookingPage() {
         {isDemo && (
           <p className="bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
             Demo mode: availability is simulated and no real bookings are made.
-          </p>
-        )}
-        {isTestMode && (
-          <p className="bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
-            Test mode: bookings go to the test booking system and payments are simulated.
           </p>
         )}
       </header>

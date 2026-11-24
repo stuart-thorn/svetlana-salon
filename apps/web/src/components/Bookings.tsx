@@ -84,7 +84,7 @@ export default function Bookings() {
                 <Link
                   to="/book"
                   data-book-cta
-                  className="mt-8 block rounded-full bg-accent px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-accent-light"
+                  className="mt-8 block rounded-full bg-accent px-7 py-3.5 text-center text-sm font-medium text-white cta-hover"
                 >
                   Book an appointment
                 </Link>

@@ -225,7 +225,7 @@ function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: Cu
             />
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-medium text-white cta-hover disabled:opacity-50"
               disabled={busy || code.replace(/\D/g, "").length < 6}
               onClick={() => void verify()}
             >

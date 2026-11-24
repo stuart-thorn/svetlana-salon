@@ -107,7 +107,7 @@ export default function Confirmation({
             navigate(`${pathname}?view=calendar`);
             scrollToTop();
           }}
-          className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+          className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-white cta-hover"
         >
           Add to calendar
         </button>

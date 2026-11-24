@@ -9,7 +9,7 @@ import { isTestMode, provider } from "./provider";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
 const input = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-accent sm:text-sm";
-const button = "inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-60";
+const button = "inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white cta-hover disabled:opacity-60";
 const heading = "text-xs font-medium tracking-[0.2em] text-muted uppercase";
 
 /**
