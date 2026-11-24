@@ -166,11 +166,11 @@ function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: Cu
     <div className="mt-2 text-xs text-muted">
       {phase === "offer" ? (
         <p>
-          Got a membership or been with us before?{" "}
+          Been with us before?{" "}
           <button type="button" className={linkClass} disabled={busy || !valid} onClick={() => void send()}>
             {busy ? "Sending a code…" : "Confirm this email"}
           </button>{" "}
-          to use your visits and fill in your details.
+          to fill in your details and use any prepaid visits.
         </p>
       ) : (
         <div className="space-y-2 rounded-xl border border-line p-3">
