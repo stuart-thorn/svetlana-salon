@@ -62,7 +62,6 @@ export default function AudienceStep({ catalog, selected, onSelect }: Props) {
 function Deals({ catalog }: { catalog: Catalog }) {
   const memberships = (catalog.products ?? []).filter((p) => p.kind === "membership");
   if (memberships.length === 0) return null;
-  const from = Math.min(...memberships.map((p) => p.price));
   return (
     <Link
       to="/buy"
@@ -71,7 +70,7 @@ function Deals({ catalog }: { catalog: Catalog }) {
       <span className="flex flex-col gap-1">
         <span className="text-xs font-medium tracking-[0.2em] text-gold uppercase">Deals</span>
         <span className="font-medium">Memberships and packages</span>
-        <span className="text-sm text-muted">Visits paid in advance, for less. From £{from % 1 ? from.toFixed(2) : from}.</span>
+        <span className="text-sm text-muted">Visits paid in advance, for less.</span>
       </span>
       <span aria-hidden className="text-xl text-gold">
         →
