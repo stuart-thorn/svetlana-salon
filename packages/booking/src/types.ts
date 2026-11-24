@@ -145,6 +145,8 @@ export interface BookingRequest extends AvailabilityQuery {
   date: ISODate;
   time: ClockTime;
   customer: Customer;
+  /** Signed in: which of the people on their email it's for (`CustomerProfile.people`). */
+  customerId?: string;
 }
 
 export interface BookingConfirmation {
@@ -209,18 +211,26 @@ export class SlotUnavailableError extends Error {
 
 /** The contract any availability backend (mock, REST API, third-party) must satisfy. */
 /** The signed-in customer as the salon knows them (GET /me), for filling in the form and "last time with…". */
+/** One person the salon knows on an email (a family shares one), as the booking site shows them. */
+export interface ProfilePerson {
+  /** Absent for "someone else": a new person on the email. */
+  id?: string;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  lastVisit?: { date: ISODate; stylistId?: string; stylistName?: string; services: string[]; serviceIds: string[] };
+  memberships?: MembershipSummary[];
+}
+
 export interface CustomerProfile {
   email: string;
   /** Absent for someone the salon hasn't seen before. */
-  customer?: {
-    name: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    lastVisit?: { date: ISODate; stylistId?: string; stylistName?: string; services: string[]; serviceIds: string[] };
-  };
+  customer?: Omit<ProfilePerson, "id" | "memberships">;
   /** Their memberships in force or still to come. */
   memberships?: MembershipSummary[];
+  /** Everyone on this email, oldest first, when there's more than one: the site asks who it's for. */
+  people?: (ProfilePerson & { id: string })[];
 }
 
 export interface BookingProvider {
@@ -235,7 +245,12 @@ export interface BookingProvider {
   /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
   getCustomerProfile?(): Promise<CustomerProfile>;
   /** The signed-in customer buys products (pending until paid). Absent where buying online isn't offered. */
-  buyProducts?(request: { lines: { productId: string; quantity: number }[]; customer: { name: string; email: string; phone?: string } }): Promise<Purchase>;
+  buyProducts?(request: {
+    lines: { productId: string; quantity: number }[];
+    customer: { name: string; email: string; phone?: string };
+    /** Which of the people on the signed-in email it's for. */
+    customerId?: string;
+  }): Promise<Purchase>;
   /** A purchase as it stands now (after paying, until the payment has gone through). */
   getPurchase?(purchase: Purchase): Promise<Purchase>;
   /** Test mode only: completes a purchase's payment without taking money. */

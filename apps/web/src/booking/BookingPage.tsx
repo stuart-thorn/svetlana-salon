@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import {
   BookingExpiredError,
-  PaymentsUnavailableError,
-  SlotUnavailableError,
   depositFor,
+  PaymentsUnavailableError,
   servicesById,
+  SlotUnavailableError,
   totals,
   withMembershipVisits,
   type BookingConfirmation,
   type Customer,
+  type ProfilePerson,
 } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
@@ -39,7 +40,30 @@ export default function BookingPage() {
   const { state: customerState, signedIn, signOut } = useCustomer();
   const signedInEmail = customerState.status === "signed_in" ? customerState.session.email : undefined;
   const profile = customerState.status === "signed_in" ? customerState.profile : undefined;
-  const lastVisit = profile?.customer?.lastVisit;
+  // Several people on the email (a family): they choose who it's for ("new" = someone else). One: it's them.
+  const people = profile?.people;
+  const [personKey, setPersonKey] = useState<string | null>(null);
+  const person: ProfilePerson | undefined = people
+    ? people.find((p) => p.id === personKey)
+    : profile?.customer && { ...profile.customer, ...(profile.memberships && { memberships: profile.memberships }) };
+  const choosingPerson = !!people && personKey === null;
+  const lastVisit = person?.lastVisit;
+  const choosePerson = (key: string) => {
+    setPersonKey(key);
+    const p = people?.find((x) => x.id === key);
+    setCustomer((c) => ({ ...c, name: p?.name ?? "", phone: p?.phone ?? "" }));
+  };
+  useEffect(() => {
+    if (customerState.status !== "signed_in") setPersonKey(null);
+  }, [customerState.status]);
+  // Signed in later (at the details step) with a name already typed: the person with that first name, as the
+  // booking would match them.
+  useEffect(() => {
+    if (!people || personKey !== null || !customer.name.trim()) return;
+    const typed = customer.name.trim().split(/\s+/)[0]!.toLowerCase();
+    const match = people.find((p) => (p.firstName ?? p.name.split(" ")[0] ?? "").toLowerCase() === typed);
+    if (match) setPersonKey(match.id);
+  }, [people, personKey, customer.name]);
 
   // Signed in: the booking is in their (verified) email, and what the salon knows fills the gaps.
   useEffect(() => {
@@ -47,10 +71,10 @@ export default function BookingPage() {
     setCustomer((c) => ({
       ...c,
       email: signedInEmail,
-      name: c.name || profile?.customer?.name || "",
-      phone: c.phone || profile?.customer?.phone || "",
+      name: c.name || person?.name || "",
+      phone: c.phone || person?.phone || "",
     }));
-  }, [signedInEmail, profile]);
+  }, [signedInEmail, person]);
   const [customerErrors, setCustomerErrors] = useState<CustomerErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [slotError, setSlotError] = useState<string | null>(null);
@@ -94,6 +118,7 @@ export default function BookingPage() {
         date: draft.date,
         time: draft.time,
         customer,
+        ...(person?.id && { customerId: person.id }),
       });
       if (result.status === "pending_payment") {
         setPending(result);
@@ -119,7 +144,7 @@ export default function BookingPage() {
   };
 
   // Signed in: services their membership covers use a visit (free, no deposit), as the booking will.
-  const memberships = profile?.memberships;
+  const memberships = person?.memberships;
   const selected = catalog ? withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships) : [];
   const depositNow = depositFor(selected);
   const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
@@ -252,9 +277,12 @@ export default function BookingPage() {
                 <CustomerSignIn
                   state={customerState}
                   memberships={!!catalog?.sellsMemberships}
+                  person={person}
+                  {...(people && { people, personKey, onChoosePerson: choosePerson })}
                   onSignedIn={signedIn}
                   onSignOut={() => {
                     signOut();
+                    setPersonKey(null);
                     setCustomer(emptyCustomer);
                   }}
                 />
@@ -270,7 +298,7 @@ export default function BookingPage() {
               </div>
             )}
 
-            {step === "audience" && (
+            {step === "audience" && !choosingPerson && (
               <AudienceStep
                 catalog={catalog}
                 selected={draft.audience}

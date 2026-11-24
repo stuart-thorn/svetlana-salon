@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { CodeError, type CustomerSession } from "@salon/booking";
 import type { CustomerState } from "./customer";
+import type { ProfilePerson } from "@salon/booking";
 import { customerAuth } from "./provider";
 import { Spinner } from "./ui";
 import { visitsText } from "./memberships";
@@ -20,6 +21,10 @@ export function CustomerSignIn({
   onSignOut,
   startOpen = false,
   memberships = false,
+  person,
+  people,
+  personKey,
+  onChoosePerson,
 }: {
   state: CustomerState;
   onSignedIn: (s: CustomerSession) => void;
@@ -28,6 +33,12 @@ export function CustomerSignIn({
   startOpen?: boolean;
   /** The salon sells memberships: say signing in is how they're used. */
   memberships?: boolean;
+  /** Who the booking is for, once known (signed in). */
+  person?: ProfilePerson;
+  /** Several people on the email: choose who it's for ("new" = someone else). */
+  people?: (ProfilePerson & { id: string })[];
+  personKey?: string | null;
+  onChoosePerson?: (key: string) => void;
 }) {
   const [phase, setPhase] = useState<"closed" | "email" | "code">(startOpen ? "email" : "closed");
   const [email, setEmail] = useState("");
@@ -40,17 +51,39 @@ export function CustomerSignIn({
   const auth = customerAuth;
 
   if (state.status === "signed_in") {
-    const first = state.profile?.customer?.firstName ?? state.profile?.customer?.name.split(" ")[0];
-    const memberships = (state.profile?.memberships ?? []).filter((m) => m.current && m.allowances.length > 0);
+    const firstName = (p?: ProfilePerson) => p?.firstName ?? p?.name.split(" ")[0];
+    const first = firstName(person);
+    const memberships = (person?.memberships ?? []).filter((m) => m.current && m.allowances.length > 0);
     return (
       <div className="text-sm text-muted">
         <p>
-          {first ? `Welcome back, ${first}. ` : "Signed in. "}
-          You're booking as <span className="text-ink">{state.session.email}</span>.{" "}
+          {first ? `Welcome back, ${first}. ` : people ? "Welcome back. " : "Signed in. "}
+          You're booking with <span className="text-ink">{state.session.email}</span>.{" "}
           <button type="button" className={linkClass} onClick={onSignOut}>
-            Not you?
+            Not your email?
           </button>
         </p>
+        {people && onChoosePerson && (
+          <div className="mt-3">
+            <p className="font-medium text-ink">Who's this appointment for?</p>
+            <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Who's this appointment for?">
+              {[...people.map((p) => ({ key: p.id, label: firstName(p) ?? p.name })), { key: "new", label: "Someone else" }].map((o) => (
+                <button
+                  key={o.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={personKey === o.key}
+                  onClick={() => onChoosePerson(o.key)}
+                  className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    personKey === o.key ? "border-ink bg-ink text-white" : "border-line text-ink hover:border-gold"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {memberships.map((m) => (
           <p key={m.id} className="mt-1 text-ink">
             Your {m.name}: {visitsText(m)}. Visits are used automatically for the services they cover.
