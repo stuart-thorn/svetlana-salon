@@ -4,6 +4,7 @@ import type { CustomerState } from "./customer";
 import { customerAuth } from "./provider";
 import { Spinner } from "./ui";
 import { visitsText } from "./memberships";
+import { Link } from "../router";
 
 const inputClass =
   "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-gold sm:text-sm";
@@ -49,7 +50,11 @@ export function CustomerSignIn({
           You're booking as <span className="text-ink">{state.session.email}</span>.{" "}
           <button type="button" className={linkClass} onClick={onSignOut}>
             Not you?
-          </button>
+          </button>{" "}
+          ·{" "}
+          <Link to="/account" className={linkClass}>
+            My account
+          </Link>
         </p>
         {memberships.map((m) => (
           <p key={m.id} className="mt-1 text-ink">

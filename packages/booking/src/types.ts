@@ -221,6 +221,19 @@ export interface CustomerProfile {
   };
   /** Their memberships in force or still to come. */
   memberships?: MembershipSummary[];
+  /** Bookings to come, soonest first, and recent visits, newest first (their account page). */
+  upcoming?: AccountVisit[];
+  recent?: AccountVisit[];
+}
+
+/** A booking or past visit on the customer's account page. */
+export interface AccountVisit {
+  date: ISODate;
+  time?: ClockTime;
+  reference?: string;
+  status?: string;
+  services: string[];
+  stylistName?: string;
 }
 
 export interface BookingProvider {
@@ -234,6 +247,8 @@ export interface BookingProvider {
   getBookingStatus?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
   /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
   getCustomerProfile?(): Promise<CustomerProfile>;
+  /** The signed-in customer changes their own name or phone. */
+  updateCustomerProfile?(change: { firstName?: string; lastName?: string; phone?: string }): Promise<CustomerProfile>;
   /** The signed-in customer buys products (pending until paid). Absent where buying online isn't offered. */
   buyProducts?(request: { lines: { productId: string; quantity: number }[]; customer: { name: string; email: string; phone?: string } }): Promise<Purchase>;
   /** A purchase as it stands now (after paying, until the payment has gone through). */

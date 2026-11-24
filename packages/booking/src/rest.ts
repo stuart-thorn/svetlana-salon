@@ -3,6 +3,7 @@ import {
   IncompatibleServicesError,
   PaymentsUnavailableError,
   SlotUnavailableError,
+  type AccountVisit,
   type BookingConfirmation,
   type BookingProvider,
   type BookingRequest,
@@ -108,7 +109,17 @@ interface ApiOrder {
   memberships: ApiMembership[];
   payment: { clientAction: NonNullable<ApiBooking["payment"]> } | null;
 }
+interface ApiAccountVisit {
+  date: string;
+  time?: string;
+  reference?: string;
+  status?: string;
+  services: string[];
+  providerName?: string;
+}
 interface ApiCustomerProfile {
+  upcoming?: ApiAccountVisit[];
+  recent?: ApiAccountVisit[];
   memberships?: ApiMembership[];
   email: string;
   customer?: {
@@ -135,6 +146,43 @@ function toMembership(m: ApiMembership): MembershipSummary {
     ...(m.validTo && { validTo: m.validTo }),
     current: m.current,
     allowances: m.allowances.map((a) => ({ label: a.label, count: a.count, left: m.remaining[a.id] ?? 0, offeringIds: a.offeringIds ?? [] })),
+  };
+}
+
+const toVisit = (v: ApiAccountVisit): AccountVisit => ({
+  date: v.date,
+  ...(v.time && { time: v.time }),
+  ...(v.reference && { reference: v.reference }),
+  ...(v.status && { status: v.status }),
+  services: v.services,
+  ...(v.providerName && { stylistName: v.providerName }),
+});
+
+function toProfile(p: ApiCustomerProfile): CustomerProfile {
+  const c = p.customer;
+  const v = c?.lastVisit;
+  return {
+    email: p.email,
+    ...(c && {
+      customer: {
+        name: c.name,
+        ...(c.firstName && { firstName: c.firstName }),
+        ...(c.lastName && { lastName: c.lastName }),
+        ...(c.phone && { phone: c.phone }),
+        ...(v && {
+          lastVisit: {
+            date: v.date,
+            ...(v.providerId && { stylistId: v.providerId }),
+            ...(v.providerName && { stylistName: v.providerName }),
+            services: v.services,
+            serviceIds: v.offeringIds ?? [],
+          },
+        }),
+      },
+    }),
+    ...(p.memberships?.length && { memberships: p.memberships.map(toMembership) }),
+    ...(p.upcoming?.length && { upcoming: p.upcoming.map(toVisit) }),
+    ...(p.recent?.length && { recent: p.recent.map(toVisit) }),
   };
 }
 
@@ -248,7 +296,7 @@ function toOnlinePayment(p: NonNullable<ApiBooking["payment"]>): OnlinePayment {
 }
 
 export function createRestProvider(options: RestProviderOptions): BookingProvider &
-  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile" | "getBookingStatus" | "buyProducts" | "getPurchase" | "completeSimulatedPurchase">> {
+  Required<Pick<BookingProvider, "completeSimulatedPayment" | "getCustomerProfile" | "updateCustomerProfile" | "getBookingStatus" | "buyProducts" | "getPurchase" | "completeSimulatedPurchase">> {
   const { baseUrl, apiKey, locationId, customerToken } = options;
   const signedIn = (): Record<string, string> => {
     const token = customerToken?.();
@@ -314,32 +362,10 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
       );
     },
 
-    getCustomerProfile: async (): Promise<CustomerProfile> => {
-      const p = await call<ApiCustomerProfile>("/me", { headers: signedIn() });
-      const c = p.customer;
-      const v = c?.lastVisit;
-      return {
-        email: p.email,
-        ...(c && {
-          customer: {
-            name: c.name,
-            ...(c.firstName && { firstName: c.firstName }),
-            ...(c.lastName && { lastName: c.lastName }),
-            ...(c.phone && { phone: c.phone }),
-            ...(v && {
-              lastVisit: {
-                date: v.date,
-                ...(v.providerId && { stylistId: v.providerId }),
-                ...(v.providerName && { stylistName: v.providerName }),
-                services: v.services,
-                serviceIds: v.offeringIds ?? [],
-              },
-            }),
-          },
-        }),
-        ...(p.memberships?.length && { memberships: p.memberships.map(toMembership) }),
-      };
-    },
+    getCustomerProfile: async (): Promise<CustomerProfile> => toProfile(await call<ApiCustomerProfile>("/me", { headers: signedIn() })),
+
+    updateCustomerProfile: async (change) =>
+      toProfile(await call<ApiCustomerProfile>("/me", { method: "PATCH", headers: signedIn(), body: JSON.stringify(change) })),
 
     buyProducts: async (request) => {
       const body = JSON.stringify({ lines: request.lines, customer: request.customer });

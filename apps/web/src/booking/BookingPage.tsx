@@ -47,7 +47,8 @@ export default function BookingPage() {
     setCustomer((c) => ({
       ...c,
       email: signedInEmail,
-      name: c.name || profile?.customer?.name || "",
+      // Known: their own name, always (the email is the buyer's). New: what they type.
+      name: profile?.customer?.name || c.name,
       phone: c.phone || profile?.customer?.phone || "",
     }));
   }, [signedInEmail, profile]);
@@ -353,6 +354,7 @@ export default function BookingPage() {
                 onSubmit={submit}
                 deposit={deposit}
                 signedInEmail={signedInEmail}
+                {...(profile?.customer?.name && { accountName: profile.customer.name })}
                 {...(customerState.status === "signed_out" && { onSignedIn: signedIn })}
               />
             )}

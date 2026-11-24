@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { CodeError, formatPrice, type Customer, type CustomerSession } from "@salon/booking";
 import { customerAuth } from "../provider";
+import { Link } from "../../router";
 import { Spinner } from "../ui";
 
 export type CustomerErrors = Partial<Record<keyof Customer, string>>;
@@ -24,6 +25,8 @@ interface Props {
   deposit?: { now: number; atSalon: number };
   /** A signed-in customer books in the email they proved, so it can't be changed here. */
   signedInEmail?: string;
+  /** Signed in and known: the booking is under their own name (changed on their account page, not here). */
+  accountName?: string;
   /** Not signed in, where sign-in is offered: confirming the typed email here signs them in. */
   onSignedIn?: (s: CustomerSession) => void;
 }
@@ -37,7 +40,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, onSignedIn }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -57,12 +60,20 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
             autoComplete={f.autoComplete}
             value={value[f.key]}
             onChange={(e) => onChange({ ...value, [f.key]: e.target.value })}
-            readOnly={f.key === "email" && !!signedInEmail}
+            readOnly={(f.key === "email" && !!signedInEmail) || (f.key === "name" && !!accountName)}
             aria-invalid={errors[f.key] ? true : undefined}
             aria-describedby={errors[f.key] ? `customer-${f.key}-error` : undefined}
             className={inputClass}
           />
           {f.key === "email" && signedInEmail && <p className="mt-1 text-xs text-muted">You're signed in with this email.</p>}
+          {f.key === "name" && accountName && (
+            <p className="mt-1 text-xs text-muted">
+              Bookings are in the name on your account.{" "}
+              <Link to="/account" className="underline underline-offset-2 hover:text-ink">
+                Change it on My account
+              </Link>
+            </p>
+          )}
           {f.key === "email" && !signedInEmail && onSignedIn && customerAuth && <ConfirmEmail email={value.email} onSignedIn={onSignedIn} />}
           {errors[f.key] && (
             <p id={`customer-${f.key}-error`} className="mt-1 text-xs text-red-600">

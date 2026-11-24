@@ -135,7 +135,14 @@ export default function BuyPage() {
                 <CustomerSignIn state={customerState} onSignedIn={signedIn} onSignOut={signOut} />
                 <label className="block text-sm">
                   Your name
-                  <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+                  <input
+                    className={`${input} read-only:bg-stone-50 read-only:text-muted`}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    readOnly={!!profile?.customer}
+                    autoComplete="name"
+                    required
+                  />
                 </label>
                 <label className="block text-sm">
                   Phone (optional)

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { isPrelaunch, navLinks, salon } from "../data/content";
 import { Link } from "../router";
+import { customerAuth } from "../booking/provider";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -56,6 +57,13 @@ export default function Header() {
               </a>
             </li>
           ))}
+          {!isPrelaunch && customerAuth && (
+            <li>
+              <Link to="/account" className="text-sm text-ink/80 transition-colors hover:text-gold">
+                My account
+              </Link>
+            </li>
+          )}
           {!isPrelaunch && (
             <li>
               <Link
@@ -95,6 +103,13 @@ export default function Header() {
               </a>
             </li>
           ))}
+          {!isPrelaunch && customerAuth && (
+            <li>
+              <Link to="/account" className="block py-2 text-ink/80">
+                My account
+              </Link>
+            </li>
+          )}
           {!isPrelaunch && (
             <li className="pt-2">
               <Link to="/book" className="block rounded-full bg-ink px-5 py-3 text-center text-sm text-white">
