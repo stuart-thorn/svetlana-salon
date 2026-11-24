@@ -6,16 +6,16 @@ import { Link } from "../router";
 
 /**
  * Memberships the live booking system sells online, so a tier can show "Buy online". None in demo or
- * pre-launch mode, or when the salon sells them only in person.
+ * pre-launch mode, or when the salon sells them only in person. Undefined until known.
  */
-function useOnlineMemberships(): Product[] {
-  const [products, setProducts] = useState<Product[]>([]);
+function useOnlineMemberships(): Product[] | undefined {
+  const [products, setProducts] = useState<Product[] | undefined>(isPrelaunch || !provider.buyProducts ? [] : undefined);
   useEffect(() => {
     if (isPrelaunch || !provider.buyProducts) return;
     let cancelled = false;
     provider.getCatalog().then(
       (c) => !cancelled && setProducts((c.products ?? []).filter((p) => p.kind === "membership")),
-      () => {},
+      () => !cancelled && setProducts([]),
     );
     return () => {
       cancelled = true;
@@ -45,7 +45,9 @@ function Bullets({ items }: { items: string[] }) {
 }
 
 export default function Offers() {
-  const online = useOnlineMemberships();
+  const loaded = useOnlineMemberships();
+  const online = loaded ?? [];
+  const soldInSalonOnly = loaded !== undefined && !memberships.tiers.some((t) => productFor(online, t.name));
   return (
     <section id="offers" className="py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -53,7 +55,7 @@ export default function Offers() {
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">Offers & memberships</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">More for regular visits</h2>
           <p className="mt-4 leading-relaxed text-muted">
-            Ways to save if you're a student, come often or bring the family. Ask in the salon to join or buy.
+            Ways to save if you're a student, come often or bring the family. You can ask in the salon for more details.
           </p>
         </div>
 
@@ -113,7 +115,7 @@ export default function Offers() {
               </tbody>
             </table>
           </div>
-          <Bullets items={memberships.terms} />
+          <Bullets items={soldInSalonOnly ? [...memberships.terms, memberships.notOnlineNote] : memberships.terms} />
         </div>
         <p className="mt-6 text-xs text-muted">{salon.launchNote}</p>
       </div>

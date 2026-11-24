@@ -87,6 +87,8 @@ export interface MembershipTier {
  * cut) £30. Each club's last visit is free. Sold in the salon first.
  */
 export const memberships = {
+  /** Shown with the terms only while no club can be bought online. */
+  notOnlineNote: "Join in the salon. Buying online is coming soon.",
   title: "Men's haircut clubs",
   summary: "Keep your cut sharp with regular visits, paid once upfront. The last visit is on us.",
   tiers: [
@@ -99,7 +101,6 @@ export const memberships = {
     "Men's haircuts only (the Skin Fade Club: skin fades and back & sides clean-ups).",
     "One payment upfront: no Direct Debit, nothing renews automatically.",
     "Use your visits within the term; unused visits expire at the end.",
-    "Join in the salon. Buying online is coming soon.",
   ],
 };
 
