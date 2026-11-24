@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addDays, eligibleStylists, timeToMinutes, toISODate, type Catalog, type ClockTime, type ISODate, type TimeSlot } from "@salon/booking";
+import { addDays, eligibleStylists, minutesToTime, servicesById, timeToMinutes, toISODate, totals, type Catalog, type ClockTime, type ISODate, type TimeSlot } from "@salon/booking";
 import { provider } from "../provider";
 import { ANY } from "../state";
 import { useAsync } from "../useAsync";
@@ -31,6 +31,7 @@ export default function TimeStep(props: Props) {
   const stylistId = stylist === ANY ? null : stylist;
   const options = eligibleStylists(catalog, serviceIds);
   const today = toISODate(new Date());
+  const { durationMin } = totals(servicesById(catalog, serviceIds));
 
   const { data: slots, loading } = useAsync(
     () => provider.getTimeSlots({ date, stylistId, serviceIds }),
@@ -155,6 +156,9 @@ export default function TimeStep(props: Props) {
                           }`}
                         >
                           <span className="block font-medium">{s.time}</span>
+                          <span className={`block text-[11px] ${active ? "text-white/70" : "text-muted"}`}>
+                            to {minutesToTime(timeToMinutes(s.time) + durationMin)}
+                          </span>
                           {who && <span className={`block text-[11px] ${active ? "text-white/70" : "text-muted"}`}>{who}</span>}
                         </button>
                       </li>
