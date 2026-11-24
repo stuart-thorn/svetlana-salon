@@ -6,6 +6,7 @@ import {
   claimableOffers,
   depositFor,
   offerSavings,
+  offersAtOtherTimes,
   servicesById,
   totals,
   withMembershipVisits,
@@ -359,6 +360,8 @@ export default function BookingPage() {
                 signedInEmail={signedInEmail}
                 {...(catalog.cancellation && { cancellationHours: catalog.cancellation.windowHours })}
                 offers={claimable}
+                otherTimeOffers={catalog ? offersAtOtherTimes(catalog, selected, draft.date, draft.time) : []}
+                onChangeTime={() => goTo("date")}
                 claimed={claimedNow}
                 onClaim={(id, on) => setClaimed((c) => (on ? [...c, id] : c.filter((x) => x !== id)))}
                 {...(profile?.customer?.name && { accountName: profile.customer.name })}

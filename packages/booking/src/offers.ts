@@ -32,6 +32,13 @@ export function claimableOffers(catalog: Pick<Catalog, "offers">, services: read
   return (catalog.offers ?? []).filter((o) => o.claim && services.some((s, i) => !s.included && covers(o, s) && onTime(o, date, at[i]!)));
 }
 
+/** Offers to claim that cover a service they chose, but not on the chosen day or at the chosen time. */
+export function offersAtOtherTimes(catalog: Pick<Catalog, "offers">, services: readonly PricedService[], date: ISODate | null, time: ClockTime | null): Offer[] {
+  if (!date || !time) return [];
+  const now = claimableOffers(catalog, services, date, time);
+  return (catalog.offers ?? []).filter((o) => o.claim && !now.includes(o) && services.some((s) => !s.included && covers(o, s)));
+}
+
 /**
  * What the visit saves with the offers that apply (unclaimed ones by themselves, claimed ones when ticked): one
  * reduction per service, the largest, and none on services included in a membership. In pounds, per offer.

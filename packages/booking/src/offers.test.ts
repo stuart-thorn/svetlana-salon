@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claimableOffers, offerSavings } from "./offers";
+import { claimableOffers, offersAtOtherTimes, offerSavings } from "./offers";
 import type { Offer, PricedService } from "./types";
 
 const student: Offer = {
@@ -23,6 +23,13 @@ describe("offers on the booking site", () => {
     expect(claimableOffers(catalog, [cut], "2026-11-28", "15:00")).toEqual([]);
     expect(claimableOffers(catalog, [beard], "2026-11-25", "15:00")).toEqual([]);
     expect(claimableOffers(catalog, [{ ...cut, included: { membershipName: "Junior", label: "Full haircut" } }], "2026-11-25", "15:00")).toEqual([]);
+  });
+
+  it("points out an offer for a covered service at other times, not one that's claimable or doesn't cover it", () => {
+    expect(offersAtOtherTimes(catalog, [cut], "2026-11-25", "11:00")).toEqual([student]);
+    expect(offersAtOtherTimes(catalog, [cut], "2026-11-28", "15:00")).toEqual([student]);
+    expect(offersAtOtherTimes(catalog, [cut], "2026-11-25", "14:00")).toEqual([]);
+    expect(offersAtOtherTimes(catalog, [beard], "2026-11-25", "11:00")).toEqual([]);
   });
 
   it("saves only when claimed, on each covered service by its own start", () => {

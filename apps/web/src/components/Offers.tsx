@@ -1,27 +1,39 @@
 import { useEffect, useState } from "react";
-import type { Product } from "@salon/booking";
+import type { Offer, Product } from "@salon/booking";
 import { isPrelaunch, memberships, offers, salon } from "../data/content";
 import { provider } from "../booking/provider";
 import { Link } from "../router";
 
 /**
- * Memberships the live booking system sells online (clubs and packages), so each can show "Buy online". None in demo or
- * pre-launch mode, or when the salon sells them only in person. Undefined until known.
+ * From the booking system: the memberships sold online (clubs and packages), so each can show "Buy online", and
+ * the offers customers claim when booking. None pre-launch, and no memberships in demo mode or when the salon
+ * sells them only in person. Undefined until known.
  */
-function useOnlineMemberships(): Product[] | undefined {
-  const [products, setProducts] = useState<Product[] | undefined>(isPrelaunch || !provider.buyProducts ? [] : undefined);
+interface Online {
+  memberships: Product[];
+  claimable: Offer[];
+}
+const NOTHING_ONLINE: Online = { memberships: [], claimable: [] };
+
+function useOnline(): Online | undefined {
+  const [online, setOnline] = useState<Online | undefined>(isPrelaunch ? NOTHING_ONLINE : undefined);
   useEffect(() => {
-    if (isPrelaunch || !provider.buyProducts) return;
+    if (isPrelaunch) return;
     let cancelled = false;
     provider.getCatalog().then(
-      (c) => !cancelled && setProducts((c.products ?? []).filter((p) => p.kind === "membership")),
-      () => !cancelled && setProducts([]),
+      (c) =>
+        !cancelled &&
+        setOnline({
+          memberships: provider.buyProducts ? (c.products ?? []).filter((p) => p.kind === "membership") : [],
+          claimable: (c.offers ?? []).filter((o) => o.claim),
+        }),
+      () => !cancelled && setOnline(NOTHING_ONLINE),
     );
     return () => {
       cancelled = true;
     };
   }, []);
-  return products;
+  return online;
 }
 
 /** The product for a club or package: by its tier name, else a product named after it. */
@@ -56,8 +68,8 @@ function BuyLink({ product, name, className }: { product: Product; name: string;
 }
 
 export default function Offers() {
-  const loaded = useOnlineMemberships();
-  const online = loaded ?? [];
+  const loaded = useOnline();
+  const { memberships: online, claimable } = loaded ?? NOTHING_ONLINE;
   const anyOnline = memberships.tiers.some((t) => productFor(online, t.name));
   const soldInSalonOnly = loaded !== undefined && !anyOnline;
   return (
@@ -74,6 +86,7 @@ export default function Offers() {
         <ul className="mt-12 grid gap-6 md:grid-cols-3">
           {offers.map((o) => {
             const product = productFor(online, o.title);
+            const claim = claimable.find((c) => c.name.toLowerCase() === o.title.toLowerCase())?.claim;
             return (
               <li
                 key={o.title}
@@ -86,6 +99,17 @@ export default function Offers() {
                 {product && (
                   <div className="mt-auto pt-6">
                     <BuyLink product={product} name={o.title} className="block px-5 py-3 text-center text-sm" />
+                  </div>
+                )}
+                {claim && (
+                  <div className="mt-auto pt-6">
+                    <p className="mb-3 text-sm text-muted">Book a haircut at an offer time, then tick “{claim.label}” on the details step.</p>
+                    <Link
+                      to="/book"
+                      className="block rounded-full bg-accent px-5 py-3 text-center text-sm font-medium text-white cta-hover"
+                    >
+                      Book online<span className="sr-only">: {o.title}</span>
+                    </Link>
                   </div>
                 )}
               </li>

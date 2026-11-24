@@ -34,6 +34,9 @@ interface Props {
   cancellationHours?: number;
   /** Offers the customer can claim for this visit, and which they have ticked. */
   offers?: Offer[];
+  /** Offers they could claim for this visit on another day or at another time. */
+  otherTimeOffers?: Offer[];
+  onChangeTime?: () => void;
   claimed?: string[];
   onClaim?: (offerId: string, on: boolean) => void;
 }
@@ -47,7 +50,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn, cancellationHours, offers = [], claimed = [], onClaim }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn, cancellationHours, offers = [], otherTimeOffers = [], onChangeTime, claimed = [], onClaim }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -121,6 +124,16 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
           ))}
         </div>
       )}
+      {onChangeTime &&
+        otherTimeOffers.map((o) => (
+          <p key={o.id} className="rounded-xl border border-line px-4 py-3 text-sm text-muted">
+            <span className="font-medium text-ink">{o.name}:</span> {o.description ? `${o.description} ` : ""}
+            Not available at the time you've chosen.{" "}
+            <button type="button" onClick={onChangeTime} className="underline underline-offset-2 hover:text-ink">
+              Change date or time
+            </button>
+          </p>
+        ))}
       <p className="text-xs text-muted">
         {deposit
           ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`
