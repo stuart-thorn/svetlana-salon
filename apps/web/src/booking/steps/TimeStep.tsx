@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { addDays, eligibleStylists, timeToMinutes, toISODate, type Catalog, type ClockTime, type ISODate, type TimeSlot } from "@salon/booking";
+import {
+  addDays,
+  eligibleStylists,
+  timeToMinutes,
+  toISODate,
+  type Catalog,
+  type ClockTime,
+  type ISODate,
+  type TimeSlot,
+} from "@salon/booking";
 import { provider } from "../provider";
 import { ANY } from "../state";
 import { useAsync } from "../useAsync";
@@ -16,6 +25,8 @@ interface Props {
   onDateChange: (date: ISODate) => void;
   onChangeDateClick: () => void;
   onSelect: (time: ClockTime) => void;
+  /** Keep to `stylist` (moving a booking): no professional switcher. */
+  fixedStylist?: boolean;
 }
 
 const PERIODS = [
@@ -41,7 +52,12 @@ export default function TimeStep(props: Props) {
     setSearching(true);
     setNoneAhead(false);
     try {
-      const days = await provider.getAvailableDates({ from: addDays(date, 1), to: addDays(date, 60), stylistId, serviceIds });
+      const days = await provider.getAvailableDates({
+        from: addDays(date, 1),
+        to: addDays(date, 60),
+        stylistId,
+        serviceIds,
+      });
       const next = days.find((d) => d.status === "available");
       if (next) props.onDateChange(next.date);
       else setNoneAhead(true);
@@ -51,37 +67,47 @@ export default function TimeStep(props: Props) {
   };
 
   const stylistName = (slot: TimeSlot) =>
-    slot.stylistIds.length === 1 ? catalog.stylists.find((s) => s.id === slot.stylistIds[0])?.name : undefined;
+    slot.stylistIds.length === 1
+      ? catalog.stylists.find((s) => s.id === slot.stylistIds[0])?.name
+      : undefined;
 
   return (
     <div className="space-y-8">
       {error && <Notice tone="error">{error}</Notice>}
 
       {/* Professional switcher */}
-      <div>
-        <p className="mb-3 text-sm font-medium">Professional</p>
-        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-          {[{ id: ANY, name: "Any professional" }, ...options].map((o) => {
-            const index = catalog.stylists.findIndex((s) => s.id === o.id);
-            const active = stylist === o.id;
-            return (
-              <li key={o.id}>
-                <button
-                  type="button"
-                  onClick={() => props.onStylistChange(o.id)}
-                  aria-pressed={active}
-                  className={`flex items-center gap-2 rounded-full border py-1.5 pr-4 pl-1.5 text-sm whitespace-nowrap transition ${
-                    active ? "border-ink bg-ink text-white" : "border-line hover:border-gold"
-                  }`}
-                >
-                  <Avatar stylist={catalog.stylists[index]} index={index} size="sm" />
-                  {o.name}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      {!props.fixedStylist && (
+        <div>
+          <p className="mb-3 text-sm font-medium">Professional</p>
+          <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+            {[{ id: ANY, name: "Any professional" }, ...options].map((o) => {
+              const index = catalog.stylists.findIndex((s) => s.id === o.id);
+              const active = stylist === o.id;
+              return (
+                <li key={o.id}>
+                  <button
+                    type="button"
+                    onClick={() => props.onStylistChange(o.id)}
+                    aria-pressed={active}
+                    className={`flex items-center gap-2 rounded-full border py-1.5 pr-4 pl-1.5 text-sm whitespace-nowrap transition ${
+                      active
+                        ? "border-ink bg-ink text-white"
+                        : "border-line hover:border-gold"
+                    }`}
+                  >
+                    <Avatar
+                      stylist={catalog.stylists[index]}
+                      index={index}
+                      size="sm"
+                    />
+                    {o.name}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {/* Day switcher */}
       <div className="flex items-center justify-between gap-4 rounded-2xl border border-line px-2 py-2">
@@ -94,9 +120,15 @@ export default function TimeStep(props: Props) {
         >
           <Chevron dir="left" />
         </button>
-        <button type="button" onClick={props.onChangeDateClick} className="text-center">
+        <button
+          type="button"
+          onClick={props.onChangeDateClick}
+          className="text-center"
+        >
           <span className="block font-medium">{formatLongDate(date)}</span>
-          <span className="block text-xs text-muted underline underline-offset-2">Change date</span>
+          <span className="block text-xs text-muted underline underline-offset-2">
+            Change date
+          </span>
         </button>
         <button
           type="button"
@@ -117,7 +149,9 @@ export default function TimeStep(props: Props) {
       ) : slots && slots.length === 0 ? (
         <Notice>
           <p className="font-medium text-ink">No availability on this day</p>
-          <p className="mt-1">Try another professional, or jump to the next free day.</p>
+          <p className="mt-1">
+            Try another professional, or jump to the next free day.
+          </p>
           <button
             type="button"
             onClick={findNextAvailable}
@@ -126,16 +160,27 @@ export default function TimeStep(props: Props) {
           >
             {searching && <Spinner />} Find next available date
           </button>
-          {noneAhead && <p className="mt-2">No availability in the next 60 days with this selection.</p>}
+          {noneAhead && (
+            <p className="mt-2">
+              No availability in the next 60 days with this selection.
+            </p>
+          )}
         </Notice>
       ) : (
-        <div className={`space-y-8 transition-opacity ${loading ? "opacity-50" : ""}`} aria-busy={loading}>
+        <div
+          className={`space-y-8 transition-opacity ${loading ? "opacity-50" : ""}`}
+          aria-busy={loading}
+        >
           {PERIODS.map((p) => {
-            const group = (slots ?? []).filter((s) => p.test(timeToMinutes(s.time)));
+            const group = (slots ?? []).filter((s) =>
+              p.test(timeToMinutes(s.time)),
+            );
             if (!group.length) return null;
             return (
               <section key={p.label}>
-                <h3 className="mb-3 text-sm font-medium text-muted">{p.label}</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted">
+                  {p.label}
+                </h3>
                 <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
                   {group.map((s) => {
                     const active = s.time === selected;
@@ -147,11 +192,19 @@ export default function TimeStep(props: Props) {
                           onClick={() => props.onSelect(s.time)}
                           aria-pressed={active}
                           className={`w-full rounded-xl border px-2 py-3 text-sm transition ${
-                            active ? "border-ink bg-ink text-white" : "border-line hover:border-gold"
+                            active
+                              ? "border-ink bg-ink text-white"
+                              : "border-line hover:border-gold"
                           }`}
                         >
                           <span className="block font-medium">{s.time}</span>
-                          {who && <span className={`block text-[11px] ${active ? "text-white/70" : "text-muted"}`}>{who}</span>}
+                          {who && (
+                            <span
+                              className={`block text-[11px] ${active ? "text-white/70" : "text-muted"}`}
+                            >
+                              {who}
+                            </span>
+                          )}
                         </button>
                       </li>
                     );

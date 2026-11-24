@@ -14,6 +14,7 @@ const BookingPage = lazy(() => import("./booking/BookingPage"));
 const Privacy = lazy(() => import("./components/Privacy"));
 const BuyPage = lazy(() => import("./booking/BuyPage"));
 const AccountPage = lazy(() => import("./booking/AccountPage"));
+const ManagePage = lazy(() => import("./booking/ManagePage"));
 
 export default function App() {
   const { pathname } = useLocation();
@@ -37,6 +38,14 @@ export default function App() {
     return (
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <AccountPage />
+      </Suspense>
+    );
+  }
+
+  if (pathname === "/manage" && !isPrelaunch) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <ManagePage />
       </Suspense>
     );
   }
