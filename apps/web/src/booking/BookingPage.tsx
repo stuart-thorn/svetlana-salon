@@ -349,6 +349,7 @@ export default function BookingPage() {
                 onSubmit={submit}
                 deposit={deposit}
                 signedInEmail={signedInEmail}
+                {...(catalog.cancellation && { cancellationHours: catalog.cancellation.windowHours })}
                 {...(profile?.customer?.name && { accountName: profile.customer.name })}
                 {...(customerState.status === "signed_out" && { onSignedIn: signedIn })}
               />

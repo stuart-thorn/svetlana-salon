@@ -70,6 +70,8 @@ export interface Catalog {
   products?: Product[];
   /** The salon sells memberships or packages with included visits (online or in person). */
   sellsMemberships?: boolean;
+  /** Free cancellation and changes up to `windowHours` before the appointment; later, money paid online is kept. */
+  cancellation?: { windowHours: number };
 }
 
 /** Something the salon sells online outside a booking: a membership, a package or a retail product. */

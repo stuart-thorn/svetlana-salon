@@ -1,6 +1,13 @@
-import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
+import {
+  formatDuration,
+  formatPrice,
+  servicesById,
+  type BookingConfirmation,
+  type Catalog,
+} from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import CalendarChoice from "./CalendarChoice";
+import { freeCancellationUntil } from "./policy";
 import { Avatar, Check, formatLongDate } from "./ui";
 
 export default function Confirmation({
@@ -21,7 +28,13 @@ export default function Confirmation({
 
   if (search.get("view") === "calendar") {
     // Only reachable from the summary below (the confirmation lives in memory), so back is always the summary.
-    return <CalendarChoice confirmation={c} catalog={catalog} onBack={() => window.history.back()} />;
+    return (
+      <CalendarChoice
+        confirmation={c}
+        catalog={catalog}
+        onBack={() => window.history.back()}
+      />
+    );
   }
 
   return (
@@ -31,7 +44,8 @@ export default function Confirmation({
       </div>
       <h1 className="mt-6 font-serif text-3xl">Booking confirmed</h1>
       <p className="mt-3 text-muted">
-        A confirmation will be sent to <span className="text-ink">{email}</span>.
+        A confirmation will be sent to <span className="text-ink">{email}</span>
+        .
       </p>
       <p className="mt-1 text-sm text-muted">
         Reference <span className="font-medium text-ink">{c.reference}</span>
@@ -74,6 +88,17 @@ export default function Confirmation({
           </div>
         )}
       </div>
+      {catalog.cancellation && (
+        <p className="mt-4 text-sm text-muted">
+          Free cancellation or changes until{" "}
+          {freeCancellationUntil(
+            c.date,
+            c.time,
+            catalog.cancellation.windowHours,
+          )}
+          . Use the link in your confirmation email.
+        </p>
+      )}
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <button
@@ -93,7 +118,10 @@ export default function Confirmation({
         >
           Book another
         </button>
-        <Link to="/" className="rounded-full px-6 py-3 text-sm font-medium text-muted transition-colors hover:text-gold">
+        <Link
+          to="/"
+          className="rounded-full px-6 py-3 text-sm font-medium text-muted transition-colors hover:text-gold"
+        >
           Back to home
         </Link>
       </div>

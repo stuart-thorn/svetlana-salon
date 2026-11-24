@@ -47,7 +47,7 @@ interface ApiPolicyOverrides {
 interface ApiCatalog {
   tenant: {
     name: string;
-    policies: { payment: ApiPayment };
+    policies: { payment: ApiPayment; cancellationWindowHours?: number };
     audiencesPrompt?: string;
     sellsMemberships?: boolean;
   };
@@ -333,6 +333,13 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
     },
   );
   return {
+    ...(api.tenant.policies.cancellationWindowHours
+      ? {
+          cancellation: {
+            windowHours: api.tenant.policies.cancellationWindowHours,
+          },
+        }
+      : {}),
     salonName: api.tenant.name,
     ...(api.tenant.audiencesPrompt && {
       audiencesPrompt: api.tenant.audiencesPrompt,
