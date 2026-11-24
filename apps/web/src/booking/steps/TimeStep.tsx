@@ -74,7 +74,7 @@ export default function TimeStep(props: Props) {
                     onClick={() => props.onStylistChange(o.id)}
                     aria-pressed={active}
                     className={`flex items-center gap-2 rounded-full border py-1.5 pr-4 pl-1.5 text-sm whitespace-nowrap transition ${
-                      active ? "border-ink bg-ink text-white" : "border-line hover:border-gold"
+                      active ? "border-ink bg-ink text-white" : "border-line hover:border-accent"
                     }`}
                   >
                     <Avatar stylist={catalog.stylists[index]} index={index} size="sm" />
@@ -126,7 +126,7 @@ export default function TimeStep(props: Props) {
             type="button"
             onClick={findNextAvailable}
             disabled={searching}
-            className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-gold disabled:opacity-60"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-accent disabled:opacity-60"
           >
             {searching && <Spinner />} Find next available date
           </button>
@@ -151,7 +151,7 @@ export default function TimeStep(props: Props) {
                           onClick={() => props.onSelect(s.time)}
                           aria-pressed={active}
                           className={`w-full rounded-xl border px-2 py-3 text-sm transition ${
-                            active ? "border-ink bg-ink text-white" : "border-line hover:border-gold"
+                            active ? "border-ink bg-ink text-white" : "border-line hover:border-accent"
                           }`}
                         >
                           <span className="block font-medium">{s.time}</span>

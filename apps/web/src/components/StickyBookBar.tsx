@@ -35,7 +35,7 @@ export default function StickyBookBar() {
           show ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <Link to="/book" className="block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-gold">
+        <Link to="/book" className="block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-accent">
           Book an appointment
         </Link>
       </div>

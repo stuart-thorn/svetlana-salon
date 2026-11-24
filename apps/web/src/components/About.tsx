@@ -44,7 +44,7 @@ export default function About() {
         </div>
 
         <div className="flex flex-col justify-center">
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">About us</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">About us</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">
             Accessible premium hair in the middle of the city
           </h2>
@@ -61,7 +61,7 @@ export default function About() {
           <ul className="mt-10 space-y-6">
             {highlights.map((h) => (
               <li key={h.title} className="flex gap-4">
-                <span className="mt-2 h-px w-8 shrink-0 bg-gold" aria-hidden />
+                <span className="mt-2 h-px w-8 shrink-0 bg-accent" aria-hidden />
                 <div>
                   <h3 className="font-medium">{h.title}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-muted">{h.text}</p>

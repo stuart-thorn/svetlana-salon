@@ -53,7 +53,7 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
             onClick={() => setMonth(shiftMonth(month, -1))}
             disabled={!canPrev}
             aria-label="Previous month"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-gold disabled:opacity-30"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-accent disabled:opacity-30"
           >
             <Chevron dir="left" />
           </button>
@@ -62,7 +62,7 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
             onClick={() => setMonth(shiftMonth(month, 1))}
             disabled={!canNext}
             aria-label="Next month"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-gold disabled:opacity-30"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-line transition-colors enabled:hover:border-accent disabled:opacity-30"
           >
             <Chevron />
           </button>
@@ -97,14 +97,14 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
                 isSelected
                   ? "bg-ink font-medium text-white"
                   : available
-                    ? "font-medium hover:bg-gold/15"
+                    ? "font-medium hover:bg-accent/15"
                     : status === "fully-booked"
                       ? "text-muted/60 line-through"
                       : "text-muted/40"
               } ${d === today && !isSelected ? "ring-1 ring-line" : ""}`}
             >
               {parseISODate(d).getDate()}
-              {available && !isSelected && <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-gold" aria-hidden />}
+              {available && !isSelected && <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-accent" aria-hidden />}
             </button>
           );
         })}
@@ -112,7 +112,7 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
 
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted">
         <span className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-gold" /> Available
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Available
         </span>
         <span className="line-through">Fully booked</span>
         <span className="text-muted/50">Unavailable</span>

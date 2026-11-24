@@ -31,7 +31,7 @@ export default function CalendarChoice({
       <button
         type="button"
         onClick={onBack}
-        className="-ml-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm text-muted transition-colors hover:text-gold"
+        className="-ml-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm text-muted transition-colors hover:text-accent"
       >
         <Chevron dir="left" size={16} /> Back to your booking
       </button>
@@ -65,7 +65,7 @@ export default function CalendarChoice({
 
       <p className="mt-4 text-sm text-muted">
         Using another calendar app?{" "}
-        <a href={ics} download={download} className="text-ink underline-offset-2 hover:text-gold hover:underline">
+        <a href={ics} download={download} className="text-ink underline-offset-2 hover:text-accent hover:underline">
           Download the .ics file →
         </a>
       </p>

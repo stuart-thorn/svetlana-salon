@@ -7,7 +7,7 @@ import { visitsText } from "./memberships";
 import { Link } from "../router";
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-gold sm:text-sm";
+  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-accent sm:text-sm";
 const buttonClass = "inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50";
 const linkClass = "underline underline-offset-2 hover:text-ink";
 

@@ -49,8 +49,8 @@ export default function Header() {
               <a
                 href={`#${id}`}
                 aria-current={active === id ? "page" : undefined}
-                className={`text-sm tracking-wide transition-colors hover:text-gold ${
-                  active === id ? "text-gold" : "text-ink"
+                className={`text-sm tracking-wide transition-colors hover:text-accent ${
+                  active === id ? "text-accent" : "text-ink"
                 }`}
               >
                 {label}
@@ -59,7 +59,7 @@ export default function Header() {
           ))}
           {!isPrelaunch && customerAuth && (
             <li>
-              <Link to="/account" className="text-sm text-ink/80 transition-colors hover:text-gold">
+              <Link to="/account" className="text-sm text-ink/80 transition-colors hover:text-accent">
                 My account
               </Link>
             </li>
@@ -68,7 +68,7 @@ export default function Header() {
             <li>
               <Link
                 to="/book"
-                className="rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-gold"
+                className="rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-accent"
               >
                 Book now
               </Link>
@@ -97,7 +97,7 @@ export default function Header() {
               <a
                 href={`#${id}`}
                 onClick={() => setOpen(false)}
-                className={`block py-3 text-base ${active === id ? "text-gold" : "text-ink"}`}
+                className={`block py-3 text-base ${active === id ? "text-accent" : "text-ink"}`}
               >
                 {label}
               </a>

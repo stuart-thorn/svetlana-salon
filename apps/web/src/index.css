@@ -5,8 +5,8 @@
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --color-ink: #1c1917;
   --color-muted: #6b6560;
-  --color-gold: #b08d57;
-  --color-gold-dark: #8f7144;
+  --color-accent: #4169e1; /* royal blue (client, 24 Nov 2026); AA on white */
+  --color-accent-dark: #2a4bb8;
   --color-line: #ebe7e2;
 }
 
@@ -21,7 +21,7 @@
     scroll-margin-top: 4.5rem;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-gold;
+    @apply outline-2 outline-offset-2 outline-accent;
   }
 }
 

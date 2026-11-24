@@ -19,12 +19,12 @@ export default function Terms() {
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 leading-relaxed text-ink sm:px-6">
       <p className="text-sm">
-        <Link to="/" className="text-muted underline underline-offset-2 hover:text-gold">
+        <Link to="/" className="text-muted underline underline-offset-2 hover:text-accent">
           ← {salon.name}
         </Link>
       </p>
       <h1 className="mt-6 font-serif text-4xl">Booking terms</h1>
-      <p className="mt-4 rounded-xl border border-gold bg-white px-4 py-3 text-sm">
+      <p className="mt-4 rounded-xl border border-accent bg-white px-4 py-3 text-sm">
         <span className="font-medium">Draft for review.</span> These terms aren't in force yet. Points marked <ToConfirm /> are still being
         decided.
       </p>
@@ -36,11 +36,11 @@ export default function Terms() {
       </p>
       <p className="mt-3">
         Our salon is on the Mezzanine Floor, Unit 38C, Jubilee Place, Canary Wharf, London E14 5NY. You can reach us on{" "}
-        <a href={`tel:${salon.phone.replace(/\s/g, "")}`} className="underline underline-offset-2 hover:text-gold">
+        <a href={`tel:${salon.phone.replace(/\s/g, "")}`} className="underline underline-offset-2 hover:text-accent">
           {salon.phone}
         </a>{" "}
         or{" "}
-        <a href={`mailto:${salon.email}`} className="underline underline-offset-2 hover:text-gold">
+        <a href={`mailto:${salon.email}`} className="underline underline-offset-2 hover:text-accent">
           {salon.email}
         </a>
         .
@@ -80,12 +80,11 @@ export default function Terms() {
       <h2 className={h2}>4. Deposits</h2>
       <ul className={list}>
         <li>
-          Colour, highlights, balayage and Nanoplasty need a deposit when you book online: 50% of the starting price.{" "}
-          <ToConfirm what="exactly which services" />
+          Every appointment booked online needs a deposit of 50% of the price (for services priced "from", 50% of the starting price).
         </li>
         <li>The rest, and anything agreed at your appointment, is paid in the salon.</li>
         <li>Your booking is held for 10 minutes while you pay the deposit, and confirmed once it has gone through.</li>
-        <li>Other services are paid in full in the salon.</li>
+        <li>No deposit is needed for a service paid with a membership or package visit, or for walk-ins and bookings made in the salon or by phone.</li>
       </ul>
 
       <h2 className={h2} id="cancelling">
@@ -179,9 +178,10 @@ export default function Terms() {
           </thead>
           <tbody>
             {[
-              ["Junior membership", "3 full haircuts + 2 back & sides", "3 months", "£162"],
-              ["Executive membership", "6 full haircuts + 4 back & sides", "6 months", "£306"],
-              ["Founder membership", "12 full haircuts + 8 back & sides", "12 months", "£576"],
+              ["Skin Fade Club", "2 skin fades + 2 back & sides, then a 5th back & sides free", "3 months", "£150"],
+              ["Classic Club", "5 men's haircuts (the 5th free)", "3 months", "£170"],
+              ["Exclusive Club", "6 men's haircuts (the 6th free)", "6 months", "£190"],
+              ["Premium Club", "13 men's haircuts (the 13th free)", "12 months", "£420"],
               ["Blow-dry package", "5 blow-dries (4 + 1 free)", "No expiry", "£180"],
             ].map(([name, includes, term, price]) => (
               <tr key={name}>
@@ -195,7 +195,10 @@ export default function Terms() {
         </table>
       </div>
       <ul className={`${list} mt-4`}>
-        <li>Men's memberships cover men's full haircuts and back &amp; sides only, not other services.</li>
+        <li>
+          The men's haircut clubs cover the haircuts listed (a standard men's haircut; for the Skin Fade Club, skin fades and back &amp; sides
+          clean-ups) only, not other services. They are a single payment and don't renew automatically.
+        </li>
         <li>Visits must be used within the membership's term. Visits not used by the end of it expire.</li>
         <li>
           A membership or package is for the person who bought it and can't be transferred or exchanged for cash. <ToConfirm />
@@ -217,8 +220,8 @@ export default function Terms() {
           in the salon.
         </li>
         <li>
-          <span className="font-medium">Family Visit:</span> 15% off haircuts and blow-dries when 3 or more family members have them on the
-          same day. Not colour or technical services.
+          <span className="font-medium">Family Visit:</span> 15% off haircuts and blow-dries when 3 or more family members visit on the same
+          day. Tell us at the desk; we apply it in the salon. Not colour or technical services.
         </li>
         <li>
           Offers can't be combined with each other or with memberships, and can't be applied to past bookings. Only one reduction applies to
@@ -260,7 +263,7 @@ export default function Terms() {
       <ul className={list}>
         <li>
           How we use your details is explained in our{" "}
-          <Link to="/privacy" className="underline underline-offset-2 hover:text-gold">
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-accent">
             Privacy notice
           </Link>
           .

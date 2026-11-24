@@ -5,7 +5,7 @@ export default function Contact() {
     <section id="contact" className="bg-stone-50/60 py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Contact</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">Contact</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">Visit us in Canary Wharf</h2>
         </div>
 
@@ -27,15 +27,15 @@ export default function Contact() {
             <div>
               <h3 className="text-sm font-medium uppercase tracking-widest text-muted">Get in touch</h3>
               <p className="mt-3 leading-relaxed">
-                <a href={`tel:${salon.phone.replace(/\s/g, "")}`} className="block hover:text-gold">
+                <a href={`tel:${salon.phone.replace(/\s/g, "")}`} className="block hover:text-accent">
                   {salon.phone}
                 </a>
-                <a href={`mailto:${salon.email}`} className="block break-all hover:text-gold">
+                <a href={`mailto:${salon.email}`} className="block break-all hover:text-accent">
                   {salon.email}
                 </a>
                 {salon.instagram && (
-                  <a href={salon.instagram} className="block hover:text-gold" target="_blank" rel="noreferrer">
-                    Instagram
+                  <a href={salon.instagram} className="block hover:text-accent" target="_blank" rel="noreferrer">
+                    Instagram @ng_canarywharf
                   </a>
                 )}
               </p>

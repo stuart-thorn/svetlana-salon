@@ -36,7 +36,7 @@ function Bullets({ items }: { items: string[] }) {
     <ul className="mt-4 space-y-2 text-sm leading-relaxed text-muted">
       {items.map((d) => (
         <li key={d} className="flex gap-3">
-          <span className="mt-2.5 h-px w-4 shrink-0 bg-gold" aria-hidden />
+          <span className="mt-2.5 h-px w-4 shrink-0 bg-accent" aria-hidden />
           {d}
         </li>
       ))}
@@ -50,7 +50,7 @@ export default function Offers() {
     <section id="offers" className="py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Offers & memberships</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">Offers & memberships</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">More for regular visits</h2>
           <p className="mt-4 leading-relaxed text-muted">
             Ways to save if you're a student, come often or bring the family. Ask in the salon to join or buy.
@@ -61,9 +61,9 @@ export default function Offers() {
           {offers.map((o) => (
             <li
               key={o.title}
-              className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-gold" : "border-line"}`}
+              className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-accent" : "border-line"}`}
             >
-              {o.featured && <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-dark">Weekday off-peak</p>}
+              {o.featured && <p className="text-xs font-medium uppercase tracking-[0.2em] text-accent-dark">Weekday off-peak</p>}
               <h3 className={`font-serif text-2xl ${o.featured ? "mt-2" : ""}`}>{o.title}</h3>
               <p className="mt-3 font-medium">{o.summary}</p>
               <Bullets items={o.details} />
@@ -79,10 +79,10 @@ export default function Offers() {
             <table className="w-full min-w-[36rem] text-left text-sm">
               <thead className="text-xs uppercase tracking-widest text-muted">
                 <tr className="border-b border-line">
-                  <th className="py-2.5 pr-4 font-medium">Membership</th>
+                  <th className="py-2.5 pr-4 font-medium">Club</th>
                   <th className="py-2.5 pr-4 font-medium">Included</th>
                   <th className="py-2.5 pr-4 text-right font-medium">Standard value</th>
-                  <th className="py-2.5 text-right font-medium">Member price</th>
+                  <th className="py-2.5 text-right font-medium">Club price</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -96,13 +96,13 @@ export default function Offers() {
                     <td className="py-3 pr-4 text-right text-muted">{gbp(t.standard)}</td>
                     <td className="py-3 text-right">
                       <span className="font-medium">{gbp(t.price)}</span>
-                      <span className="block text-xs text-gold-dark">
-                        {t.discount}% off, save {gbp(t.standard - t.price)}
+                      <span className="block text-xs text-accent-dark">
+                        Save {gbp(t.standard - t.price)}
                       </span>
                       {productFor(online, t.name) && (
                         <Link
                           to={`/buy?product=${encodeURIComponent(productFor(online, t.name)!.id)}`}
-                          className="mt-2 inline-block rounded-full bg-ink px-4 py-1.5 text-xs font-medium text-white hover:bg-gold"
+                          className="mt-2 inline-block rounded-full bg-ink px-4 py-1.5 text-xs font-medium text-white hover:bg-accent"
                         >
                           Buy online
                         </Link>

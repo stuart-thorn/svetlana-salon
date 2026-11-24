@@ -185,7 +185,7 @@ export default function BookingPage() {
                         disabled={!reachable || current}
                         onClick={() => goTo(s)}
                         aria-current={current ? "step" : undefined}
-                        className={`rounded px-1.5 py-1 ${current ? "font-medium text-ink" : reachable ? "text-muted hover:text-gold" : "text-muted/40"}`}
+                        className={`rounded px-1.5 py-1 ${current ? "font-medium text-ink" : reachable ? "text-muted hover:text-accent" : "text-muted/40"}`}
                       >
                         {STEP_LABELS[s]}
                       </button>

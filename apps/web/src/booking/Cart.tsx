@@ -32,7 +32,7 @@ function ActionButton({ action, className = "" }: { action: CartAction; classNam
       form={action.form}
       onClick={action.form ? undefined : action.onClick}
       disabled={action.disabled || action.busy}
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
     >
       {action.busy && <Spinner />}
       {action.label}
@@ -99,7 +99,7 @@ function CartBody({ catalog, draft, memberships, savings = [] }: { catalog: Cata
                     {formatDuration(s.durationMin)}
                   </p>
                   {s.included && (
-                    <p className="text-xs text-gold-dark">
+                    <p className="text-xs text-accent-dark">
                       Included in your {s.included.membershipName} ({s.included.label})
                     </p>
                   )}
@@ -112,7 +112,7 @@ function CartBody({ catalog, draft, memberships, savings = [] }: { catalog: Cata
       </div>
 
       {savings.map(({ offer, amount }) => (
-        <div key={offer.id} className="flex justify-between gap-4 pb-3 text-sm text-gold-dark">
+        <div key={offer.id} className="flex justify-between gap-4 pb-3 text-sm text-accent-dark">
           <p>{offer.name}</p>
           <p className="shrink-0">−{formatPrice(amount)}</p>
         </div>

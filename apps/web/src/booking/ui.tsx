@@ -8,7 +8,7 @@ export function Avatar({ stylist, index = 0, size = "md" }: { stylist?: Stylist;
   const dims = { sm: "h-8 w-8 text-xs", md: "h-12 w-12 text-sm", lg: "h-16 w-16 text-lg" }[size];
   if (!stylist) {
     return (
-      <span className={`${dims} inline-flex shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold-dark`} aria-hidden>
+      <span className={`${dims} inline-flex shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-dark`} aria-hidden>
         <svg width="55%" height="55%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
           <circle cx="9" cy="8" r="3.2" />
           <path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5" />

@@ -15,7 +15,7 @@ export default function Privacy() {
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 leading-relaxed text-ink sm:px-6">
       <p className="text-sm">
-        <Link to="/" className="text-muted underline underline-offset-2 hover:text-gold">
+        <Link to="/" className="text-muted underline underline-offset-2 hover:text-accent">
           ← {salon.name}
         </Link>
       </p>
@@ -66,7 +66,7 @@ export default function Privacy() {
       <h2 className={h2}>Your rights</h2>
       <p>
         You can ask for a copy of what we hold about you, ask us to correct it, or ask us to delete it. Email{" "}
-        <a href={`mailto:${salon.email}`} className="underline underline-offset-2 hover:text-gold">
+        <a href={`mailto:${salon.email}`} className="underline underline-offset-2 hover:text-accent">
           {salon.email}
         </a>
         . If you're unhappy with how we've handled your information, you can complain to the Information

@@ -39,7 +39,7 @@ interface Props {
 }
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition-colors focus:border-gold aria-[invalid=true]:border-red-400 read-only:bg-stone-50 read-only:text-muted";
+  "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition-colors focus:border-accent aria-[invalid=true]:border-red-400 read-only:bg-stone-50 read-only:text-muted";
 
 const FIELDS = [
   { key: "name", label: "Full name", type: "text", autoComplete: "name" },
@@ -105,10 +105,10 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
       {offers.length > 0 && onClaim && (
         <div className="space-y-2">
           {offers.map((o) => (
-            <label key={o.id} className="flex items-start gap-3 rounded-xl border border-gold px-4 py-3 text-sm">
+            <label key={o.id} className="flex items-start gap-3 rounded-xl border border-accent px-4 py-3 text-sm">
               <input
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-[var(--color-gold)]"
+                className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]"
                 checked={claimed.includes(o.id)}
                 onChange={(e) => onClaim(o.id, e.target.checked)}
               />
@@ -220,7 +220,7 @@ function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: Cu
                   if (code.replace(/\D/g, "").length >= 6) void verify();
                 }
               }}
-              className="w-32 rounded-lg border border-line px-3 py-2 text-sm tracking-widest outline-none focus:border-gold"
+              className="w-32 rounded-lg border border-line px-3 py-2 text-sm tracking-widest outline-none focus:border-accent"
               autoFocus
             />
             <button

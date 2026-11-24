@@ -7,14 +7,14 @@ export default function Home() {
     <section id="home" className="pt-16">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 md:py-20">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Family hair salon · Canary Wharf, E14</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">Family hair salon · Canary Wharf, E14</p>
           <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl lg:text-6xl">
             {salon.name}
           </h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">{salon.tagline}</p>
           {isPrelaunch && (
-            <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-2 text-sm font-medium text-gold-dark">
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
+            <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent/15 px-4 py-2 text-sm font-medium text-accent-dark">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />
               {prelaunchNote}
             </p>
           )}
@@ -23,14 +23,14 @@ export default function Home() {
               <Link
                 to="/book"
                 data-book-cta
-                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
+                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-accent"
               >
                 Book an appointment
               </Link>
             )}
             <a
               href="#about"
-              className="rounded-full border border-ink/20 px-7 py-3 text-sm font-medium transition-colors hover:border-gold hover:text-gold"
+              className="rounded-full border border-ink/20 px-7 py-3 text-sm font-medium transition-colors hover:border-accent hover:text-accent"
             >
               Discover the salon
             </a>

@@ -102,8 +102,9 @@ describe("mock booking provider", () => {
     expect(conf.stylistId).toBe("elena");
     expect(conf.durationMin).toBe(60);
     expect(conf.total).toBe(70);
-    expect(conf.status).toBe("confirmed");
-    expect(conf.deposit).toBeUndefined();
+    // Every online booking takes a 50% deposit; the slot is held meanwhile.
+    expect(conf.status).toBe("pending_payment");
+    expect(conf.deposit).toMatchObject({ now: 35, atSalon: 35, paid: false });
 
     const after = await p.getTimeSlots(query);
     expect(after.find((s) => s.time === first!.time)).toBeUndefined();

@@ -2,6 +2,40 @@
 
 Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 
+## 2026-11-24: hours, Instagram, memberships, deposits, menu, Family Visit, brand
+
+Svetlana's answers to the open questions. Full mapping in bookable-agent's `docs/clients/ng-canary-wharf.md`.
+
+- **Weekends.** Sat–Sun 10:00–18:00 stand ("Open 7 days" stays).
+- **Instagram.** @ng_canarywharf, linked from Contact.
+- **Back & sides.** "Full haircut" is the Men's standard cut (£40); "back & sides" is the Graded cut / clean-up
+  (£30), used between full cuts by skin fade clients.
+- **Memberships** become four **clubs** (Junior, Executive and Founder are dropped). One upfront payment, a
+  fixed term, no renewal or Direct Debit, visits tracked with the last (free) visit shown clearly:
+  - Skin Fade Club, 3 months: 2 skin fades + 2 back & sides + a 5th back & sides free, £150 (worth £180)
+  - Classic Club, 3 months: 5 men's haircuts (5th free), £170 (worth £200)
+  - Exclusive Club, 6 months: 6 men's haircuts (6th free), £190 (worth £240)
+  - Premium Club, 12 months: 13 men's haircuts (13th free), £420 (worth £520)
+
+  Sold in the salon first; online buying later. (Which visit is "free" in Classic, Exclusive and Premium is
+  our presentation: she asked for the final/bonus visit to be shown clearly.)
+- **Deposit.** 50% on **every** online booking (not only colour). Not on bookings made in the salon or by
+  phone, nor on membership/package visits.
+- **Menu.** The old site prices are replaced by her updated price list (her business plan is coming). Colour
+  for now: Roots colour from £70, Full head colour from £95. T-section, half and full head highlights are off
+  the menu until then, and so are the buzz cut and beard trim (prices never confirmed by her).
+- **Deep treatment** can be added to a cut, blow-dry or colour in the same visit.
+- **Family Visit.** 15% off haircuts and blow-dries for 3 or more family members on the same day (not colour);
+  trusted, confirmed on the day; the larger discount applies, never both. Applied by staff at the desk.
+- **Walk-ins.** Always welcome; online shows available times, nothing held back.
+- **Late opening (to 20:00).** She decides the days (often Thu/Fri, Christmas) and tells us ahead; staff open
+  those slots as extra hours in the admin app.
+- **Brand.** Vibrant royal blue accents to match the coming logo (the site's gold accent is now royal blue
+  `#4169e1`); logo to follow.
+
+Still open with Svetlana: her full price list, the logo, the email provider, the cancellation/terms points,
+which services the student offer covers, the blow-dry package price (£180 for 5 vs from £40 each).
+
 ## 2026-11-23: contact, hours, menu, offers, company details
 
 Two emails from Svetlana, plus a table of the men's memberships. The full breakdown and the platform gaps are

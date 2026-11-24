@@ -16,7 +16,7 @@ export default function Footer() {
         <ul className="flex flex-wrap gap-x-6 gap-y-2">
           {navLinks.map(({ id, label }) => (
             <li key={id}>
-              <a href={`#${id}`} className="text-muted hover:text-gold">
+              <a href={`#${id}`} className="text-muted hover:text-accent">
                 {label}
               </a>
             </li>
@@ -24,13 +24,13 @@ export default function Footer() {
         </ul>
         <p className="text-muted">
           © {new Date().getFullYear()} {salon.legalName} ·{" "}
-          <Link to="/privacy" className="hover:text-gold">
+          <Link to="/privacy" className="hover:text-accent">
             Privacy
           </Link>
           {!isPrelaunch && (
             <>
               {" · "}
-              <Link to="/terms" className="hover:text-gold">
+              <Link to="/terms" className="hover:text-accent">
                 Booking terms
               </Link>
             </>

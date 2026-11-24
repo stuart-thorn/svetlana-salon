@@ -9,8 +9,8 @@ export const salon = {
     "In the main central hall of Jubilee Place, behind Café Brera and near Starbucks and Pret: take the escalator up from the main walkway. We're not in the passage by Wagamama.",
   phone: "020 7512 9890",
   email: "info@ngcanarywharf.co.uk",
-  /** Instagram profile URL; the link shows once the client gives us the handle. */
-  instagram: undefined as string | undefined,
+  /** Instagram profile URL (@ng_canarywharf, client, 24 Nov 2026). */
+  instagram: "https://www.instagram.com/ng_canarywharf/" as string | undefined,
   company: {
     name: "N&G CANARY WHARF LTD",
     number: "17349131",
@@ -34,7 +34,7 @@ export const openingHours = [
 ];
 
 export const hoursNote =
-  "Thursday and Friday sometimes until 20:00. Bank holidays usually 11:00 – 18:00, with longer hours over Christmas. Same-day appointments and walk-ins are welcome when we have space.";
+  "On some evenings (often Thursday and Friday) and over Christmas we're open until 20:00; those times show in online booking. Bank holidays usually 11:00 – 18:00. Walk-ins are always welcome, and same-day appointments too.";
 
 export interface Offer {
   title: string;
@@ -61,8 +61,12 @@ export const offers: Offer[] = [
   },
   {
     title: "Family Visit",
-    summary: "15% off when 3 or more family members have their haircuts or blow-dries on the same day.",
-    details: ["For example, parents and a child, or a parent with two children.", "Not combined with other offers."],
+    summary: "15% off haircuts and blow-dries when 3 or more family members visit on the same day.",
+    details: [
+      "For example, a parent with two children, or both parents and a child.",
+      "Just tell us at the desk: no proof needed.",
+      "Not colour. Not combined with other offers: the larger discount applies.",
+    ],
   },
 ];
 
@@ -70,25 +74,29 @@ export interface MembershipTier {
   name: string;
   term: string;
   visits: string;
+  /** What the visits cost at standard prices, and the club price (pounds). */
   standard: number;
-  discount: number;
   price: number;
 }
 
-/** Men's haircut memberships (client's table, 23 Nov 2026). Full haircut £40, back & sides £30. */
+/**
+ * Men's haircut clubs (client, 24 Nov 2026). Standard men's haircut £40, skin fade £45, back & sides (graded
+ * cut) £30. Each club's last visit is free. Sold in the salon first.
+ */
 export const memberships = {
-  title: "Men's haircut memberships",
-  summary: "Keep your cut sharp with a visit every 2½ to 3 weeks, paid once upfront.",
+  title: "Men's haircut clubs",
+  summary: "Keep your cut sharp with regular visits, paid once upfront. The last visit is on us.",
   tiers: [
-    { name: "Junior", term: "3 months", visits: "5 visits: 3 full haircuts + 2 back & sides", standard: 180, discount: 10, price: 162 },
-    { name: "Executive", term: "6 months", visits: "10 visits: 6 full haircuts + 4 back & sides", standard: 360, discount: 15, price: 306 },
-    { name: "Founder", term: "12 months", visits: "20 visits: 12 full haircuts + 8 back & sides", standard: 720, discount: 20, price: 576 },
+    { name: "Skin Fade Club", term: "3 months", visits: "2 skin fades + 2 back & sides, then a 5th back & sides free", standard: 180, price: 150 },
+    { name: "Classic Club", term: "3 months", visits: "5 men's haircuts: the 5th free", standard: 200, price: 170 },
+    { name: "Exclusive Club", term: "6 months", visits: "6 men's haircuts: the 6th free", standard: 240, price: 190 },
+    { name: "Premium Club", term: "12 months", visits: "13 men's haircuts: the 13th free", standard: 520, price: 420 },
   ] satisfies MembershipTier[],
   terms: [
-    "Men's full haircuts and back & sides visits only.",
+    "Men's haircuts only (the Skin Fade Club: skin fades and back & sides clean-ups).",
     "One payment upfront: no Direct Debit, nothing renews automatically.",
     "Use your visits within the term; unused visits expire at the end.",
-    "A pass for Apple Wallet or Google Wallet, with a QR code to check in at each visit.",
+    "Join in the salon. Buying online is coming soon.",
   ],
 };
 

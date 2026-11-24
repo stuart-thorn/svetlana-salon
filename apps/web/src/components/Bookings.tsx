@@ -10,7 +10,7 @@ export default function Bookings() {
     <section id="bookings" className="bg-stone-50/60 py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Bookings</p>
+          <p className="text-xs font-medium uppercase tracking-[0.25em] text-accent">Bookings</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">Services & appointments</h2>
           <p className="mt-4 leading-relaxed text-muted">
             {isPrelaunch
@@ -66,7 +66,7 @@ export default function Bookings() {
               <ol className="mt-5 space-y-3">
                 {steps.map((s, i) => (
                   <li key={s} className="flex items-center gap-3 text-sm">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-xs font-medium text-gold-dark">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-medium text-accent-dark">
                       {i + 1}
                     </span>
                     {s}
@@ -76,7 +76,7 @@ export default function Bookings() {
               {isPrelaunch ? (
                 <a
                   href="#contact"
-                  className="mt-8 block rounded-full border border-ink/20 px-7 py-3.5 text-center text-sm font-medium transition-colors hover:border-gold hover:text-gold"
+                  className="mt-8 block rounded-full border border-ink/20 px-7 py-3.5 text-center text-sm font-medium transition-colors hover:border-accent hover:text-accent"
                 >
                   Find us
                 </a>
@@ -84,7 +84,7 @@ export default function Bookings() {
                 <Link
                   to="/book"
                   data-book-cta
-                  className="mt-8 block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-gold"
+                  className="mt-8 block rounded-full bg-ink px-7 py-3.5 text-center text-sm font-medium text-white transition-colors hover:bg-accent"
                 >
                   Book an appointment
                 </Link>

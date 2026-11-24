@@ -18,12 +18,12 @@ const junior = (extra: Partial<MembershipSummary> = {}): MembershipSummary => ({
 
 describe("withMembershipVisits", () => {
   it("makes a covered service free and leaves the rest at their price", () => {
-    const priced = withMembershipVisits(servicesById(catalog, ["mens-cut", "beard-trim"]), [junior()]);
+    const priced = withMembershipVisits(servicesById(catalog, ["mens-cut", "deep-treatment"]), [junior()]);
     expect(priced.map((s) => [s.id, s.price, s.included?.label])).toEqual([
       ["mens-cut", 0, "Full haircut"],
-      ["beard-trim", 15, undefined],
+      ["deep-treatment", 40, undefined],
     ]);
-    expect(totals(priced).price).toBe(15);
+    expect(totals(priced).price).toBe(40);
   });
 
   it("takes no deposit on an included service", () => {

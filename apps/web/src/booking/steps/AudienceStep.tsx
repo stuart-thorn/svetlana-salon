@@ -29,7 +29,7 @@ export default function AudienceStep({ catalog, selected, onSelect }: Props) {
                 type="button"
                 onClick={() => onSelect(o.id)}
                 aria-pressed={isSelected}
-                className={`relative flex h-full w-full flex-col gap-1 rounded-2xl border px-5 py-6 text-left transition hover:border-gold hover:shadow-sm ${
+                className={`relative flex h-full w-full flex-col gap-1 rounded-2xl border px-5 py-6 text-left transition hover:border-accent hover:shadow-sm ${
                   isSelected ? "border-ink ring-1 ring-ink" : "border-line"
                 }`}
               >
@@ -65,14 +65,14 @@ function Deals({ catalog }: { catalog: Catalog }) {
   return (
     <Link
       to="/buy?from=book"
-      className="flex items-center justify-between gap-4 rounded-2xl border border-gold px-5 py-5 transition hover:shadow-sm"
+      className="flex items-center justify-between gap-4 rounded-2xl border border-accent px-5 py-5 transition hover:shadow-sm"
     >
       <span className="flex flex-col gap-1">
-        <span className="text-xs font-medium tracking-[0.2em] text-gold uppercase">Deals</span>
+        <span className="text-xs font-medium tracking-[0.2em] text-accent uppercase">Deals</span>
         <span className="font-medium">Memberships and packages</span>
         <span className="text-sm text-muted">Visits paid in advance, for less.</span>
       </span>
-      <span aria-hidden className="text-xl text-gold">
+      <span aria-hidden className="text-xl text-accent">
         →
       </span>
     </Link>

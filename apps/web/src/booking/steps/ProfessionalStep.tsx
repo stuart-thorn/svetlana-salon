@@ -31,7 +31,7 @@ export default function ProfessionalStep({ catalog, audience, selected, lastStyl
               type="button"
               onClick={() => onSelect(o.id)}
               aria-pressed={isSelected}
-              className={`relative flex h-full w-full flex-col items-center gap-3 rounded-2xl border px-4 py-6 text-center transition hover:border-gold hover:shadow-sm ${
+              className={`relative flex h-full w-full flex-col items-center gap-3 rounded-2xl border px-4 py-6 text-center transition hover:border-accent hover:shadow-sm ${
                 isSelected ? "border-ink ring-1 ring-ink" : "border-line"
               }`}
             >
@@ -41,7 +41,7 @@ export default function ProfessionalStep({ catalog, audience, selected, lastStyl
                 </span>
               )}
               {o.id === lastStylistId && (
-                <span className="absolute top-3 left-3 rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-medium text-ink">Last time</span>
+                <span className="absolute top-3 left-3 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-ink">Last time</span>
               )}
               <Avatar stylist={o.stylist} index={o.index} size="lg" />
               <span>

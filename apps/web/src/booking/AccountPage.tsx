@@ -8,8 +8,8 @@ import { visitsText } from "./memberships";
 import { isTestMode, provider } from "./provider";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
-const input = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-gold sm:text-sm";
-const button = "inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gold disabled:opacity-60";
+const input = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-accent sm:text-sm";
+const button = "inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent disabled:opacity-60";
 const heading = "text-xs font-medium tracking-[0.2em] text-muted uppercase";
 
 /**
@@ -184,7 +184,7 @@ function Visits({ title, visits = [], empty, manage = false }: { title: string; 
                 <span className="flex shrink-0 flex-col items-end gap-1 text-xs text-muted">
                   {v.reference}
                   {manage && (
-                    <Link to={`/manage?ref=${encodeURIComponent(v.reference)}`} className="text-sm text-ink underline underline-offset-2 hover:text-gold">
+                    <Link to={`/manage?ref=${encodeURIComponent(v.reference)}`} className="text-sm text-ink underline underline-offset-2 hover:text-accent">
                       Change or cancel
                     </Link>
                   )}

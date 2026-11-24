@@ -43,7 +43,7 @@ function ServiceCard({ service, state, addOn, included, onClick }: { service: Se
       aria-pressed={chosen}
       aria-label={`${service.name}, ${formatDuration(service.durationMin)}, ${formatServicePrice(service)}, ${STATE_WORDS[state]}`}
       className={`flex w-full items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left transition ${
-        chosen ? "border-ink ring-1 ring-ink" : "border-line enabled:hover:border-gold"
+        chosen ? "border-ink ring-1 ring-ink" : "border-line enabled:hover:border-accent"
       } ${off ? "bg-stone-50 opacity-40" : ""} disabled:cursor-not-allowed`}
     >
       <span className="min-w-0">

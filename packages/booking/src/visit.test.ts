@@ -9,13 +9,13 @@ describe("resolveVisit (N&G menu)", () => {
 
   it("rejects services for different people", () => {
     expect(resolveVisit(catalog, ["mens-cut", "womens-cut"])).toBeNull();
-    expect(resolveVisit(catalog, ["kids-cut", "highlights"])).toBeNull();
+    expect(resolveVisit(catalog, ["kids-cut", "balayage"])).toBeNull();
   });
 
   it("rejects two cuts, two colours, or two unrelated mains", () => {
     expect(resolveVisit(catalog, ["skin-fade", "mens-graded"])).toBeNull();
     expect(resolveVisit(catalog, ["full-colour", "womens-cut", "womens-hair-design"])).toBeNull();
-    expect(resolveVisit(catalog, ["root-colour", "highlights"])).toBeNull();
+    expect(resolveVisit(catalog, ["root-colour", "balayage"])).toBeNull();
     expect(resolveVisit(catalog, ["womens-cut", "blow-dry"])).toBeNull();
     // A cut & finish already includes the finish: a colour takes a cut or a blow-dry, not both.
     expect(resolveVisit(catalog, ["balayage", "womens-cut", "blow-dry"])).toBeNull();
@@ -25,16 +25,17 @@ describe("resolveVisit (N&G menu)", () => {
   it("puts the main first and add-ons after, in menu order", () => {
     expect(resolveVisit(catalog, ["womens-cut", "full-colour"])).toEqual(["full-colour", "womens-cut"]);
     expect(resolveVisit(catalog, ["blow-dry", "balayage"])).toEqual(["balayage", "blow-dry"]);
-    expect(resolveVisit(catalog, ["beard-trim", "root-colour", "skin-fade"])).toEqual(["root-colour", "skin-fade", "beard-trim"]);
-    expect(resolveVisit(catalog, ["beard-trim", "mens-cut"])).toEqual(["mens-cut", "beard-trim"]);
+    expect(resolveVisit(catalog, ["deep-treatment", "root-colour", "skin-fade"])).toEqual(["root-colour", "skin-fade", "deep-treatment"]);
+    expect(resolveVisit(catalog, ["deep-treatment", "mens-cut"])).toEqual(["mens-cut", "deep-treatment"]);
   });
 });
 
 describe("canAdd / prune", () => {
   it("offers add-ons that fit the current visit", () => {
     const fits = (ids: string[]) => catalog.services.filter((s) => canAdd(catalog, ids, s.id)).map((s) => s.id);
-    expect(fits(["mens-cut"])).toEqual(["beard-trim", "root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"]);
-    expect(fits(["womens-cut"])).toEqual(["root-colour", "full-colour", "t-section", "half-highlights", "highlights", "balayage"]);
+    expect(fits(["mens-cut"])).toEqual(["deep-treatment", "root-colour", "full-colour", "balayage"]);
+    expect(fits(["womens-cut"])).toEqual(["deep-treatment", "root-colour", "full-colour", "balayage"]);
+    expect(fits(["blow-dry"])).toEqual(["deep-treatment", "root-colour", "full-colour", "balayage"]);
     expect(fits(["full-colour"])).toContain("blow-dry");
     expect(fits(["full-colour"])).not.toContain("root-colour");
     expect(fits(["kids-cut"])).toEqual([]);
@@ -43,7 +44,7 @@ describe("canAdd / prune", () => {
   it("keeps the earliest main and what still hangs off it", () => {
     expect(prune(catalog, ["full-colour", "womens-cut"])).toEqual(["full-colour", "womens-cut"]);
     expect(prune(catalog, ["womens-cut", "blow-dry"])).toEqual(["womens-cut"]);
-    expect(prune(catalog, ["mens-cut", "beard-trim"])).toEqual(["mens-cut", "beard-trim"]);
+    expect(prune(catalog, ["mens-cut", "deep-treatment"])).toEqual(["mens-cut", "deep-treatment"]);
     expect(prune(catalog, ["blow-dry", "womens-cut"])).toEqual(["blow-dry"]);
     expect(prune(catalog, [])).toEqual([]);
   });

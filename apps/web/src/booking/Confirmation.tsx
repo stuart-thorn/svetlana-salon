@@ -31,7 +31,7 @@ export default function Confirmation({
 
   return (
     <div className="mx-auto max-w-lg py-6 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/15 text-gold-dark">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/15 text-accent-dark">
         <Check size={30} />
       </div>
       <h1 className="mt-6 font-serif text-3xl">Booking confirmed</h1>
@@ -63,7 +63,7 @@ export default function Confirmation({
           ))}
         </ul>
         {offers.length > 0 && listTotal > c.total && (
-          <div className="mt-2 flex justify-between text-sm text-gold-dark">
+          <div className="mt-2 flex justify-between text-sm text-accent-dark">
             <span>{offers.map((o) => o.name).join(", ")}</span>
             <span>−{formatPrice(Math.round((listTotal - c.total) * 100) / 100)}</span>
           </div>
@@ -107,18 +107,18 @@ export default function Confirmation({
             navigate(`${pathname}?view=calendar`);
             scrollToTop();
           }}
-          className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gold"
+          className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent"
         >
           Add to calendar
         </button>
         <button
           type="button"
           onClick={onBookAnother}
-          className="rounded-full border border-ink/20 px-6 py-3 text-sm font-medium transition-colors hover:border-gold hover:text-gold"
+          className="rounded-full border border-ink/20 px-6 py-3 text-sm font-medium transition-colors hover:border-accent hover:text-accent"
         >
           Book another
         </button>
-        <Link to="/" className="rounded-full px-6 py-3 text-sm font-medium text-muted transition-colors hover:text-gold">
+        <Link to="/" className="rounded-full px-6 py-3 text-sm font-medium text-muted transition-colors hover:text-accent">
           Back to home
         </Link>
       </div>
