@@ -13,7 +13,6 @@ import {
   type MembershipSummary,
   type OpeningHours,
   type Product,
-  type ProfilePerson,
   type Purchase,
   type Service,
 } from "./types";
@@ -109,38 +108,15 @@ interface ApiOrder {
   memberships: ApiMembership[];
   payment: { clientAction: NonNullable<ApiBooking["payment"]> } | null;
 }
-interface ApiPerson {
-  name: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  lastVisit?: { date: string; providerId?: string; providerName?: string; services: string[]; offeringIds?: string[] };
-  memberships?: ApiMembership[];
-}
 interface ApiCustomerProfile {
   memberships?: ApiMembership[];
   email: string;
-  customer?: ApiPerson;
-  people?: (ApiPerson & { id: string })[];
-}
-
-function toPerson(c: ApiPerson): Omit<ProfilePerson, "id"> {
-  const v = c.lastVisit;
-  return {
-    name: c.name,
-    ...(c.firstName && { firstName: c.firstName }),
-    ...(c.lastName && { lastName: c.lastName }),
-    ...(c.phone && { phone: c.phone }),
-    ...(v && {
-      lastVisit: {
-        date: v.date,
-        ...(v.providerId && { stylistId: v.providerId }),
-        ...(v.providerName && { stylistName: v.providerName }),
-        services: v.services,
-        serviceIds: v.offeringIds ?? [],
-      },
-    }),
-    ...(c.memberships?.length && { memberships: c.memberships.map(toMembership) }),
+  customer?: {
+    name: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    lastVisit?: { date: string; providerId?: string; providerName?: string; services: string[]; offeringIds?: string[] };
   };
 }
 interface ApiProblem {
@@ -332,7 +308,6 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
         date: request.date,
         time: request.time,
         customer: request.customer,
-        ...(request.customerId && { customerId: request.customerId }),
       });
       return toConfirmation(
         await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
@@ -341,17 +316,33 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
 
     getCustomerProfile: async (): Promise<CustomerProfile> => {
       const p = await call<ApiCustomerProfile>("/me", { headers: signedIn() });
-      const { memberships: _m, ...customer } = p.customer ? toPerson(p.customer) : { memberships: undefined };
+      const c = p.customer;
+      const v = c?.lastVisit;
       return {
         email: p.email,
-        ...(p.customer && { customer: customer as NonNullable<CustomerProfile["customer"]> }),
+        ...(c && {
+          customer: {
+            name: c.name,
+            ...(c.firstName && { firstName: c.firstName }),
+            ...(c.lastName && { lastName: c.lastName }),
+            ...(c.phone && { phone: c.phone }),
+            ...(v && {
+              lastVisit: {
+                date: v.date,
+                ...(v.providerId && { stylistId: v.providerId }),
+                ...(v.providerName && { stylistName: v.providerName }),
+                services: v.services,
+                serviceIds: v.offeringIds ?? [],
+              },
+            }),
+          },
+        }),
         ...(p.memberships?.length && { memberships: p.memberships.map(toMembership) }),
-        ...(p.people && p.people.length > 1 && { people: p.people.map((x) => ({ id: x.id, ...toPerson(x) })) }),
       };
     },
 
     buyProducts: async (request) => {
-      const body = JSON.stringify({ lines: request.lines, customer: request.customer, ...(request.customerId && { customerId: request.customerId }) });
+      const body = JSON.stringify({ lines: request.lines, customer: request.customer });
       return toPurchase(
         await call<ApiOrder>("/me/orders", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
       );
