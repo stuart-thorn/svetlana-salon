@@ -58,7 +58,7 @@ export function CustomerSignIn({
         </p>
         {memberships.map((m) => (
           <p key={m.id} className="mt-1 text-ink">
-            Your {m.name}: {visitsText(m)}. Visits are used automatically for the services they cover.
+            Your {m.name}: {visitsText(m)}, used automatically when you book.
           </p>
         ))}
       </div>
@@ -68,10 +68,11 @@ export function CustomerSignIn({
   if (phase === "closed") {
     return (
       <p className="text-sm text-muted">
-        {memberships ? "Have a membership or been with us before?" : "Been with us before?"}{" "}
+        Been with us before?{" "}
         <button type="button" className={linkClass} onClick={() => setPhase("email")}>
-          {memberships ? "Sign in to use your visits and book faster" : "Sign in for faster booking"}
-        </button>
+          Sign in
+        </button>{" "}
+        {memberships ? "to book faster and use your membership." : "to book faster."}
       </p>
     );
   }

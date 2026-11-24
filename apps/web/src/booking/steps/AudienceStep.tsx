@@ -1,4 +1,5 @@
 import type { Catalog } from "@salon/booking";
+import { Link } from "../../router";
 import { FAMILY, forAudience } from "../state";
 import { Check, Notice } from "../ui";
 
@@ -45,6 +46,8 @@ export default function AudienceStep({ catalog, selected, onSelect }: Props) {
         })}
       </ul>
 
+      <Deals catalog={catalog} />
+
       {selected === FAMILY && (
         <Notice>
           Booking for more than one person? For now, please book each person's appointment separately, choosing
@@ -52,5 +55,27 @@ export default function AudienceStep({ catalog, selected, onSelect }: Props) {
         </Notice>
       )}
     </div>
+  );
+}
+
+/** Memberships and packages sold online, as a card under the choices: one tap to the list. */
+function Deals({ catalog }: { catalog: Catalog }) {
+  const memberships = (catalog.products ?? []).filter((p) => p.kind === "membership");
+  if (memberships.length === 0) return null;
+  const from = Math.min(...memberships.map((p) => p.price));
+  return (
+    <Link
+      to="/buy"
+      className="flex items-center justify-between gap-4 rounded-2xl border border-gold px-5 py-5 transition hover:shadow-sm"
+    >
+      <span className="flex flex-col gap-1">
+        <span className="text-xs font-medium tracking-[0.2em] text-gold uppercase">Deals</span>
+        <span className="font-medium">Memberships and packages</span>
+        <span className="text-sm text-muted">Visits paid in advance, for less. From £{from % 1 ? from.toFixed(2) : from}.</span>
+      </span>
+      <span aria-hidden className="text-xl text-gold">
+        →
+      </span>
+    </Link>
   );
 }

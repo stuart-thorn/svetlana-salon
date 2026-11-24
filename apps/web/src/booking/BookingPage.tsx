@@ -263,15 +263,6 @@ export default function BookingPage() {
                     setCustomer(emptyCustomer);
                   }}
                 />
-                {(catalog?.products ?? []).some((p) => p.kind === "membership") && (
-                  <p className="mt-2 text-sm text-muted">
-                    Come often?{" "}
-                    <Link to="/buy" className="underline underline-offset-2 hover:text-ink">
-                      See memberships and packages
-                    </Link>{" "}
-                    to save on your visits.
-                  </p>
-                )}
               </div>
             )}
 
