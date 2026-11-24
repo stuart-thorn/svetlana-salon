@@ -10,6 +10,7 @@ import {
   withMembershipVisits,
   type Catalog,
   type MembershipSummary,
+  type Offer,
 } from "@salon/booking";
 import { salon } from "../data/content";
 import { ANY, type Draft } from "./state";
@@ -39,9 +40,12 @@ function ActionButton({ action, className = "" }: { action: CartAction; classNam
   );
 }
 
-function CartBody({ catalog, draft, memberships }: { catalog: Catalog; draft: Draft; memberships?: MembershipSummary[] }) {
+type Savings = { offer: Offer; amount: number }[];
+
+function CartBody({ catalog, draft, memberships, savings = [] }: { catalog: Catalog; draft: Draft; memberships?: MembershipSummary[]; savings?: Savings }) {
   const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
-  const { durationMin, price } = totals(services);
+  const { durationMin } = totals(services);
+  const price = totals(services).price - savings.reduce((sum, x) => sum + x.amount, 0);
   const stylistIndex = catalog.stylists.findIndex((s) => s.id === draft.stylist);
   const stylist = catalog.stylists[stylistIndex];
 
@@ -107,6 +111,13 @@ function CartBody({ catalog, draft, memberships }: { catalog: Catalog; draft: Dr
         )}
       </div>
 
+      {savings.map(({ offer, amount }) => (
+        <div key={offer.id} className="flex justify-between gap-4 pb-3 text-sm text-gold-dark">
+          <p>{offer.name}</p>
+          <p className="shrink-0">−{formatPrice(amount)}</p>
+        </div>
+      ))}
+
       <div className="flex items-baseline justify-between border-t border-line pt-4">
         <p className="font-medium">Total</p>
         <p className="text-lg font-medium">{services.length ? (price === 0 ? formatPrice(0) : `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}`) : "Free"}</p>
@@ -116,26 +127,51 @@ function CartBody({ catalog, draft, memberships }: { catalog: Catalog; draft: Dr
 }
 
 /** Desktop: sticky side panel. */
-export function CartPanel({ catalog, draft, action, memberships }: { catalog: Catalog; draft: Draft; action?: CartAction; memberships?: MembershipSummary[] }) {
+export function CartPanel({
+  catalog,
+  draft,
+  action,
+  memberships,
+  savings,
+}: {
+  catalog: Catalog;
+  draft: Draft;
+  action?: CartAction;
+  memberships?: MembershipSummary[];
+  savings?: Savings;
+}) {
   return (
     <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
-      <CartBody catalog={catalog} draft={draft} memberships={memberships} />
+      <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} />
       {action && <ActionButton action={action} className="mt-6 w-full" />}
     </div>
   );
 }
 
 /** Mobile: fixed bottom bar with an expandable summary. */
-export function CartBar({ catalog, draft, action, memberships }: { catalog: Catalog; draft: Draft; action?: CartAction; memberships?: MembershipSummary[] }) {
+export function CartBar({
+  catalog,
+  draft,
+  action,
+  memberships,
+  savings = [],
+}: {
+  catalog: Catalog;
+  draft: Draft;
+  action?: CartAction;
+  memberships?: MembershipSummary[];
+  savings?: Savings;
+}) {
   const [open, setOpen] = useState(false);
   const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
-  const { durationMin, price } = totals(services);
+  const { durationMin } = totals(services);
+  const price = totals(services).price - savings.reduce((sum, x) => sum + x.amount, 0);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
       {open && (
         <div className="max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-          <CartBody catalog={catalog} draft={draft} memberships={memberships} />
+          <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} />
         </div>
       )}
       <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

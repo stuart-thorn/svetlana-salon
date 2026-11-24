@@ -72,6 +72,26 @@ export interface Catalog {
   sellsMemberships?: boolean;
   /** Free cancellation and changes up to `windowHours` before the appointment; later, money paid online is kept. */
   cancellation?: { windowHours: number };
+  /** Offers shown online: reductions on some services, days and times, some claimed by the customer. */
+  offers?: Offer[];
+}
+
+/**
+ * A reduction on services (`percentOff`, or `amountOff` in pounds) for services in `serviceIds` or `categoryIds`
+ * (neither = all), starting on `days` (0 = Sunday) within `times`. With `claim`, it applies only when the
+ * customer ticks it, and the salon checks it (a student ID, say). The booking system has the final word on price.
+ */
+export interface Offer {
+  id: string;
+  name: string;
+  description?: string;
+  percentOff?: number;
+  amountOff?: number;
+  serviceIds?: string[];
+  categoryIds?: string[];
+  days?: number[];
+  times?: { start: ClockTime; end: ClockTime };
+  claim?: { label: string; check: string };
 }
 
 /** Something the salon sells online outside a booking: a membership, a package or a retail product. */
@@ -147,6 +167,8 @@ export interface BookingRequest extends AvailabilityQuery {
   date: ISODate;
   time: ClockTime;
   customer: Customer;
+  /** Offers the customer claims (`Offer.claim`). */
+  offerIds?: string[];
 }
 
 export interface BookingConfirmation {

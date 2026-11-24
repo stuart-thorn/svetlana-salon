@@ -11,6 +11,7 @@ import {
   type CustomerProfile,
   type DayAvailability,
   type ManageAccess,
+  type Offer,
   type ManagedBooking,
   type OnlinePayment,
   type MembershipSummary,
@@ -69,6 +70,15 @@ interface ApiCatalog {
     kind: "membership" | "retail";
     price: ApiMoney;
     membership?: { termMonths?: number; tier?: string; allowances?: { id: string; label: string; count: number }[] };
+  }[];
+  promotions?: {
+    id: string;
+    name: string;
+    description?: string;
+    discount: { kind: "percent"; percent: number } | { kind: "fixed"; amount: ApiMoney };
+    scope: { kind: "all" } | { kind: "categories"; categoryIds: string[] } | { kind: "offerings"; offeringIds: string[] } | { kind: "products" };
+    conditions: { daysOfWeek?: number[]; times?: { start: string; end: string }; minAttendees?: number };
+    claim?: { label: string; check: string };
   }[];
 }
 interface ApiBooking {
@@ -281,6 +291,24 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
       workingDays: [0, 1, 2, 3, 4, 5, 6],
     })),
     openingHours,
+    // Offers for services; ones for several people at once (minAttendees) or for products aren't for one booking.
+    ...(api.promotions?.length && {
+      offers: api.promotions
+        .filter((p) => p.scope.kind !== "products" && !p.conditions.minAttendees)
+        .map(
+          (p): Offer => ({
+            id: p.id,
+            name: p.name,
+            ...(p.description && { description: p.description }),
+            ...(p.discount.kind === "percent" ? { percentOff: p.discount.percent } : { amountOff: pounds(p.discount.amount) }),
+            ...(p.scope.kind === "offerings" && { serviceIds: p.scope.offeringIds }),
+            ...(p.scope.kind === "categories" && { categoryIds: p.scope.categoryIds }),
+            ...(p.conditions.daysOfWeek && { days: p.conditions.daysOfWeek }),
+            ...(p.conditions.times && { times: p.conditions.times }),
+            ...(p.claim && { claim: p.claim }),
+          }),
+        ),
+    }),
     ...(api.products?.length && {
       products: api.products.map(
         (p): Product => ({
@@ -407,6 +435,7 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
         date: request.date,
         time: request.time,
         customer: request.customer,
+        ...(request.offerIds?.length && { promotionIds: request.offerIds }),
       });
       return toConfirmation(
         await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),

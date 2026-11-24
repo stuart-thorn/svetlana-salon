@@ -3,12 +3,15 @@ import {
   BookingExpiredError,
   PaymentsUnavailableError,
   SlotUnavailableError,
+  claimableOffers,
   depositFor,
+  offerSavings,
   servicesById,
   totals,
   withMembershipVisits,
   type BookingConfirmation,
   type Customer,
+  type Offer,
 } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import { CartBar, CartPanel, type CartAction } from "./Cart";
@@ -56,6 +59,8 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [slotError, setSlotError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  const [claimed, setClaimed] = useState<string[]>([]);
+  const [bookedOffers, setBookedOffers] = useState<Offer[]>([]);
   // A confirmed booking may have used membership visits: show the visits left when they book another.
   useEffect(() => {
     if (confirmation) refreshCustomer();
@@ -99,7 +104,10 @@ export default function BookingPage() {
         date: draft.date,
         time: draft.time,
         customer,
+        ...(claimedNow.length && { offerIds: claimedNow }),
       });
+      setBookedOffers(savings.map((s) => s.offer));
+      setClaimed([]);
       if (result.status === "pending_payment") {
         setPending(result);
       } else {
@@ -126,6 +134,10 @@ export default function BookingPage() {
   // Signed in: services their membership covers use a visit (free, no deposit), as the booking will.
   const memberships = profile?.memberships;
   const selected = catalog ? withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships) : [];
+  // Offers: claimable ones the customer ticks (checked in the salon), and what the visit saves.
+  const claimable = catalog ? claimableOffers(catalog, selected, draft.date, draft.time) : [];
+  const claimedNow = claimed.filter((id) => claimable.some((o) => o.id === id));
+  const savings = catalog ? offerSavings(catalog, selected, draft.date, draft.time, claimedNow) : [];
   const depositNow = depositFor(selected);
   const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
 
@@ -238,6 +250,7 @@ export default function BookingPage() {
             confirmation={confirmation}
             catalog={catalog}
             email={customer.email}
+            offers={bookedOffers}
             onBookAnother={() => {
               setConfirmation(null);
               setCustomerErrors({});
@@ -350,6 +363,9 @@ export default function BookingPage() {
                 deposit={deposit}
                 signedInEmail={signedInEmail}
                 {...(catalog.cancellation && { cancellationHours: catalog.cancellation.windowHours })}
+                offers={claimable}
+                claimed={claimedNow}
+                onClaim={(id, on) => setClaimed((c) => (on ? [...c, id] : c.filter((x) => x !== id)))}
                 {...(profile?.customer?.name && { accountName: profile.customer.name })}
                 {...(customerState.status === "signed_out" && { onSignedIn: signedIn })}
               />
@@ -358,10 +374,10 @@ export default function BookingPage() {
 
           <aside className="hidden lg:block">
             <div className="sticky top-28">
-              <CartPanel catalog={catalog} draft={draft} action={action} memberships={memberships} />
+              <CartPanel catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} />
             </div>
           </aside>
-          <CartBar catalog={catalog} draft={draft} action={action} memberships={memberships} />
+          <CartBar catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} />
         </div>
       )}
     </div>

@@ -5,3 +5,4 @@ export { catalog } from "./catalog";
 export { createMockProvider, type MockProviderOptions } from "./mock";
 export { createRestProvider, type RestProviderOptions } from "./rest";
 export { CodeError, createCustomerAuth, type CustomerAuth, type CustomerAuthOptions, type CustomerSession } from "./customer-auth";
+export * from "./offers";

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CodeError, formatPrice, type Customer, type CustomerSession } from "@salon/booking";
+import { CodeError, formatPrice, type Customer, type CustomerSession, type Offer } from "@salon/booking";
 import { customerAuth } from "../provider";
 import { Link } from "../../router";
 import { Spinner } from "../ui";
@@ -32,6 +32,10 @@ interface Props {
   onSignedIn?: (s: CustomerSession) => void;
   /** The salon's free cancellation window, in hours. */
   cancellationHours?: number;
+  /** Offers the customer can claim for this visit, and which they have ticked. */
+  offers?: Offer[];
+  claimed?: string[];
+  onClaim?: (offerId: string, on: boolean) => void;
 }
 
 const inputClass =
@@ -43,7 +47,7 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn, cancellationHours }: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn, cancellationHours, offers = [], claimed = [], onClaim }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
@@ -98,6 +102,25 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
           className={inputClass}
         />
       </div>
+      {offers.length > 0 && onClaim && (
+        <div className="space-y-2">
+          {offers.map((o) => (
+            <label key={o.id} className="flex items-start gap-3 rounded-xl border border-gold px-4 py-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-[var(--color-gold)]"
+                checked={claimed.includes(o.id)}
+                onChange={(e) => onClaim(o.id, e.target.checked)}
+              />
+              <span>
+                <span className="font-medium">{o.claim!.label}</span>
+                {o.description ? ` · ${o.description}` : ` · ${o.name}`}
+                <span className="block text-xs text-muted">{o.claim!.check}.</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
       <p className="text-xs text-muted">
         {deposit
           ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`

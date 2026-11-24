@@ -1,4 +1,4 @@
-import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
+import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog, type Offer } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import CalendarChoice from "./CalendarChoice";
 import { freeCancellationUntil } from "./policy";
@@ -8,16 +8,20 @@ export default function Confirmation({
   confirmation: c,
   catalog,
   email,
+  offers = [],
   onBookAnother,
 }: {
   confirmation: BookingConfirmation;
   catalog: Catalog;
   email: string;
+  /** Offers the booking was made with, to remind them what to bring. */
+  offers?: Offer[];
   onBookAnother: () => void;
 }) {
   const index = catalog.stylists.findIndex((s) => s.id === c.stylistId);
   const stylist = catalog.stylists[index];
   const services = servicesById(catalog, c.serviceIds);
+  const listTotal = services.reduce((sum, s) => sum + s.price, 0);
   const { pathname, search } = useLocation();
 
   if (search.get("view") === "calendar") {
@@ -58,6 +62,12 @@ export default function Confirmation({
             </li>
           ))}
         </ul>
+        {offers.length > 0 && listTotal > c.total && (
+          <div className="mt-2 flex justify-between text-sm text-gold-dark">
+            <span>{offers.map((o) => o.name).join(", ")}</span>
+            <span>−{formatPrice(Math.round((listTotal - c.total) * 100) / 100)}</span>
+          </div>
+        )}
         <div className="mt-4 flex justify-between border-t border-line pt-4 font-medium">
           <span>Total</span>
           <span>{formatPrice(c.total)}</span>
@@ -75,6 +85,11 @@ export default function Confirmation({
           </div>
         )}
       </div>
+      {offers.map((o) => (
+        <p key={o.id} className="mt-4 text-sm">
+          <span className="font-medium">{o.name}:</span> {o.claim ? `${o.claim.check} at your appointment.` : "applied."}
+        </p>
+      ))}
       {catalog.cancellation && (
         <p className="mt-4 text-sm text-muted">
           Free cancellation or changes until {freeCancellationUntil(c.date, c.time, catalog.cancellation.windowHours)}. Use the link in your
