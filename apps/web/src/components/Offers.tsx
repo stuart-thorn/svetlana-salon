@@ -5,7 +5,7 @@ import { provider } from "../booking/provider";
 import { Link } from "../router";
 
 /**
- * Memberships the live booking system sells online, so a tier can show "Buy online". None in demo or
+ * Memberships the live booking system sells online (clubs and packages), so each can show "Buy online". None in demo or
  * pre-launch mode, or when the salon sells them only in person. Undefined until known.
  */
 function useOnlineMemberships(): Product[] | undefined {
@@ -24,10 +24,10 @@ function useOnlineMemberships(): Product[] | undefined {
   return products;
 }
 
-/** The product for a tier: by its tier name, else a product named after it. */
-const productFor = (products: readonly Product[], tier: string) =>
-  products.find((p) => p.membership?.tier?.toLowerCase() === tier.toLowerCase()) ??
-  products.find((p) => p.name.toLowerCase().startsWith(tier.toLowerCase()));
+/** The product for a club or package: by its tier name, else a product named after it. */
+const productFor = (products: readonly Product[], name: string) =>
+  products.find((p) => p.membership?.tier?.toLowerCase() === name.toLowerCase()) ??
+  products.find((p) => p.name.toLowerCase().startsWith(name.toLowerCase()));
 
 const gbp = (pounds: number) => `£${pounds}`;
 
@@ -44,13 +44,13 @@ function Bullets({ items }: { items: string[] }) {
   );
 }
 
-function BuyLink({ product, club, className }: { product: Product; club: string; className: string }) {
+function BuyLink({ product, name, className }: { product: Product; name: string; className: string }) {
   return (
     <Link
       to={`/buy?product=${encodeURIComponent(product.id)}`}
       className={`rounded-full bg-accent font-medium text-white cta-hover ${className}`}
     >
-      Buy online<span className="sr-only">: {club}</span>
+      Buy online<span className="sr-only">: {name}</span>
     </Link>
   );
 }
@@ -72,17 +72,25 @@ export default function Offers() {
         </div>
 
         <ul className="mt-12 grid gap-6 md:grid-cols-3">
-          {offers.map((o) => (
-            <li
-              key={o.title}
-              className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-accent" : "border-line"}`}
-            >
-              {o.featured && <p className="text-xs font-medium uppercase tracking-[0.2em] text-accent-dark">Weekday off-peak</p>}
-              <h3 className={`font-serif text-2xl ${o.featured ? "mt-2" : ""}`}>{o.title}</h3>
-              <p className="mt-3 font-medium">{o.summary}</p>
-              <Bullets items={o.details} />
-            </li>
-          ))}
+          {offers.map((o) => {
+            const product = productFor(online, o.title);
+            return (
+              <li
+                key={o.title}
+                className={`flex flex-col rounded-2xl border p-6 sm:p-8 ${o.featured ? "border-accent" : "border-line"}`}
+              >
+                {o.featured && <p className="text-xs font-medium uppercase tracking-[0.2em] text-accent-dark">Weekday off-peak</p>}
+                <h3 className={`font-serif text-2xl ${o.featured ? "mt-2" : ""}`}>{o.title}</h3>
+                <p className="mt-3 font-medium">{o.summary}</p>
+                <Bullets items={o.details} />
+                {product && (
+                  <div className="mt-auto pt-6">
+                    <BuyLink product={product} name={o.title} className="block px-5 py-3 text-center text-sm" />
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <div className="mt-6 rounded-2xl border border-line p-6 sm:p-8">
@@ -113,7 +121,7 @@ export default function Offers() {
                     </div>
                   </div>
                   <p className="mt-2 text-sm">{t.visits}</p>
-                  {product && <BuyLink product={product} club={t.name} className="mt-4 block px-5 py-3 text-center text-sm sm:inline-block" />}
+                  {product && <BuyLink product={product} name={t.name} className="mt-4 block px-5 py-3 text-center text-sm sm:inline-block" />}
                 </li>
               );
             })}
@@ -151,7 +159,7 @@ export default function Offers() {
                     </td>
                     {anyOnline && (
                       <td className="py-3 pl-6 text-right whitespace-nowrap">
-                        {product && <BuyLink product={product} club={t.name} className="inline-block px-4 py-2 text-xs" />}
+                        {product && <BuyLink product={product} name={t.name} className="inline-block px-4 py-2 text-xs" />}
                       </td>
                     )}
                   </tr>
