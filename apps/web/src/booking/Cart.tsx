@@ -42,7 +42,25 @@ function ActionButton({ action, className = "" }: { action: CartAction; classNam
 
 type Savings = { offer: Offer; amount: number }[];
 
-function CartBody({ catalog, draft, memberships, savings = [] }: { catalog: Catalog; draft: Draft; memberships?: MembershipSummary[]; savings?: Savings }) {
+/** What is paid online and what's left to pay in the salon, in pounds. */
+export interface Deposit {
+  now: number;
+  atSalon: number;
+}
+
+function CartBody({
+  catalog,
+  draft,
+  memberships,
+  savings = [],
+  deposit,
+}: {
+  catalog: Catalog;
+  draft: Draft;
+  memberships?: MembershipSummary[];
+  savings?: Savings;
+  deposit?: Deposit;
+}) {
   const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
   const { durationMin } = totals(services);
   const price = totals(services).price - savings.reduce((sum, x) => sum + x.amount, 0);
@@ -122,6 +140,23 @@ function CartBody({ catalog, draft, memberships, savings = [] }: { catalog: Cata
         <p className="font-medium">Total</p>
         <p className="text-lg font-medium">{services.length ? (price === 0 ? formatPrice(0) : `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}`) : "Free"}</p>
       </div>
+      {deposit && (
+        <dl className="mt-2 space-y-1 text-sm text-muted">
+          <div className="flex justify-between gap-4">
+            <dt>{deposit.atSalon > 0 ? "Deposit to pay now" : "To pay now"}</dt>
+            <dd>{formatPrice(deposit.now)}</dd>
+          </div>
+          {deposit.atSalon > 0 && (
+            <div className="flex justify-between gap-4">
+              <dt>To pay in the salon</dt>
+              <dd>
+                {services.some((s) => s.priceFrom) ? "from " : ""}
+                {formatPrice(deposit.atSalon)}
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
     </>
   );
 }
@@ -133,16 +168,18 @@ export function CartPanel({
   action,
   memberships,
   savings,
+  deposit,
 }: {
   catalog: Catalog;
   draft: Draft;
   action?: CartAction;
   memberships?: MembershipSummary[];
   savings?: Savings;
+  deposit?: Deposit;
 }) {
   return (
     <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
-      <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} />
+      <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} deposit={deposit} />
       {action && <ActionButton action={action} className="mt-6 w-full" />}
     </div>
   );
@@ -155,12 +192,14 @@ export function CartBar({
   action,
   memberships,
   savings = [],
+  deposit,
 }: {
   catalog: Catalog;
   draft: Draft;
   action?: CartAction;
   memberships?: MembershipSummary[];
   savings?: Savings;
+  deposit?: Deposit;
 }) {
   const [open, setOpen] = useState(false);
   const services = withMembershipVisits(servicesById(catalog, draft.serviceIds), memberships);
@@ -171,7 +210,7 @@ export function CartBar({
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
       {open && (
         <div className="max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-          <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} />
+          <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} deposit={deposit} />
         </div>
       )}
       <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

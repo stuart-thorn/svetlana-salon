@@ -39,6 +39,29 @@ export function offersAtOtherTimes(catalog: Pick<Catalog, "offers">, services: r
   return (catalog.offers ?? []).filter((o) => o.claim && !now.includes(o) && services.some((s) => !s.included && covers(o, s)));
 }
 
+/** Per service, the largest reduction from the offers that apply, in pounds (none on ones included in a membership). */
+function reductions(
+  offers: readonly Offer[],
+  services: readonly PricedService[],
+  date: ISODate,
+  time: ClockTime,
+): ({ id: string; amount: number } | undefined)[] {
+  const at = starts(services, time);
+  return services.map((s, i) => {
+    if (s.included) return undefined;
+    let best: { id: string; amount: number } | undefined;
+    for (const o of offers) {
+      if (!covers(o, s) || !onTime(o, date, at[i]!)) continue;
+      const amount = Math.min(s.price, o.percentOff !== undefined ? Math.round(s.price * o.percentOff) / 100 : (o.amountOff ?? 0));
+      if (amount > 0 && amount > (best?.amount ?? 0)) best = { id: o.id, amount };
+    }
+    return best;
+  });
+}
+
+const applying = (catalog: Pick<Catalog, "offers">, claimed: readonly string[]) =>
+  (catalog.offers ?? []).filter((o) => !o.claim || claimed.includes(o.id));
+
 /**
  * What the visit saves with the offers that apply (unclaimed ones by themselves, claimed ones when ticked): one
  * reduction per service, the largest, and none on services included in a membership. In pounds, per offer.
@@ -51,18 +74,21 @@ export function offerSavings(
   claimed: readonly string[],
 ): { offer: Offer; amount: number }[] {
   if (!date || !time) return [];
-  const offers = (catalog.offers ?? []).filter((o) => !o.claim || claimed.includes(o.id));
-  const at = starts(services, time);
+  const offers = applying(catalog, claimed);
   const totals = new Map<string, number>();
-  services.forEach((s, i) => {
-    if (s.included) return;
-    let best: { id: string; amount: number } | undefined;
-    for (const o of offers) {
-      if (!covers(o, s) || !onTime(o, date, at[i]!)) continue;
-      const amount = Math.min(s.price, o.percentOff !== undefined ? Math.round(s.price * o.percentOff) / 100 : (o.amountOff ?? 0));
-      if (amount > 0 && amount > (best?.amount ?? 0)) best = { id: o.id, amount };
-    }
-    if (best) totals.set(best.id, (totals.get(best.id) ?? 0) + best.amount);
-  });
+  for (const r of reductions(offers, services, date, time)) if (r) totals.set(r.id, (totals.get(r.id) ?? 0) + r.amount);
   return offers.filter((o) => totals.has(o.id)).map((offer) => ({ offer, amount: Math.round(totals.get(offer.id)! * 100) / 100 }));
+}
+
+/** The services at their prices after the offers that apply: what the deposit is worked out on. */
+export function withOfferPrices(
+  catalog: Pick<Catalog, "offers">,
+  services: readonly PricedService[],
+  date: ISODate | null,
+  time: ClockTime | null,
+  claimed: readonly string[],
+): PricedService[] {
+  if (!date || !time) return [...services];
+  const by = reductions(applying(catalog, claimed), services, date, time);
+  return services.map((s, i) => (by[i] ? { ...s, price: Math.round((s.price - by[i].amount) * 100) / 100 } : s));
 }

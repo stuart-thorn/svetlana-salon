@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { claimableOffers, offersAtOtherTimes, offerSavings } from "./offers";
+import { claimableOffers, offersAtOtherTimes, offerSavings, withOfferPrices } from "./offers";
+import { depositFor } from "./utils";
 import type { Offer, PricedService } from "./types";
 
 const student: Offer = {
@@ -30,6 +31,13 @@ describe("offers on the booking site", () => {
     expect(offersAtOtherTimes(catalog, [cut], "2026-11-28", "15:00")).toEqual([student]);
     expect(offersAtOtherTimes(catalog, [cut], "2026-11-25", "14:00")).toEqual([]);
     expect(offersAtOtherTimes(catalog, [beard], "2026-11-25", "11:00")).toEqual([]);
+  });
+
+  it("takes the deposit on the price after offers", () => {
+    const half: PricedService = { ...cut, deposit: { percent: 50 } };
+    expect(depositFor(withOfferPrices(catalog, [half], "2026-11-25", "15:00", ["student"]))).toBe(18);
+    expect(depositFor(withOfferPrices(catalog, [half], "2026-11-25", "15:00", []))).toBe(20);
+    expect(depositFor(withOfferPrices(catalog, [half], null, null, ["student"]))).toBe(20);
   });
 
   it("saves only when claimed, on each covered service by its own start", () => {

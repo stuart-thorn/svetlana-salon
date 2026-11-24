@@ -7,6 +7,7 @@ import {
   depositFor,
   offerSavings,
   offersAtOtherTimes,
+  withOfferPrices,
   servicesById,
   totals,
   withMembershipVisits,
@@ -15,7 +16,7 @@ import {
   type Offer,
 } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
-import { CartBar, CartPanel, type CartAction } from "./Cart";
+import { CartBar, CartPanel, type CartAction, type Deposit } from "./Cart";
 import Confirmation from "./Confirmation";
 import { useCustomer } from "./customer";
 import { CustomerSignIn } from "./CustomerSignIn";
@@ -139,8 +140,11 @@ export default function BookingPage() {
   const claimable = catalog ? claimableOffers(catalog, selected, draft.date, draft.time) : [];
   const claimedNow = claimed.filter((id) => claimable.some((o) => o.id === id));
   const savings = catalog ? offerSavings(catalog, selected, draft.date, draft.time, claimedNow) : [];
-  const depositNow = depositFor(selected);
-  const deposit = depositNow > 0 ? { now: depositNow, atSalon: totals(selected).price - depositNow } : undefined;
+  // The deposit is taken on the prices after offers, as the booking system does.
+  const priced = catalog ? withOfferPrices(catalog, selected, draft.date, draft.time, claimedNow) : [];
+  const depositNow = depositFor(priced);
+  const deposit: Deposit | undefined =
+    depositNow > 0 ? { now: depositNow, atSalon: Math.round((totals(priced).price - depositNow) * 100) / 100 } : undefined;
 
   const action: CartAction = {
     audience: { label: "Continue", disabled: !draft.audience || draft.audience === FAMILY, onClick: next },
@@ -148,7 +152,7 @@ export default function BookingPage() {
     services: { label: "Continue", disabled: !draft.serviceIds.length, onClick: next },
     date: { label: "Continue", disabled: !draft.date, onClick: next },
     time: { label: "Continue", disabled: !draft.time, onClick: next },
-    details: { label: deposit ? "Continue to payment" : "Confirm booking", disabled: false, busy: submitting, form: DETAILS_FORM_ID },
+    details: { label: deposit ? "Continue" : "Confirm booking", disabled: false, busy: submitting, form: DETAILS_FORM_ID },
   }[step];
 
   return (
@@ -372,10 +376,10 @@ export default function BookingPage() {
 
           <aside className="hidden lg:block">
             <div className="sticky top-28">
-              <CartPanel catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} />
+              <CartPanel catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} deposit={deposit} />
             </div>
           </aside>
-          <CartBar catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} />
+          <CartBar catalog={catalog} draft={draft} action={action} memberships={memberships} savings={savings} deposit={deposit} />
         </div>
       )}
     </div>
