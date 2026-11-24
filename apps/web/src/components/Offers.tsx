@@ -44,10 +44,22 @@ function Bullets({ items }: { items: string[] }) {
   );
 }
 
+function BuyLink({ product, club, className }: { product: Product; club: string; className: string }) {
+  return (
+    <Link
+      to={`/buy?product=${encodeURIComponent(product.id)}`}
+      className={`rounded-full bg-accent font-medium text-white cta-hover ${className}`}
+    >
+      Buy online<span className="sr-only">: {club}</span>
+    </Link>
+  );
+}
+
 export default function Offers() {
   const loaded = useOnlineMemberships();
   const online = loaded ?? [];
-  const soldInSalonOnly = loaded !== undefined && !memberships.tiers.some((t) => productFor(online, t.name));
+  const anyOnline = memberships.tiers.some((t) => productFor(online, t.name));
+  const soldInSalonOnly = loaded !== undefined && !anyOnline;
   return (
     <section id="offers" className="py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -77,44 +89,76 @@ export default function Offers() {
           <h3 className="font-serif text-2xl">{memberships.title}</h3>
           <p className="mt-3 font-medium">{memberships.summary}</p>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="text-xs uppercase tracking-widest text-muted">
-                <tr className="border-b border-line">
-                  <th className="py-2.5 pr-4 font-medium">Club</th>
-                  <th className="py-2.5 pr-4 font-medium">Included</th>
-                  <th className="py-2.5 pr-4 text-right font-medium">Standard value</th>
-                  <th className="py-2.5 text-right font-medium">Club price</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {memberships.tiers.map((t) => (
+          {/* Phones: one block per club. */}
+          <ul className="mt-6 divide-y divide-line border-y border-line md:hidden">
+            {memberships.tiers.map((t) => {
+              const product = productFor(online, t.name);
+              return (
+                <li key={t.name} className="py-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium">{t.name}</p>
+                      <p className="text-xs text-muted">{t.term}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p>
+                        <s className="mr-2 text-sm text-muted">
+                          <span className="sr-only">Standard value </span>
+                          {gbp(t.standard)}
+                        </s>
+                        <span className="sr-only">Club price </span>
+                        <span className="font-medium">{gbp(t.price)}</span>
+                      </p>
+                      <p className="text-xs text-accent-dark">Save {gbp(t.standard - t.price)}</p>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-sm">{t.visits}</p>
+                  {product && <BuyLink product={product} club={t.name} className="mt-4 block px-5 py-3 text-center text-sm sm:inline-block" />}
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Wider screens: a table, with a column for the buttons when any club is sold online. */}
+          <table className="mt-6 hidden w-full text-left text-sm md:table">
+            <thead className="text-xs uppercase tracking-widest text-muted">
+              <tr className="border-b border-line">
+                <th className="py-2.5 pr-6 font-medium">Club</th>
+                <th className="py-2.5 pr-6 font-medium">Included</th>
+                <th className="py-2.5 pr-6 text-right font-medium">Standard value</th>
+                <th className="py-2.5 text-right font-medium">Club price</th>
+                {anyOnline && (
+                  <th className="py-2.5 pl-6">
+                    <span className="sr-only">Buy online</span>
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {memberships.tiers.map((t) => {
+                const product = productFor(online, t.name);
+                return (
                   <tr key={t.name}>
-                    <td className="py-3 pr-4">
+                    <td className="py-3 pr-6 whitespace-nowrap">
                       <span className="font-medium">{t.name}</span>
                       <span className="block text-xs text-muted">{t.term}</span>
                     </td>
-                    <td className="py-3 pr-4">{t.visits}</td>
-                    <td className="py-3 pr-4 text-right text-muted">{gbp(t.standard)}</td>
-                    <td className="py-3 text-right">
+                    <td className="py-3 pr-6">{t.visits}</td>
+                    <td className="py-3 pr-6 text-right text-muted">{gbp(t.standard)}</td>
+                    <td className="py-3 text-right whitespace-nowrap">
                       <span className="font-medium">{gbp(t.price)}</span>
-                      <span className="block text-xs text-accent-dark">
-                        Save {gbp(t.standard - t.price)}
-                      </span>
-                      {productFor(online, t.name) && (
-                        <Link
-                          to={`/buy?product=${encodeURIComponent(productFor(online, t.name)!.id)}`}
-                          className="mt-2 inline-block rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-white cta-hover"
-                        >
-                          Buy online
-                        </Link>
-                      )}
+                      <span className="block text-xs text-accent-dark">Save {gbp(t.standard - t.price)}</span>
                     </td>
+                    {anyOnline && (
+                      <td className="py-3 pl-6 text-right whitespace-nowrap">
+                        {product && <BuyLink product={product} club={t.name} className="inline-block px-4 py-2 text-xs" />}
+                      </td>
+                    )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
           <Bullets items={soldInSalonOnly ? [...memberships.terms, memberships.notOnlineNote] : memberships.terms} />
         </div>
         <p className="mt-6 text-xs text-muted">{salon.launchNote}</p>
