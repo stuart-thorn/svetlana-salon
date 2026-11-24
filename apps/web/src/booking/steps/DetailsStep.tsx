@@ -1,10 +1,5 @@
 import { useState, type FormEvent } from "react";
-import {
-  CodeError,
-  formatPrice,
-  type Customer,
-  type CustomerSession,
-} from "@salon/booking";
+import { CodeError, formatPrice, type Customer, type CustomerSession } from "@salon/booking";
 import { customerAuth } from "../provider";
 import { Link } from "../../router";
 import { Spinner } from "../ui";
@@ -17,10 +12,8 @@ export const DETAILS_FORM_ID = "booking-details";
 export function validateCustomer(c: Customer): CustomerErrors {
   const e: CustomerErrors = {};
   if (!c.name.trim()) e.name = "Please enter your name.";
-  if (!/^\S+@\S+\.\S+$/.test(c.email.trim()))
-    e.email = "Please enter a valid email address.";
-  if (c.phone.replace(/\D/g, "").length < 10)
-    e.phone = "Please enter a valid phone number.";
+  if (!/^\S+@\S+\.\S+$/.test(c.email.trim())) e.email = "Please enter a valid email address.";
+  if (c.phone.replace(/\D/g, "").length < 10) e.phone = "Please enter a valid phone number.";
   return e;
 }
 
@@ -50,29 +43,14 @@ const FIELDS = [
   { key: "phone", label: "Mobile number", type: "tel", autoComplete: "tel" },
 ] as const;
 
-export default function DetailsStep({
-  value,
-  errors,
-  onChange,
-  onSubmit,
-  deposit,
-  signedInEmail,
-  accountName,
-  onSignedIn,
-  cancellationHours,
-}: Props) {
+export default function DetailsStep({ value, errors, onChange, onSubmit, deposit, signedInEmail, accountName, onSignedIn, cancellationHours }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
 
   return (
-    <form
-      id={DETAILS_FORM_ID}
-      noValidate
-      onSubmit={submit}
-      className="max-w-lg space-y-5"
-    >
+    <form id={DETAILS_FORM_ID} noValidate onSubmit={submit} className="max-w-lg space-y-5">
       {FIELDS.map((f) => (
         <div key={f.key}>
           <label htmlFor={`customer-${f.key}`} className="text-sm font-medium">
@@ -85,42 +63,22 @@ export default function DetailsStep({
             autoComplete={f.autoComplete}
             value={value[f.key]}
             onChange={(e) => onChange({ ...value, [f.key]: e.target.value })}
-            readOnly={
-              (f.key === "email" && !!signedInEmail) ||
-              (f.key === "name" && !!accountName)
-            }
+            readOnly={(f.key === "email" && !!signedInEmail) || (f.key === "name" && !!accountName)}
             aria-invalid={errors[f.key] ? true : undefined}
-            aria-describedby={
-              errors[f.key] ? `customer-${f.key}-error` : undefined
-            }
+            aria-describedby={errors[f.key] ? `customer-${f.key}-error` : undefined}
             className={inputClass}
           />
-          {f.key === "email" && signedInEmail && (
-            <p className="mt-1 text-xs text-muted">
-              You're signed in with this email.
-            </p>
-          )}
+          {f.key === "email" && signedInEmail && <p className="mt-1 text-xs text-muted">You're signed in with this email.</p>}
           {f.key === "name" && accountName && (
             <p className="mt-1 text-xs text-muted">
-              <Link
-                to="/account"
-                className="underline underline-offset-2 hover:text-ink"
-              >
+              <Link to="/account" className="underline underline-offset-2 hover:text-ink">
                 Manage your account
               </Link>
             </p>
           )}
-          {f.key === "email" &&
-            !signedInEmail &&
-            onSignedIn &&
-            customerAuth && (
-              <ConfirmEmail email={value.email} onSignedIn={onSignedIn} />
-            )}
+          {f.key === "email" && !signedInEmail && onSignedIn && customerAuth && <ConfirmEmail email={value.email} onSignedIn={onSignedIn} />}
           {errors[f.key] && (
-            <p
-              id={`customer-${f.key}-error`}
-              className="mt-1 text-xs text-red-600"
-            >
+            <p id={`customer-${f.key}-error`} className="mt-1 text-xs text-red-600">
               {errors[f.key]}
             </p>
           )}
@@ -144,15 +102,12 @@ export default function DetailsStep({
         {deposit
           ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`
           : "No payment is taken online. We'll email your confirmation."}{" "}
-        {cancellationHours
-          ? `${cancellationRule(cancellationHours, !!deposit)} `
-          : ""}
-        <a
-          href="/privacy"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2"
-        >
+        {cancellationHours ? `${cancellationRule(cancellationHours, !!deposit)} ` : ""}
+        <a href="/terms" target="_blank" rel="noreferrer" className="underline underline-offset-2">
+          Booking terms
+        </a>
+        {" · "}
+        <a href="/privacy" target="_blank" rel="noreferrer" className="underline underline-offset-2">
           How we use your details
         </a>
         .
@@ -168,13 +123,7 @@ const linkClass = "underline underline-offset-2 hover:text-ink";
  * they typed, without leaving the form, so their membership visits and details apply. The same offer for
  * everyone: it never reveals whether an email belongs to a member.
  */
-function ConfirmEmail({
-  email,
-  onSignedIn,
-}: {
-  email: string;
-  onSignedIn: (s: CustomerSession) => void;
-}) {
+function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: CustomerSession) => void }) {
   const [phase, setPhase] = useState<"offer" | "code">("offer");
   const [sentTo, setSentTo] = useState("");
   const [code, setCode] = useState("");
@@ -190,11 +139,7 @@ function ConfirmEmail({
     try {
       await work();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -213,9 +158,7 @@ function ConfirmEmail({
         const result = await auth.verifyCode(code);
         if (result === "code_sent") {
           setCode("");
-          setNote(
-            "Thanks, your email is confirmed. We've sent one more code to sign you in.",
-          );
+          setNote("Thanks, your email is confirmed. We've sent one more code to sign you in.");
         } else onSignedIn(result);
       } catch (err) {
         if (err instanceof CodeError) setCode("");
@@ -231,22 +174,14 @@ function ConfirmEmail({
       {phase === "offer" ? (
         <p>
           Been with us before?{" "}
-          <button
-            type="button"
-            className={linkClass}
-            disabled={busy || !valid}
-            onClick={() => void send()}
-          >
+          <button type="button" className={linkClass} disabled={busy || !valid} onClick={() => void send()}>
             {busy ? "Sending a code…" : "Confirm this email"}
           </button>{" "}
           to fill in your details and use any prepaid visits.
         </p>
       ) : (
         <div className="space-y-2 rounded-xl border border-line p-3">
-          <p role="status">
-            {note ??
-              `We've sent a 6-digit code to ${sentTo}. It may take a minute to arrive.`}
-          </p>
+          <p role="status">{note ?? `We've sent a 6-digit code to ${sentTo}. It may take a minute to arrive.`}</p>
           <div className="flex flex-wrap items-center gap-2">
             <input
               aria-label="Code"
@@ -273,12 +208,7 @@ function ConfirmEmail({
             >
               {busy && <Spinner />} Confirm
             </button>
-            <button
-              type="button"
-              className={linkClass}
-              onClick={() => void send()}
-              disabled={busy}
-            >
+            <button type="button" className={linkClass} onClick={() => void send()} disabled={busy}>
               Resend
             </button>
           </div>

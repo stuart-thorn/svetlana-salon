@@ -14,19 +14,11 @@ function offsetMin(ms: number): number {
     minute: "2-digit",
   }).formatToParts(new Date(ms));
   const n = (t: string) => Number(p.find((x) => x.type === t)?.value);
-  return (
-    (Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute")) -
-      ms) /
-    60_000
-  );
+  return (Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute")) - ms) / 60_000;
 }
 
 /** "Tue 25 Nov, 10:00": the salon's day and time `hours` before a local appointment start. */
-export function freeCancellationUntil(
-  date: string,
-  time: string,
-  hours: number,
-): string {
+export function freeCancellationUntil(date: string, time: string, hours: number): string {
   const wall = Date.parse(`${date}T${time}:00Z`);
   const start = wall - offsetMin(wall - offsetMin(wall) * 60_000) * 60_000;
   const parts = new Intl.DateTimeFormat("en-GB", {

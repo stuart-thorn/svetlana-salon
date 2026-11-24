@@ -12,6 +12,7 @@ import StickyBookBar from "./components/StickyBookBar";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
 const Privacy = lazy(() => import("./components/Privacy"));
+const Terms = lazy(() => import("./components/Terms"));
 const BuyPage = lazy(() => import("./booking/BuyPage"));
 const AccountPage = lazy(() => import("./booking/AccountPage"));
 const ManagePage = lazy(() => import("./booking/ManagePage"));
@@ -29,6 +30,16 @@ export default function App() {
     return (
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <Privacy />
+        <Footer />
+      </Suspense>
+    );
+  }
+
+  // Booking terms: a draft for the salon to review, so not on the pre-launch site.
+  if (pathname === "/terms" && !isPrelaunch) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <Terms />
         <Footer />
       </Suspense>
     );

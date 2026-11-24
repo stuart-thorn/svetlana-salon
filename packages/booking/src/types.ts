@@ -83,11 +83,7 @@ export interface Product {
   /** In pounds. */
   price: number;
   /** For memberships: the term, the tier and the visits included. */
-  membership?: {
-    termMonths?: number;
-    tier?: string;
-    allowances: { id: string; label: string; count: number }[];
-  };
+  membership?: { termMonths?: number; tier?: string; allowances: { id: string; label: string; count: number }[] };
 }
 
 /** One of the signed-in customer's memberships, with the visits they have left. */
@@ -101,18 +97,11 @@ export interface MembershipSummary {
   /** In force today (false = starts later). */
   current: boolean;
   /** `offeringIds`: the services a visit can be used for. */
-  allowances: {
-    label: string;
-    count: number;
-    left: number;
-    offeringIds: string[];
-  }[];
+  allowances: { label: string; count: number; left: number; offeringIds: string[] }[];
 }
 
 /** A service in the basket, with the membership visit that will pay for it (signed-in customers). */
-export type PricedService = Service & {
-  included?: { membershipName: string; label: string };
-};
+export type PricedService = Service & { included?: { membershipName: string; label: string } };
 
 /** A purchase made on the site: pending until its payment goes through, then paid with its memberships. */
 export interface Purchase {
@@ -186,19 +175,12 @@ export interface BookingConfirmation {
  * simulated payment in test mode.
  */
 export type OnlinePayment =
-  | {
-      kind: "stripe";
-      clientSecret: string;
-      publishableKey: string;
-      accountRef?: string;
-    }
+  | { kind: "stripe"; clientSecret: string; publishableKey: string; accountRef?: string }
   | { kind: "simulated" };
 
 /** The salon can't take the deposit online right now (no payment account connected). */
 export class PaymentsUnavailableError extends Error {
-  constructor(
-    message = "We can't take deposits online at the moment. Please call us to book.",
-  ) {
+  constructor(message = "We can't take deposits online at the moment. Please call us to book.") {
     super(message);
     this.name = "PaymentsUnavailableError";
   }
@@ -206,9 +188,7 @@ export class PaymentsUnavailableError extends Error {
 
 /** The time held while paying ran out; the customer needs to choose a time again. */
 export class BookingExpiredError extends Error {
-  constructor(
-    message = "The time we held for you has run out. Please choose a time again.",
-  ) {
+  constructor(message = "The time we held for you has run out. Please choose a time again.") {
     super(message);
     this.name = "BookingExpiredError";
   }
@@ -216,18 +196,14 @@ export class BookingExpiredError extends Error {
 
 /** The chosen services don't make one person's visit (e.g. a men's and a women's cut). */
 export class IncompatibleServicesError extends Error {
-  constructor(
-    message = "Those services can't be booked together. Please change your selection.",
-  ) {
+  constructor(message = "Those services can't be booked together. Please change your selection.") {
     super(message);
     this.name = "IncompatibleServicesError";
   }
 }
 
 export class SlotUnavailableError extends Error {
-  constructor(
-    message = "Sorry, that time has just been taken. Please choose another.",
-  ) {
+  constructor(message = "Sorry, that time has just been taken. Please choose another.") {
     super(message);
     this.name = "SlotUnavailableError";
   }
@@ -243,13 +219,7 @@ export interface CustomerProfile {
     firstName?: string;
     lastName?: string;
     phone?: string;
-    lastVisit?: {
-      date: ISODate;
-      stylistId?: string;
-      stylistName?: string;
-      services: string[];
-      serviceIds: string[];
-    };
+    lastVisit?: { date: ISODate; stylistId?: string; stylistName?: string; services: string[]; serviceIds: string[] };
   };
   /** Their memberships in force or still to come. */
   memberships?: MembershipSummary[];
@@ -275,24 +245,11 @@ export interface ManagedBooking {
   date: ISODate;
   time: ClockTime;
   end: ClockTime;
-  services: {
-    serviceId: string;
-    name: string;
-    stylistId: string;
-    stylistName?: string;
-  }[];
+  services: { serviceId: string; name: string; stylistId: string; stylistName?: string }[];
   total: number;
   paid: number;
   /** Confirmed bookings: free cancellation until `deadline` (an instant); after it, `kept` stays with the salon. */
-  cancellation?: {
-    deadline: string;
-    windowHours: number;
-    late: boolean;
-    refund: number;
-    kept: number;
-    usesVisits: boolean;
-    visitsReturned: boolean;
-  };
+  cancellation?: { deadline: string; windowHours: number; late: boolean; refund: number; kept: number; usesVisits: boolean; visitsReturned: boolean };
   canCancel: boolean;
   /** Before the cancellation window, with one stylist: a new time can be picked online. */
   canReschedule: boolean;
@@ -307,34 +264,19 @@ export interface ManageAccess {
 
 export interface BookingProvider {
   getCatalog(): Promise<Catalog>;
-  getAvailableDates(
-    query: AvailabilityQuery & { from: ISODate; to: ISODate },
-  ): Promise<DayAvailability[]>;
-  getTimeSlots(
-    query: AvailabilityQuery & { date: ISODate },
-  ): Promise<TimeSlot[]>;
+  getAvailableDates(query: AvailabilityQuery & { from: ISODate; to: ISODate }): Promise<DayAvailability[]>;
+  getTimeSlots(query: AvailabilityQuery & { date: ISODate }): Promise<TimeSlot[]>;
   createBooking(request: BookingRequest): Promise<BookingConfirmation>;
   /** Test mode only: completes a pending deposit without taking money. */
-  completeSimulatedPayment?(
-    confirmation: BookingConfirmation,
-  ): Promise<BookingConfirmation>;
+  completeSimulatedPayment?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
   /** The booking as it stands now (after paying a deposit, until the payment has confirmed it). */
-  getBookingStatus?(
-    confirmation: BookingConfirmation,
-  ): Promise<BookingConfirmation>;
+  getBookingStatus?(confirmation: BookingConfirmation): Promise<BookingConfirmation>;
   /** The signed-in customer (needs a customer token); absent where customer sign-in isn't offered. */
   getCustomerProfile?(): Promise<CustomerProfile>;
   /** The signed-in customer changes their own name or phone. */
-  updateCustomerProfile?(change: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-  }): Promise<CustomerProfile>;
+  updateCustomerProfile?(change: { firstName?: string; lastName?: string; phone?: string }): Promise<CustomerProfile>;
   /** The signed-in customer buys products (pending until paid). Absent where buying online isn't offered. */
-  buyProducts?(request: {
-    lines: { productId: string; quantity: number }[];
-    customer: { name: string; email: string; phone?: string };
-  }): Promise<Purchase>;
+  buyProducts?(request: { lines: { productId: string; quantity: number }[]; customer: { name: string; email: string; phone?: string } }): Promise<Purchase>;
   /** A purchase as it stands now (after paying, until the payment has gone through). */
   getPurchase?(purchase: Purchase): Promise<Purchase>;
   /** Test mode only: completes a purchase's payment without taking money. */
@@ -342,8 +284,5 @@ export interface BookingProvider {
   /** A customer's own booking, to change or cancel (needs the booking system). */
   getManagedBooking?(access: ManageAccess): Promise<ManagedBooking>;
   cancelManagedBooking?(access: ManageAccess): Promise<ManagedBooking>;
-  rescheduleManagedBooking?(
-    access: ManageAccess,
-    to: { date: ISODate; time: ClockTime },
-  ): Promise<ManagedBooking>;
+  rescheduleManagedBooking?(access: ManageAccess, to: { date: ISODate; time: ClockTime }): Promise<ManagedBooking>;
 }

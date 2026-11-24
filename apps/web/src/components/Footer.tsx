@@ -1,4 +1,4 @@
-import { navLinks, salon } from "../data/content";
+import { isPrelaunch, navLinks, salon } from "../data/content";
 import { Link } from "../router";
 
 const credits = [
@@ -27,6 +27,14 @@ export default function Footer() {
           <Link to="/privacy" className="hover:text-gold">
             Privacy
           </Link>
+          {!isPrelaunch && (
+            <>
+              {" · "}
+              <Link to="/terms" className="hover:text-gold">
+                Booking terms
+              </Link>
+            </>
+          )}
         </p>
       </div>
       <p className="mx-auto max-w-6xl px-4 pb-2 text-xs text-muted/80 sm:px-6">

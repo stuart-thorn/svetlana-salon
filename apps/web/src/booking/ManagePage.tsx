@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  SlotUnavailableError,
-  type Catalog,
-  type ManagedBooking,
-} from "@salon/booking";
+import { SlotUnavailableError, type Catalog, type ManagedBooking } from "@salon/booking";
 import { Link, useLocation } from "../router";
 import { salon } from "../data/content";
 import { useCustomer } from "./customer";
@@ -77,9 +73,7 @@ export default function ManagePage() {
         }),
       );
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "We couldn't load your booking.",
-      );
+      setError(err instanceof Error ? err.message : "We couldn't load your booking.");
     } finally {
       setLoading(false);
     }
@@ -90,8 +84,7 @@ export default function ManagePage() {
 
   // The catalogue (stylists, for picking a new time) once they want to move it.
   useEffect(() => {
-    if (mode.kind !== "view" && mode.kind !== "cancel" && !catalog)
-      void provider.getCatalog().then(setCatalog, () => undefined);
+    if (mode.kind !== "view" && mode.kind !== "cancel" && !catalog) void provider.getCatalog().then(setCatalog, () => undefined);
   }, [mode.kind, catalog]);
 
   const run = async (work: () => Promise<ManagedBooking>, message: string) => {
@@ -105,15 +98,8 @@ export default function ManagePage() {
     } catch (err) {
       if (err instanceof SlotUnavailableError && mode.kind === "confirm") {
         setMode({ kind: "time", date: mode.date });
-        setActionError(
-          "Sorry, that time has just been taken. Please choose another.",
-        );
-      } else
-        setActionError(
-          err instanceof Error
-            ? err.message
-            : "That didn't work. Please try again.",
-        );
+        setActionError("Sorry, that time has just been taken. Please choose another.");
+      } else setActionError(err instanceof Error ? err.message : "That didn't work. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -126,17 +112,12 @@ export default function ManagePage() {
           <Link to="/" className="font-serif text-lg">
             {salon.name}
           </Link>
-          <Link
-            to={signedInNow ? "/account" : "/book"}
-            className="text-sm text-muted hover:text-ink"
-          >
+          <Link to={signedInNow ? "/account" : "/book"} className="text-sm text-muted hover:text-ink">
             {signedInNow ? "My account" : "Book an appointment"}
           </Link>
         </div>
         {isTestMode && (
-          <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
-            Test mode: this is the test booking system.
-          </p>
+          <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">Test mode: this is the test booking system.</p>
         )}
       </header>
       <main className="mx-auto max-w-lg px-4 py-10 sm:px-6">
@@ -144,22 +125,12 @@ export default function ManagePage() {
 
         {!provider.getManagedBooking || !reference ? (
           <div className="mt-6">
-            <Notice>
-              Open the link in your booking email to change or cancel, or call
-              us on {salon.phone}.
-            </Notice>
+            <Notice>Open the link in your booking email to change or cancel, or call us on {salon.phone}.</Notice>
           </div>
         ) : !canOpen ? (
           <div className="mt-6">
-            <p className="mb-4 text-muted">
-              Sign in with the email you booked with to see booking {reference}.
-            </p>
-            <CustomerSignIn
-              state={state}
-              onSignedIn={signedIn}
-              onSignOut={signOut}
-              startOpen
-            />
+            <p className="mb-4 text-muted">Sign in with the email you booked with to see booking {reference}.</p>
+            <CustomerSignIn state={state} onSignedIn={signedIn} onSignOut={signOut} startOpen />
           </div>
         ) : loading ? (
           <p className="mt-6 flex items-center gap-2 text-muted">
@@ -168,8 +139,7 @@ export default function ManagePage() {
         ) : error || !booking ? (
           <div className="mt-6">
             <Notice tone="error">
-              {error ?? "We couldn't find that booking."} If you need help, call
-              us on {salon.phone}.
+              {error ?? "We couldn't find that booking."} If you need help, call us on {salon.phone}.
             </Notice>
           </div>
         ) : (
@@ -188,8 +158,7 @@ export default function ManagePage() {
             {mode.kind === "cancel" && (
               <section className="space-y-4 rounded-2xl border border-line p-5">
                 <p className="font-medium">
-                  Cancel your appointment on {formatLongDate(booking.date)} at{" "}
-                  {booking.time}?
+                  Cancel your appointment on {formatLongDate(booking.date)} at {booking.time}?
                 </p>
                 <p className="text-sm text-muted">{cancelOutcome(booking)}</p>
                 {actionError && <Notice tone="error">{actionError}</Notice>}
@@ -199,20 +168,12 @@ export default function ManagePage() {
                     className={button}
                     disabled={busy}
                     onClick={() =>
-                      run(
-                        () => provider.cancelManagedBooking!(access),
-                        "Your booking is cancelled. We've sent you an email to confirm.",
-                      )
+                      run(() => provider.cancelManagedBooking!(access), "Your booking is cancelled. We've sent you an email to confirm.")
                     }
                   >
                     {busy && <Spinner />} Yes, cancel it
                   </button>
-                  <button
-                    type="button"
-                    className={secondary}
-                    disabled={busy}
-                    onClick={() => setMode({ kind: "view" })}
-                  >
+                  <button type="button" className={secondary} disabled={busy} onClick={() => setMode({ kind: "view" })}>
                     Keep my booking
                   </button>
                 </div>
@@ -224,17 +185,11 @@ export default function ManagePage() {
                 <h2 className={heading}>Choose a new day</h2>
                 <DateStep
                   stylistId={booking.services[0]!.stylistId}
-                  serviceIds={[
-                    ...new Set(booking.services.map((s) => s.serviceId)),
-                  ]}
+                  serviceIds={[...new Set(booking.services.map((s) => s.serviceId))]}
                   selected={null}
                   onSelect={(date) => setMode({ kind: "time", date })}
                 />
-                <button
-                  type="button"
-                  className={secondary}
-                  onClick={() => setMode({ kind: "view" })}
-                >
+                <button type="button" className={secondary} onClick={() => setMode({ kind: "view" })}>
                   Keep my booking
                 </button>
               </section>
@@ -251,9 +206,7 @@ export default function ManagePage() {
                   <TimeStep
                     catalog={catalog}
                     stylist={booking.services[0]!.stylistId}
-                    serviceIds={[
-                      ...new Set(booking.services.map((s) => s.serviceId)),
-                    ]}
+                    serviceIds={[...new Set(booking.services.map((s) => s.serviceId))]}
                     date={mode.date}
                     selected={null}
                     error={actionError}
@@ -266,11 +219,7 @@ export default function ManagePage() {
                       setMode({ kind: "confirm", date: mode.date, time });
                     }}
                   />
-                  <button
-                    type="button"
-                    className={secondary}
-                    onClick={() => setMode({ kind: "view" })}
-                  >
+                  <button type="button" className={secondary} onClick={() => setMode({ kind: "view" })}>
                     Keep my booking
                   </button>
                 </section>
@@ -279,15 +228,11 @@ export default function ManagePage() {
             {mode.kind === "confirm" && (
               <section className="space-y-4 rounded-2xl border border-line p-5">
                 <p className="font-medium">
-                  Move your appointment to {formatLongDate(mode.date)} at{" "}
-                  {mode.time}?
+                  Move your appointment to {formatLongDate(mode.date)} at {mode.time}?
                 </p>
                 <p className="text-sm text-muted">
                   Same services
-                  {booking.services[0]?.stylistName
-                    ? ` with ${booking.services[0].stylistName}`
-                    : ""}
-                  . Anything you've paid moves with it.
+                  {booking.services[0]?.stylistName ? ` with ${booking.services[0].stylistName}` : ""}. Anything you've paid moves with it.
                 </p>
                 {actionError && <Notice tone="error">{actionError}</Notice>}
                 <div className="flex flex-wrap gap-3">
@@ -308,12 +253,7 @@ export default function ManagePage() {
                   >
                     {busy && <Spinner />} Confirm new time
                   </button>
-                  <button
-                    type="button"
-                    className={secondary}
-                    disabled={busy}
-                    onClick={() => setMode({ kind: "time", date: mode.date })}
-                  >
+                  <button type="button" className={secondary} disabled={busy} onClick={() => setMode({ kind: "time", date: mode.date })}>
                     Choose another time
                   </button>
                 </div>
@@ -327,9 +267,7 @@ export default function ManagePage() {
 }
 
 function Summary({ booking }: { booking: ManagedBooking }) {
-  const stylists = [
-    ...new Set(booking.services.map((s) => s.stylistName).filter(Boolean)),
-  ];
+  const stylists = [...new Set(booking.services.map((s) => s.stylistName).filter(Boolean))];
   return (
     <section className="rounded-2xl border border-line p-5">
       <p className="text-xs text-muted">Reference {booking.reference}</p>
@@ -338,9 +276,7 @@ function Summary({ booking }: { booking: ManagedBooking }) {
       </p>
       <p className="mt-1 text-sm">
         {booking.services.map((s) => s.name).join(", ")}
-        {stylists.length > 0 && (
-          <span className="text-muted"> with {stylists.join(" and ")}</span>
-        )}
+        {stylists.length > 0 && <span className="text-muted"> with {stylists.join(" and ")}</span>}
       </p>
       {booking.total > 0 && (
         <p className="mt-3 text-sm text-muted">
@@ -353,8 +289,7 @@ function Summary({ booking }: { booking: ManagedBooking }) {
           <span className="font-medium">Cancelled.</span>{" "}
           {booking.cancelled.refund > 0 &&
             `${money(booking.cancelled.refund)} is being refunded to your card (it can take 5 to 10 working days). `}
-          {booking.cancelled.kept > 0 &&
-            `The ${money(booking.cancelled.kept)} paid isn't refunded.`}
+          {booking.cancelled.kept > 0 && `The ${money(booking.cancelled.kept)} paid isn't refunded.`}
         </p>
       )}
       {(booking.status === "completed" || booking.status === "no_show") && (
@@ -364,21 +299,11 @@ function Summary({ booking }: { booking: ManagedBooking }) {
   );
 }
 
-function Actions({
-  booking,
-  onCancel,
-  onMove,
-}: {
-  booking: ManagedBooking;
-  onCancel: () => void;
-  onMove: () => void;
-}) {
+function Actions({ booking, onCancel, onMove }: { booking: ManagedBooking; onCancel: () => void; onMove: () => void }) {
   const c = booking.cancellation;
   if (booking.status !== "confirmed" || !booking.canCancel) {
     return booking.status === "confirmed" ? (
-      <p className="text-sm text-muted">
-        Your appointment has started. Need anything? Call us on {salon.phone}.
-      </p>
+      <p className="text-sm text-muted">Your appointment has started. Need anything? Call us on {salon.phone}.</p>
     ) : null;
   }
   return (
@@ -396,21 +321,14 @@ function Actions({
             Change time
           </button>
         )}
-        <button
-          type="button"
-          className={booking.canReschedule ? secondary : button}
-          onClick={onCancel}
-        >
+        <button type="button" className={booking.canReschedule ? secondary : button} onClick={onCancel}>
           Cancel booking
         </button>
       </div>
       {!booking.canReschedule && (
         <p className="text-sm text-muted">
           To change the time, please call us on{" "}
-          <a
-            href={`tel:${salon.phone.replace(/\s/g, "")}`}
-            className="underline underline-offset-2 hover:text-ink"
-          >
+          <a href={`tel:${salon.phone.replace(/\s/g, "")}`} className="underline underline-offset-2 hover:text-ink">
             {salon.phone}
           </a>
           .
@@ -426,16 +344,8 @@ function cancelOutcome(b: ManagedBooking): string {
   if (!c) return "";
   const parts = [
     c.refund > 0 ? `${money(c.refund)} will be refunded to your card.` : "",
-    c.kept > 0
-      ? `As it's less than ${c.windowHours} hours away, the ${money(c.kept)} paid isn't refunded.`
-      : "",
-    c.usesVisits
-      ? c.visitsReturned
-        ? "Your membership visit is given back."
-        : "Your membership visit isn't given back."
-      : "",
+    c.kept > 0 ? `As it's less than ${c.windowHours} hours away, the ${money(c.kept)} paid isn't refunded.` : "",
+    c.usesVisits ? (c.visitsReturned ? "Your membership visit is given back." : "Your membership visit isn't given back.") : "",
   ].filter(Boolean);
-  return parts.length
-    ? parts.join(" ")
-    : "Nothing has been paid, so there's nothing to refund.";
+  return parts.length ? parts.join(" ") : "Nothing has been paid, so there's nothing to refund.";
 }
