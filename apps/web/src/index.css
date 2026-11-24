@@ -5,8 +5,8 @@
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
   --color-ink: #1c1917;
   --color-muted: #6b6560;
-  --color-accent: #4169e1; /* royal blue (client, 24 Nov 2026); AA on white */
-  --color-accent-dark: #2a4bb8;
+  --color-accent: #1e4687; /* the logo's royal blue (client, 24 Nov 2026) */
+  --color-accent-dark: #163463;
   --color-line: #ebe7e2;
 }
 

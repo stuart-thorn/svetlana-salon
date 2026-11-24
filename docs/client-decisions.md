@@ -30,8 +30,8 @@ Svetlana's answers to the open questions. Full mapping in bookable-agent's `docs
 - **Walk-ins.** Always welcome; online shows available times, nothing held back.
 - **Late opening (to 20:00).** She decides the days (often Thu/Fri, Christmas) and tells us ahead; staff open
   those slots as extra hours in the admin app.
-- **Brand.** Vibrant royal blue accents to match the coming logo (the site's gold accent is now royal blue
-  `#4169e1`); logo to follow.
+- **Brand.** Vibrant royal blue accents to match the coming logo (the site's gold accent is now the logo's royal blue,
+  `#1e4687`). Logo received 24 Nov (a screenshot; a transparent PNG or SVG is needed to put it on the site).
 
 Still open with Svetlana: her full price list, the logo, the email provider, the cancellation/terms points,
 which services the student offer covers, the blow-dry package price (£180 for 5 vs from £40 each).
