@@ -36,7 +36,7 @@ export default function BookingPage() {
   const { draft, chooseStylist, chooseAudience, selectService, setDate, setTime, reset } = useDraft(catalog);
 
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
-  const { state: customerState, signedIn, signOut } = useCustomer();
+  const { state: customerState, signedIn, signOut, refresh: refreshCustomer } = useCustomer();
   const signedInEmail = customerState.status === "signed_in" ? customerState.session.email : undefined;
   const profile = customerState.status === "signed_in" ? customerState.profile : undefined;
   const lastVisit = profile?.customer?.lastVisit;
@@ -56,6 +56,10 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [slotError, setSlotError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  // A confirmed booking may have used membership visits: show the visits left when they book another.
+  useEffect(() => {
+    if (confirmation) refreshCustomer();
+  }, [confirmation, refreshCustomer]);
   /** A booking waiting for its deposit (the slot is held until it expires). */
   const [pending, setPending] = useState<BookingConfirmation | null>(null);
 

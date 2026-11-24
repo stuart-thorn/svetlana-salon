@@ -19,6 +19,8 @@ export function useCustomer() {
   });
 
   const session = state.status === "signed_in" ? state.session : undefined;
+  // Bumped to load the profile again (e.g. after a booking used a membership visit).
+  const [version, setVersion] = useState(0);
   useEffect(() => {
     if (!session || !provider.getCustomerProfile) return;
     let cancelled = false;
@@ -34,7 +36,10 @@ export function useCustomer() {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, version]);
+
+  /** Loads the profile again, keeping the one shown until the new one arrives. */
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
 
   const signedIn = useCallback((s: CustomerSession) => setState({ status: "signed_in", session: s }), []);
   const signOut = useCallback(() => {
@@ -42,5 +47,5 @@ export function useCustomer() {
     setState({ status: "signed_out" });
   }, []);
 
-  return { state, signedIn, signOut };
+  return { state, signedIn, signOut, refresh };
 }
