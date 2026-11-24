@@ -72,7 +72,7 @@ export function CustomerSignIn({
         <button type="button" className={linkClass} onClick={() => setPhase("email")}>
           Sign in
         </button>{" "}
-        {memberships ? "to book faster and use your membership." : "to book faster."}
+        {memberships ? "to book faster and take advantage of deals." : "to book faster."}
       </p>
     );
   }
