@@ -5,7 +5,7 @@ import { salon } from "../data/content";
 import { useCustomer } from "./customer";
 import { CustomerSignIn } from "./CustomerSignIn";
 import { visitsText } from "./memberships";
-import { isTestMode, provider } from "./provider";
+import { provider } from "./provider";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
 const input = "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-accent sm:text-sm";
@@ -35,7 +35,6 @@ export default function AccountPage() {
             Book an appointment
           </Link>
         </div>
-        {isTestMode && <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">Test mode: this is the test booking system.</p>}
       </header>
       <main className="mx-auto max-w-lg px-4 py-10 sm:px-6">
         <h1 className="font-serif text-3xl">My account</h1>

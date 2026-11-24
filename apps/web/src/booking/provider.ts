@@ -24,6 +24,3 @@ export const provider: BookingProvider = apiUrl
 
 /** Shows a "demo mode" banner while availability is simulated. */
 export const isDemo = !apiUrl;
-
-/** Real availability, but test-mode payments (pk_test_ key): shows a "test mode" banner. */
-export const isTestMode = !!apiUrl && apiKey.startsWith("pk_test_");

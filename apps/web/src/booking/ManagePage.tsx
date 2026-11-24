@@ -4,7 +4,7 @@ import { Link, useLocation } from "../router";
 import { salon } from "../data/content";
 import { useCustomer } from "./customer";
 import { CustomerSignIn } from "./CustomerSignIn";
-import { isTestMode, provider } from "./provider";
+import { provider } from "./provider";
 import DateStep from "./steps/DateStep";
 import TimeStep from "./steps/TimeStep";
 import { Notice, Spinner, formatLongDate } from "./ui";
@@ -116,9 +116,6 @@ export default function ManagePage() {
             {signedInNow ? "My account" : "Book an appointment"}
           </Link>
         </div>
-        {isTestMode && (
-          <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">Test mode: this is the test booking system.</p>
-        )}
       </header>
       <main className="mx-auto max-w-lg px-4 py-10 sm:px-6">
         <h1 className="font-serif text-3xl">Your booking</h1>

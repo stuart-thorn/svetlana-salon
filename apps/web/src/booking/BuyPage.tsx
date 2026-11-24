@@ -5,7 +5,7 @@ import { Link, scrollToTop, useLocation } from "../router";
 import { salon } from "../data/content";
 import { useCustomer } from "./customer";
 import { CustomerSignIn } from "./CustomerSignIn";
-import { isTestMode, provider } from "./provider";
+import { provider } from "./provider";
 import { stripeFor, type StripeElements, type StripeInstance } from "./stripe";
 import { useAsync } from "./useAsync";
 import { Notice, Spinner, formatLongDate } from "./ui";
@@ -76,7 +76,6 @@ export default function BuyPage() {
             {back.label}
           </Link>
         </div>
-        {isTestMode && <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">Test mode: purchases go to the test system and payments are simulated.</p>}
       </header>
       <main className="mx-auto max-w-lg px-4 py-10 sm:px-6">
         {catalogError && <Notice tone="error">We couldn't load this page. Please refresh, or ask in the salon.</Notice>}
