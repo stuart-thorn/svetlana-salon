@@ -8,7 +8,7 @@ const CONFIRM_TIMEOUT_MS = 30_000;
 const POLL_MS = 1_500;
 
 const button =
-  "mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent disabled:opacity-60";
+  "mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-60";
 
 /**
  * Deposit step shown when a booking comes back pending payment: Stripe's card form for real payments, or a

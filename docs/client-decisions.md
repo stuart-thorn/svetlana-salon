@@ -2,6 +2,28 @@
 
 Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 
+## 2026-11-24 (second batch): blue buttons, walk-ins, children, hair types, blow-dry, terms
+
+- **Brand.** The royal blue is the signature accent: the booking buttons ("Book now", "Book an appointment" and
+  the booking steps) are the logo blue `#1e4687`, a lighter royal blue `#4169e1` on hover.
+- **Deposits and walk-ins.** 50% deposit on every online booking, except membership/package visits and walk-ins
+  when there's a free slot. Walk-ins aren't guaranteed, especially at lunchtime and in the evening; booking ahead,
+  even the same day, is recommended. Membership and package visits still need booking (no deposit).
+- **Children.** Children's prices up to 12; from 13, adult prices (hair type and time). Boys' haircut £30, girls'
+  haircut from £40. Svetlana takes children from 18 months (the toddler haircut, only with her); the other
+  stylists from about 4–5, once they can sit on their own. Svetlana is now on the demo team (Mon–Fri, assumed).
+- **Hair types.** Not mainly Asian hair: all hair types and modern precision techniques across the team (razor
+  cutting, texturing, thinning, chopping). Replaces the positioning line of 23 Nov.
+- **Blow-dry.** £50, any length or style, premium products.
+- **Blow-dry package.** 4 blow-dries paid upfront for £180 (save £20 on 4 at £50), valid 1 month, a few days'
+  flexibility at the salon's discretion (staff can move the end date). No free 5th, no "no expiry".
+- **Terms confirmed.** Late arrival limit 10 minutes (let us know early); complaints within 7 days; late cancel
+  or no-show within 24 hours: deposit kept / membership visit used; memberships and packages non-transferable
+  and not for cash. Still marked "To confirm": patch-test refusal, refunds after 14 days, the salon cancelling.
+
+Still open with Svetlana: the toddler haircut's price and length, her own working days and services, the girls'
+haircut length.
+
 ## 2026-11-24: hours, Instagram, memberships, deposits, menu, Family Visit, brand
 
 Svetlana's answers to the open questions. Full mapping in bookable-agent's `docs/clients/ng-canary-wharf.md`.
@@ -34,7 +56,7 @@ Svetlana's answers to the open questions. Full mapping in bookable-agent's `docs
   `#1e4687`). Logo received 24 Nov (a screenshot; a transparent PNG or SVG is needed to put it on the site).
 
 Still open with Svetlana: her full price list, the logo, the email provider, the cancellation/terms points,
-which services the student offer covers, the blow-dry package price (£180 for 5 vs from £40 each).
+which services the student offer covers (blow-dry price and package settled in the second batch).
 
 ## 2026-11-23: contact, hours, menu, offers, company details
 

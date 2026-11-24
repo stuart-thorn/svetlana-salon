@@ -68,7 +68,7 @@ export default function Header() {
             <li>
               <Link
                 to="/book"
-                className="rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-accent"
+                className="rounded-full bg-accent px-5 py-2 text-sm text-white transition-colors hover:bg-accent-light"
               >
                 Book now
               </Link>
@@ -112,7 +112,7 @@ export default function Header() {
           )}
           {!isPrelaunch && (
             <li className="pt-2">
-              <Link to="/book" className="block rounded-full bg-ink px-5 py-3 text-center text-sm text-white">
+              <Link to="/book" className="block rounded-full bg-accent px-5 py-3 text-center text-sm text-white transition-colors hover:bg-accent-light">
                 Book now
               </Link>
             </li>

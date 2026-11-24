@@ -7,6 +7,7 @@
   --color-muted: #6b6560;
   --color-accent: #1e4687; /* the logo's royal blue (client, 24 Nov 2026) */
   --color-accent-dark: #163463;
+  --color-accent-light: #4169e1; /* buttons on hover: the brighter royal blue, still AA with white text */
   --color-line: #ebe7e2;
 }
 

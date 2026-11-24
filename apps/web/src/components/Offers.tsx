@@ -102,7 +102,7 @@ export default function Offers() {
                       {productFor(online, t.name) && (
                         <Link
                           to={`/buy?product=${encodeURIComponent(productFor(online, t.name)!.id)}`}
-                          className="mt-2 inline-block rounded-full bg-ink px-4 py-1.5 text-xs font-medium text-white hover:bg-accent"
+                          className="mt-2 inline-block rounded-full bg-accent px-4 py-1.5 text-xs font-medium text-white hover:bg-accent-light"
                         >
                           Buy online
                         </Link>

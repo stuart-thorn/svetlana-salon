@@ -34,7 +34,7 @@ export const openingHours = [
 ];
 
 export const hoursNote =
-  "On some evenings (often Thursday and Friday) and over Christmas we're open until 20:00; those times show in online booking. Bank holidays usually 11:00 – 18:00. Walk-ins are always welcome, and same-day appointments too.";
+  "On some evenings (often Thursday and Friday) and over Christmas we're open until 20:00; those times show in online booking. Bank holidays usually 11:00 – 18:00. Walk-ins are welcome when we have a free slot, but not guaranteed, especially at lunchtime and in the evening: booking ahead, even the same day, is the best way to get the time you want.";
 
 export interface Offer {
   title: string;
@@ -56,8 +56,11 @@ export const offers: Offer[] = [
   },
   {
     title: "Blow-dry package",
-    summary: "£180 for 4 blow-dries, and the 5th is free.",
-    details: ["Prepaid, for one person.", "No expiry date."],
+    summary: "4 blow-dries for £180, paid upfront: save £20 on 4 at £50.",
+    details: [
+      "Valid for 1 month, ideal for a weekly blow-dry (a few days' flexibility at the salon's discretion).",
+      "For one person. Book each blow-dry as usual: no deposit for package visits.",
+    ],
   },
   {
     title: "Family Visit",

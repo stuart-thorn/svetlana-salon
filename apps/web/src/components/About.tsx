@@ -7,8 +7,8 @@ const highlights = [
     text: "Precision men's grooming and fades, women's cutting and blow-dries, and relaxed children's cuts, all under one roof.",
   },
   {
-    title: "Precision cutting, including Asian hair",
-    text: "Our stylists are experienced in precision Asian hair styling and technical techniques: chopping, texturing, thinning and crops. Not sure how to describe the cut? Bring a photo or a celebrity look and we'll tailor it to suit you.",
+    title: "Every hair type, modern techniques",
+    text: "We work with all hair types, and the whole team uses modern precision techniques: razor cutting, texturing, thinning and chopping. Not sure how to describe the cut? Bring a photo or a celebrity look and we'll tailor it to suit you.",
   },
   {
     title: "Technical colour",

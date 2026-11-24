@@ -9,7 +9,7 @@ describe("resolveVisit (N&G menu)", () => {
 
   it("rejects services for different people", () => {
     expect(resolveVisit(catalog, ["mens-cut", "womens-cut"])).toBeNull();
-    expect(resolveVisit(catalog, ["kids-cut", "balayage"])).toBeNull();
+    expect(resolveVisit(catalog, ["boys-cut", "balayage"])).toBeNull();
   });
 
   it("rejects two cuts, two colours, or two unrelated mains", () => {
@@ -38,7 +38,7 @@ describe("canAdd / prune", () => {
     expect(fits(["blow-dry"])).toEqual(["deep-treatment", "root-colour", "full-colour", "balayage"]);
     expect(fits(["full-colour"])).toContain("blow-dry");
     expect(fits(["full-colour"])).not.toContain("root-colour");
-    expect(fits(["kids-cut"])).toEqual([]);
+    expect(fits(["boys-cut"])).toEqual([]);
   });
 
   it("keeps the earliest main and what still hangs off it", () => {

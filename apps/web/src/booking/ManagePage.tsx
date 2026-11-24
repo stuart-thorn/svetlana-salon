@@ -10,7 +10,7 @@ import TimeStep from "./steps/TimeStep";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
 const button =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-60";
 const secondary =
   "inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 px-6 py-3 text-sm font-medium transition-colors hover:border-accent hover:text-accent disabled:opacity-60";
 const heading = "text-xs font-medium tracking-[0.2em] text-muted uppercase";

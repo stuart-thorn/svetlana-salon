@@ -62,12 +62,21 @@ export default function Terms() {
 
       <h2 className={h2}>3. Booking</h2>
       <ul className={list}>
-        <li>You can book online, by phone or in the salon. Walk-ins are welcome when we have space.</li>
+        <li>You can book online, by phone or in the salon.</li>
+        <li>
+          Walk-ins are welcome when we have a free slot, but aren't guaranteed, especially at peak times (usually lunchtime and evenings).
+          Booking ahead, including on the same day, is the best way to get the time you want.
+        </li>
         <li>
           A booking is made in the name and email of the person booking and paying (the account holder). You can book for your children; we
           only keep your details, not theirs.
         </li>
         <li>Children under 16 must be accompanied by a parent or guardian during their appointment.</li>
+        <li>
+          Children's prices apply up to age 12; from 13, adult prices apply because of hair type and the time needed. Our stylists take
+          children from about 4–5, once they can sit comfortably on their own; younger children, from 18 months, can be booked with
+          Svetlana (the toddler haircut).
+        </li>
         <li>
           We email you a confirmation with a link to change or cancel your booking. Please check the details and tell us straight away if
           anything is wrong.
@@ -84,7 +93,10 @@ export default function Terms() {
         </li>
         <li>The rest, and anything agreed at your appointment, is paid in the salon.</li>
         <li>Your booking is held for 10 minutes while you pay the deposit, and confirmed once it has gone through.</li>
-        <li>No deposit is needed for a service paid with a membership or package visit, or for walk-ins and bookings made in the salon or by phone.</li>
+        <li>
+          No deposit is needed for a service paid with a membership or package visit, or for walk-ins when we have a free slot and bookings
+          made in the salon or by phone. Membership and package visits still need to be booked.
+        </li>
       </ul>
 
       <h2 className={h2} id="cancelling">
@@ -92,7 +104,7 @@ export default function Terms() {
       </h2>
       <p>
         You can change or cancel free of charge up to 24 hours before your appointment, online (with the link in your confirmation email) or
-        by phone. <ToConfirm what="notice period" />
+        by phone.
       </p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-sm">
@@ -116,32 +128,24 @@ export default function Terms() {
             </tr>
             <tr>
               <td className={td}>Cancelled less than 24 hours before</td>
-              <td className={td}>
-                Kept <ToConfirm />
-              </td>
-              <td className={td}>
-                Used <ToConfirm />
-              </td>
+              <td className={td}>Kept</td>
+              <td className={td}>Used</td>
             </tr>
             <tr>
               <td className={td}>Not attended (no-show)</td>
-              <td className={td}>
-                Kept <ToConfirm />
-              </td>
-              <td className={td}>
-                Used <ToConfirm />
-              </td>
+              <td className={td}>Kept</td>
+              <td className={td}>Used</td>
             </tr>
           </tbody>
         </table>
       </div>
       <ul className={`${list} mt-4`}>
         <li>
-          Within 24 hours, please call us to change your appointment; we'll help if we can. <ToConfirm />
+          Within 24 hours, please call us to change your appointment; we'll help if we can.
         </li>
         <li>
-          If you arrive more than 15 minutes late, we may shorten your service or treat it as a missed appointment.{" "}
-          <ToConfirm what="minutes" />
+          If you're running late, please let us know as early as possible so we can work around it. If you arrive more than 10 minutes
+          late, we may shorten your service or treat it as a missed appointment.
         </li>
       </ul>
 
@@ -182,7 +186,7 @@ export default function Terms() {
               ["Classic Club", "5 men's haircuts (the 5th free)", "3 months", "£170"],
               ["Exclusive Club", "6 men's haircuts (the 6th free)", "6 months", "£190"],
               ["Premium Club", "13 men's haircuts (the 13th free)", "12 months", "£420"],
-              ["Blow-dry package", "5 blow-dries (4 + 1 free)", "No expiry", "£180"],
+              ["Blow-dry package", "4 blow-dries (save £20 on 4 at £50)", "1 month", "£180"],
             ].map(([name, includes, term, price]) => (
               <tr key={name}>
                 <td className={`${td} font-medium`}>{name}</td>
@@ -199,9 +203,13 @@ export default function Terms() {
           The men's haircut clubs cover the haircuts listed (a standard men's haircut; for the Skin Fade Club, skin fades and back &amp; sides
           clean-ups) only, not other services. They are a single payment and don't renew automatically.
         </li>
-        <li>Visits must be used within the membership's term. Visits not used by the end of it expire.</li>
         <li>
-          A membership or package is for the person who bought it and can't be transferred or exchanged for cash. <ToConfirm />
+          Visits must be used within the membership's term. Visits not used by the end of it expire. For the blow-dry package we may allow a
+          few extra days, at our discretion.
+        </li>
+        <li>Membership and package visits must be booked like any other appointment (no deposit is taken for them).</li>
+        <li>
+          A membership or package is for the person who bought it and can't be transferred or exchanged for cash.
         </li>
         <li>A visit is used when you book a covered service while signed in, or when we apply it in the salon.</li>
         <li>
@@ -255,7 +263,7 @@ export default function Terms() {
       <h2 className={h2}>11. Complaints</h2>
       <p>
         If you're not happy with a service, please tell us in the salon or within 7 days by phone or email, so we can put it right. We'll
-        usually offer to redo or adjust the service free of charge first. <ToConfirm what="time limit and approach" /> This doesn't affect
+        usually offer to redo or adjust the service free of charge first. This doesn't affect
         your legal rights.
       </p>
 

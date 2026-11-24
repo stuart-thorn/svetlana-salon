@@ -17,6 +17,10 @@ const womens = { audienceIds: ["women"] };
 const adults = { audienceIds: ["men", "women"] };
 const cut = { exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } };
 const colour = { ...adults, exclusiveGroup: "colour" };
+/** Children's prices up to age 12 (client, 24 Nov 2026); from 13, hair type and time mean adult prices. */
+const children = { audienceIds: ["children"], exclusiveGroup: "haircut" };
+const UP_TO_12 = "Up to age 12; from 13, adult prices apply.";
+const SIT_ALONE = "From about 4–5, once they can sit comfortably on their own; younger children: book the toddler haircut.";
 const designDescription =
   "A tailored consultation and a bespoke cut designed around your face shape, head shape, hair texture, density, natural growth and lifestyle. The final price is agreed in advance.";
 
@@ -37,7 +41,7 @@ export const catalog: Catalog = {
   audiences: [
     { id: "men", name: "Men's hair & grooming", description: "Cuts and fades" },
     { id: "women", name: "Women's hair", description: "Cuts, blow-dries and styling" },
-    { id: "children", name: "Children's haircuts", description: "Cuts for boys and girls" },
+    { id: "children", name: "Children's haircuts", description: "Boys and girls up to 12, toddlers from 18 months" },
   ],
   services: [
     { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 15, price: 25, ...mens, ...cut },
@@ -57,7 +61,7 @@ export const catalog: Catalog = {
       ...cut,
     },
     { id: "womens-cut", categoryId: "women", name: "Women's cut & finish", durationMin: 60, price: 70, priceFrom: true, description: "Consultation, wash, precision cut and finish. From £70, depending on hair length and thickness.", ...womens, ...cut },
-    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 40, priceFrom: true, description: "Wash and blow-dry: sleek, bouncy or waves. £40 for shorter hair up to £55 for longer hair.", ...womens, exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } },
+    { id: "blow-dry", categoryId: "women", name: "Blow-dry", durationMin: 45, price: 50, description: "Wash and blow-dry, any length or style, with premium salon products.", ...womens, exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } },
     {
       id: "womens-hair-design",
       categoryId: "women",
@@ -80,7 +84,9 @@ export const catalog: Catalog = {
       ...womens,
     },
     { id: "deep-treatment", categoryId: "women", name: "Deep treatment", durationMin: 30, price: 40, priceFrom: true, description: "An intensive conditioning treatment, on its own or with a cut, blow-dry or colour. £40 for shorter hair up to £50 for longer hair.", ...adults, addOnTo: { offeringIds: [...CUTS, "blow-dry", ...COLOUR_SERVICES] } },
-    { id: "kids-cut", categoryId: "children", name: "Children's haircut", durationMin: 30, price: 30, priceFrom: true, audienceIds: ["children"], exclusiveGroup: "haircut" },
+    { id: "boys-cut", categoryId: "children", name: "Boys' haircut (up to 12)", durationMin: 30, price: 30, description: `${UP_TO_12} ${SIT_ALONE}`, ...children },
+    { id: "girls-cut", categoryId: "children", name: "Girls' haircut (up to 12)", durationMin: 45, price: 40, priceFrom: true, description: `${UP_TO_12} ${SIT_ALONE}`, ...children },
+    { id: "toddler-cut", categoryId: "children", name: "Toddler haircut (18 months to 4)", durationMin: 30, price: 30, description: "For little ones from 18 months who can't yet sit on their own, with Svetlana.", ...children },
     { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Needed at least 24 hours (ideally 48) before your first colour appointment.", ...adults },
     { id: "root-colour", categoryId: "colour", name: "Roots colour", durationMin: 75, price: 70, priceFrom: true, ...colour, description: "About 30 minutes applying, then 40–45 minutes developing." },
     { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 75, price: 95, priceFrom: true, ...colour },
@@ -89,10 +95,18 @@ export const catalog: Catalog = {
   // Placeholder team until the client confirms its stylists.
   stylists: [
     {
+      // The owner; the only stylist for toddlers (from 18 months; client, 24 Nov 2026).
+      id: "svetlana",
+      name: "Svetlana",
+      role: "Owner & Stylist",
+      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "deep-treatment", "boys-cut", "girls-cut", "toddler-cut"],
+      workingDays: [1, 2, 3, 4, 5],
+    },
+    {
       id: "elena",
       name: "Elena",
       role: "Senior Stylist",
-      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "nanoplasty", "deep-treatment", "kids-cut", "colour-consultation", "root-colour", "full-colour", "balayage"],
+      serviceIds: ["womens-cut", "blow-dry", "womens-hair-design", "nanoplasty", "deep-treatment", "boys-cut", "girls-cut", "colour-consultation", "root-colour", "full-colour", "balayage"],
       workingDays: [1, 2, 3, 4, 6],
     },
     {
@@ -106,14 +120,14 @@ export const catalog: Catalog = {
       id: "aisha",
       name: "Aisha",
       role: "Stylist",
-      serviceIds: ["womens-cut", "blow-dry", "kids-cut", "mens-two-number", "mens-graded", "mens-cut", "deep-treatment"],
+      serviceIds: ["womens-cut", "blow-dry", "boys-cut", "girls-cut", "mens-two-number", "mens-graded", "mens-cut", "deep-treatment"],
       workingDays: [0, 1, 2, 5, 6],
     },
     {
       id: "tom",
       name: "Tom",
       role: "Barber",
-      serviceIds: ["mens-two-number", "mens-graded", "mens-cut", "skin-fade", "mens-long", "mens-hair-design", "kids-cut", "deep-treatment"],
+      serviceIds: ["mens-two-number", "mens-graded", "mens-cut", "skin-fade", "mens-long", "mens-hair-design", "boys-cut", "girls-cut", "deep-treatment"],
       workingDays: [1, 2, 3, 4, 6],
     },
   ],

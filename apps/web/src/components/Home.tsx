@@ -23,7 +23,7 @@ export default function Home() {
               <Link
                 to="/book"
                 data-book-cta
-                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-accent"
+                className="rounded-full bg-accent px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-light"
               >
                 Book an appointment
               </Link>

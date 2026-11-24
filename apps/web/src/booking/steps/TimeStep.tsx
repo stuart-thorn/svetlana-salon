@@ -126,7 +126,7 @@ export default function TimeStep(props: Props) {
             type="button"
             onClick={findNextAvailable}
             disabled={searching}
-            className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2 text-sm text-white transition-colors hover:bg-accent disabled:opacity-60"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2 text-sm text-white transition-colors hover:bg-accent-light disabled:opacity-60"
           >
             {searching && <Spinner />} Find next available date
           </button>
