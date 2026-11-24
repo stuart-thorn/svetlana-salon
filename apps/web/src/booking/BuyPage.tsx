@@ -23,6 +23,14 @@ const POLL_MS = 1_500;
  */
 export default function BuyPage() {
   const { search } = useLocation();
+  // Back to where they came from: the booking's first step, My account, or the offers on the home page.
+  const from = search.get("from");
+  const back =
+    from === "book"
+      ? { to: "/book?step=audience", label: "Back to booking" }
+      : from === "account"
+        ? { to: "/account", label: "Back to My account" }
+        : { to: "/#offers", label: "Back to offers" };
   const productId = search.get("product") ?? "";
   const { data: catalog, error: catalogError } = useAsync(() => provider.getCatalog(), []);
   const product = catalog?.products?.find((p) => p.id === productId);
@@ -64,8 +72,8 @@ export default function BuyPage() {
           <Link to="/" className="font-serif text-lg">
             {salon.name}
           </Link>
-          <Link to="/#offers" className="text-sm text-muted hover:text-ink">
-            Back to offers
+          <Link to={back.to} className="text-sm text-muted hover:text-ink">
+            {back.label}
           </Link>
         </div>
         {isTestMode && <p className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">Test mode: purchases go to the test system and payments are simulated.</p>}
@@ -97,7 +105,7 @@ export default function BuyPage() {
                     {p.membership && <p className="mt-1 text-sm text-muted">{productDetail(p)}</p>}
                     {p.description && <p className="mt-2 text-sm text-muted">{p.description}</p>}
                     <Link
-                      to={`/buy?product=${encodeURIComponent(p.id)}`}
+                      to={`/buy?product=${encodeURIComponent(p.id)}${from ? `&from=${from}` : ""}`}
                       className="mt-4 inline-block rounded-full bg-ink px-5 py-2 text-sm font-medium text-white hover:bg-gold"
                     >
                       Buy

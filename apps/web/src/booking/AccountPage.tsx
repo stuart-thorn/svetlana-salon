@@ -139,7 +139,7 @@ function Memberships({ profile }: { profile: CustomerProfile }) {
       {memberships.length === 0 ? (
         <p className="mt-3 text-sm text-muted">
           None yet.{" "}
-          <Link to="/buy" className="underline underline-offset-2 hover:text-ink">
+          <Link to="/buy?from=account" className="underline underline-offset-2 hover:text-ink">
             See memberships and packages
           </Link>
         </p>

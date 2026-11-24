@@ -64,7 +64,7 @@ function Deals({ catalog }: { catalog: Catalog }) {
   if (memberships.length === 0) return null;
   return (
     <Link
-      to="/buy"
+      to="/buy?from=book"
       className="flex items-center justify-between gap-4 rounded-2xl border border-gold px-5 py-5 transition hover:shadow-sm"
     >
       <span className="flex flex-col gap-1">
