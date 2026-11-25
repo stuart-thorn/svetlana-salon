@@ -25,18 +25,21 @@ function starts(services: readonly PricedService[], time: ClockTime): ClockTime[
   });
 }
 
+/** Offers for one person's visit: those for several people (`minPeople`) are for party bookings. */
+const single = (catalog: Pick<Catalog, "offers">) => (catalog.offers ?? []).filter((o) => !o.minPeople);
+
 /** Offers the customer could claim for this visit: a service they chose is covered and starts in time. */
 export function claimableOffers(catalog: Pick<Catalog, "offers">, services: readonly PricedService[], date: ISODate | null, time: ClockTime | null): Offer[] {
   if (!date || !time) return [];
   const at = starts(services, time);
-  return (catalog.offers ?? []).filter((o) => o.claim && services.some((s, i) => !s.included && covers(o, s) && onTime(o, date, at[i]!)));
+  return single(catalog).filter((o) => o.claim && services.some((s, i) => !s.included && covers(o, s) && onTime(o, date, at[i]!)));
 }
 
 /** Offers to claim that cover a service they chose, but not on the chosen day or at the chosen time. */
 export function offersAtOtherTimes(catalog: Pick<Catalog, "offers">, services: readonly PricedService[], date: ISODate | null, time: ClockTime | null): Offer[] {
   if (!date || !time) return [];
   const now = claimableOffers(catalog, services, date, time);
-  return (catalog.offers ?? []).filter((o) => o.claim && !now.includes(o) && services.some((s) => !s.included && covers(o, s)));
+  return single(catalog).filter((o) => o.claim && !now.includes(o) && services.some((s) => !s.included && covers(o, s)));
 }
 
 /** Per service, the largest reduction from the offers that apply, in pounds (none on ones included in a membership). */
@@ -60,7 +63,37 @@ function reductions(
 }
 
 const applying = (catalog: Pick<Catalog, "offers">, claimed: readonly string[]) =>
-  (catalog.offers ?? []).filter((o) => !o.claim || claimed.includes(o.id));
+  single(catalog).filter((o) => !o.claim || claimed.includes(o.id));
+
+/**
+ * A party's savings: each person's services from their own start, with the offers for one visit plus those for
+ * several people when enough people have a service they cover. Unclaimed offers only (claims are per visit).
+ * Until the day and times are known, only offers that apply on any day at any time count.
+ * Returns the savings per offer and each person's services at their prices after offers, in pounds.
+ */
+export function partyOfferSavings(
+  catalog: Pick<Catalog, "offers">,
+  people: readonly { services: readonly PricedService[]; time: ClockTime | null }[],
+  date: ISODate | null,
+): { savings: { offer: Offer; amount: number }[]; priced: PricedService[][] } {
+  // Before a day and time are chosen, only offers for any day and time can be counted.
+  const known = !!date && people.every((p) => p.time);
+  const all = (catalog.offers ?? []).filter((o) => known || (!o.days?.length && !o.times));
+  const groupOffers = all.filter(
+    (o) => !o.claim && o.minPeople && people.filter((p) => p.services.some((s) => !s.included && covers(o, s))).length >= o.minPeople,
+  );
+  const offers = [...all.filter((o) => !o.claim && !o.minPeople), ...groupOffers];
+  const totals = new Map<string, number>();
+  const priced = people.map((p) => {
+    const by = reductions(offers, p.services, date ?? "2000-01-01", p.time ?? "00:00");
+    for (const r of by) if (r) totals.set(r.id, (totals.get(r.id) ?? 0) + r.amount);
+    return p.services.map((s, i) => (by[i] ? { ...s, price: Math.round((s.price - by[i].amount) * 100) / 100 } : s));
+  });
+  return {
+    savings: offers.filter((o) => totals.has(o.id)).map((offer) => ({ offer, amount: Math.round(totals.get(offer.id)! * 100) / 100 })),
+    priced,
+  };
+}
 
 /**
  * What the visit saves with the offers that apply (unclaimed ones by themselves, claimed ones when ticked): one

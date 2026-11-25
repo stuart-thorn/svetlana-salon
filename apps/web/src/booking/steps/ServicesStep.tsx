@@ -18,7 +18,7 @@ interface Props {
  * `chosen` is in the visit (tap to remove), `add` can join it, `unavailable` can't be combined with what's chosen
  * (or is an add-on with nothing to add it to) and can't be tapped until the visit changes.
  */
-type CardState = "chosen" | "add" | "unavailable";
+export type CardState = "chosen" | "add" | "unavailable";
 
 const STATE_WORDS: Record<CardState, string> = {
   chosen: "in your visit",
@@ -26,7 +26,7 @@ const STATE_WORDS: Record<CardState, string> = {
   unavailable: "can't be combined with your visit",
 };
 
-function ServiceCard({ service, state, addOn, included, onClick }: { service: Service; state: CardState; addOn: boolean; included: boolean; onClick: () => void }) {
+export function ServiceCard({ service, state, addOn, included, onClick }: { service: Service; state: CardState; addOn: boolean; included: boolean; onClick: () => void }) {
   const chosen = state === "chosen";
   const off = state === "unavailable";
   const meta = [

@@ -16,11 +16,15 @@ import {
   type OnlinePayment,
   type MembershipSummary,
   type OpeningHours,
+  type PartyBookingRequest,
+  type PartyMember,
+  type PartySlot,
   type Product,
   type Purchase,
   type Service,
 } from "./types";
-import { timeToMinutes } from "./utils";
+import { personLabel } from "./party";
+import { minutesToTime, timeToMinutes } from "./utils";
 
 /** Talks to the Bookable public API (bookable-agent, /v1). */
 export interface RestProviderOptions {
@@ -50,7 +54,7 @@ interface ApiCatalog {
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
   categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
   /** Absent from catalogues published before audiences existed. */
-  audiences?: { id: string; name: string; description?: string }[];
+  audiences?: { id: string; name: string; description?: string; askAge?: boolean }[];
   offerings: ({
     id: string;
     categoryId: string;
@@ -60,7 +64,7 @@ interface ApiCatalog {
     basePrice: ApiMoney;
     priceFrom?: boolean;
   } & ApiPolicyOverrides &
-    Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup">)[];
+    Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup" | "ages">)[];
   providers: { id: string; name: string; title?: string; photoUrl?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
   products?: {
@@ -86,7 +90,7 @@ interface ApiBooking {
   reference: string;
   status: string;
   providerId: string;
-  items: { offeringId: string }[];
+  items: { offeringId: string; attendee?: ApiAttendee }[];
   date: string;
   time: string;
   endTime: string;
@@ -149,13 +153,20 @@ interface ApiProblem {
 
 const pounds = (m: ApiMoney) => m.amount / 100;
 
+interface ApiAttendee {
+  ref?: string;
+  name?: string;
+  audienceId?: string;
+  age?: number;
+}
+
 interface ApiManagedBooking {
   reference: string;
   status: string;
   date: string;
   time: string;
   end: string;
-  services: { offeringId: string; name: string; providerId: string; providerName?: string }[];
+  services: { offeringId: string; name: string; providerId: string; providerName?: string; attendee?: ApiAttendee; time?: string }[];
   total: ApiMoney;
   amountPaid: ApiMoney;
   cancellation?: { deadline: string; windowHours: number; late: boolean; refund: ApiMoney; kept: ApiMoney; usesVisits: boolean; visitsReturned: boolean };
@@ -171,7 +182,19 @@ function toManaged(b: ApiManagedBooking): ManagedBooking {
     date: b.date,
     time: b.time,
     end: b.end,
-    services: b.services.map((s) => ({ serviceId: s.offeringId, name: s.name, stylistId: s.providerId, ...(s.providerName && { stylistName: s.providerName }) })),
+    services: b.services.map((s) => {
+      // People are numbered in the order they first appear, as the booking lists them.
+      const refs = [...new Set(b.services.flatMap((x) => (x.attendee?.ref ? [x.attendee.ref] : [])))];
+      const a = s.attendee;
+      return {
+        serviceId: s.offeringId,
+        name: s.name,
+        stylistId: s.providerId,
+        ...(s.providerName && { stylistName: s.providerName }),
+        ...(a?.ref && refs.length > 1 && { person: personLabel(a, refs.indexOf(a.ref)) }),
+        ...(s.time && { time: s.time }),
+      };
+    }),
     total: pounds(b.total),
     paid: pounds(b.amountPaid),
     ...(b.cancellation && { cancellation: { ...b.cancellation, refund: pounds(b.cancellation.refund), kept: pounds(b.cancellation.kept) } }),
@@ -262,7 +285,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
     ...(api.tenant.audiencesPrompt && { audiencesPrompt: api.tenant.audiencesPrompt }),
     ...(api.tenant.sellsMemberships && { sellsMemberships: true }),
     categories: api.categories.map(({ id, name }) => ({ id, name })),
-    audiences: (api.audiences ?? []).map(({ id, name, description }) => ({ id, name, ...(description && { description }) })),
+    audiences: (api.audiences ?? []).map(({ id, name, description, askAge }) => ({ id, name, ...(description && { description }), ...(askAge && { askAge: true }) })),
     services: api.offerings.map((o): Service => {
       const category = api.categories.find((c) => c.id === o.categoryId);
       const deposit = depositOf(o.policyOverrides?.payment ?? category?.policyOverrides?.payment ?? api.tenant.policies.payment);
@@ -279,6 +302,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
         ...(o.standalone === false && { standalone: false }),
         ...(o.addOnTo && { addOnTo: o.addOnTo }),
         ...(o.exclusiveGroup && { exclusiveGroup: o.exclusiveGroup }),
+        ...(o.ages && { ages: o.ages }),
       };
     }),
     stylists: api.providers.map((p) => ({
@@ -291,10 +315,10 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
       workingDays: [0, 1, 2, 3, 4, 5, 6],
     })),
     openingHours,
-    // Offers for services; ones for several people at once (minAttendees) or for products aren't for one booking.
+    // Offers for services (ones for products aren't for a booking); `minPeople` ones are for several people at once.
     ...(api.promotions?.length && {
       offers: api.promotions
-        .filter((p) => p.scope.kind !== "products" && !p.conditions.minAttendees)
+        .filter((p) => p.scope.kind !== "products")
         .map(
           (p): Offer => ({
             id: p.id,
@@ -306,6 +330,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
             ...(p.conditions.daysOfWeek && { days: p.conditions.daysOfWeek }),
             ...(p.conditions.times && { times: p.conditions.times }),
             ...(p.claim && { claim: p.claim }),
+            ...(p.conditions.minAttendees && { minPeople: p.conditions.minAttendees }),
           }),
         ),
     }),
@@ -351,6 +376,29 @@ export function toConfirmation(b: ApiBooking): BookingConfirmation {
   };
 }
 
+/** A party booking's confirmation: the API's booking, with each person as the chosen slot placed them. */
+export function toPartyConfirmation(b: ApiBooking, request: PartyBookingRequest): BookingConfirmation {
+  return {
+    ...toConfirmation(b),
+    people: request.party.map(({ serviceIds: _s, stylistId: _p, ...person }) => {
+      const a = request.slot.assignments.find((x) => x.ref === person.ref)!;
+      return { ...person, serviceIds: b.items.filter((i) => i.attendee?.ref === person.ref).map((i) => i.offeringId), stylistId: a.stylistId, time: a.time, endTime: a.endTime };
+    }),
+  };
+}
+
+/** A party as the API takes it. */
+const apiParty = (party: readonly PartyMember[]) =>
+  party.map((m) => ({
+    attendee: { ref: m.ref, audienceId: m.audienceId, ...(m.age !== undefined && { age: m.age }), ...(m.name?.trim() && { name: m.name.trim() }) },
+    offeringIds: m.serviceIds,
+    providerId: m.stylistId,
+  }));
+
+/** Local clock time of an instant at the salon (the API's party slots carry instants for ends). */
+const salonClock = (instant: string, start: string, startInstant: string) =>
+  minutesToTime(timeToMinutes(start) + Math.round((Date.parse(instant) - Date.parse(startInstant)) / 60_000));
+
 function toOnlinePayment(p: NonNullable<ApiBooking["payment"]>): OnlinePayment {
   if (p.kind === "client_secret" && "clientSecret" in p && p.publishableKey) {
     return { kind: "stripe", clientSecret: p.clientSecret, publishableKey: p.publishableKey, ...(p.accountRef && { accountRef: p.accountRef }) };
@@ -374,6 +422,9 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
       | "getManagedBooking"
       | "cancelManagedBooking"
       | "rescheduleManagedBooking"
+      | "getPartyDates"
+      | "getPartyTimes"
+      | "createPartyBooking"
     >
   > {
   const { baseUrl, apiKey, locationId, customerToken } = options;
@@ -439,6 +490,42 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
       });
       return toConfirmation(
         await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
+      );
+    },
+
+    getPartyDates: async ({ party, from, to }) => {
+      const res = await call<{ days: DayAvailability[] }>("/availability/party", { method: "POST", body: JSON.stringify({ locationId, party: apiParty(party), from, to }) });
+      return res.days;
+    },
+
+    getPartyTimes: async ({ party, date }) => {
+      const res = await call<{ slots: { time: string; start: string; assignments: { ref: string; providerId: string; time: string; start: string; end: string }[] }[] }>(
+        "/availability/party",
+        { method: "POST", body: JSON.stringify({ locationId, party: apiParty(party), date }) },
+      );
+      return res.slots.map(
+        (s): PartySlot => ({
+          time: s.time,
+          assignments: s.assignments.map((a) => ({ ref: a.ref, stylistId: a.providerId, time: a.time, endTime: salonClock(a.end, a.time, a.start) })),
+        }),
+      );
+    },
+
+    createPartyBooking: async (request) => {
+      // Each person with the professional the chosen slot showed, so the booking is what they saw.
+      const party = request.party.map((m) => ({ ...m, stylistId: request.slot.assignments.find((a) => a.ref === m.ref)?.stylistId ?? m.stylistId }));
+      const body = JSON.stringify({
+        locationId,
+        providerId: null,
+        offeringIds: [],
+        party: apiParty(party),
+        date: request.date,
+        time: request.slot.time,
+        customer: request.customer,
+      });
+      return toPartyConfirmation(
+        await call<ApiBooking>("/bookings", { method: "POST", headers: { "Idempotency-Key": idempotencyKeyFor(body), ...signedIn() }, body }),
+        request,
       );
     },
 

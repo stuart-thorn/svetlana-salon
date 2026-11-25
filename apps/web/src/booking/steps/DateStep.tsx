@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addDays, parseISODate, toISODate, type DayStatus, type ISODate } from "@salon/booking";
+import { addDays, parseISODate, toISODate, type DayAvailability, type DayStatus, type ISODate } from "@salon/booking";
 import { provider } from "../provider";
 import { useAsync } from "../useAsync";
 import { Chevron, Notice } from "../ui";
@@ -9,6 +9,8 @@ interface Props {
   serviceIds: string[];
   selected: ISODate | null;
   onSelect: (date: ISODate) => void;
+  /** Where the days come from, when not one person's visit (a group's). */
+  load?: (from: ISODate, to: ISODate) => Promise<DayAvailability[]>;
 }
 
 /** How far ahead the calendar lets you browse; the provider has the final say per day. */
@@ -46,7 +48,7 @@ function rangeTitle(first: ISODate, last: ISODate): string {
   return `${sameYear ? parseISODate(first).toLocaleDateString("en-GB", { month: "long" }) : long(first)} – ${long(last)}`;
 }
 
-export default function DateStep({ stylistId, serviceIds, selected, onSelect }: Props) {
+export default function DateStep({ stylistId, serviceIds, selected, onSelect, load }: Props) {
   const today = toISODate(new Date());
   const lastDay = addDays(today, MAX_DAYS_AHEAD);
   const thisMonth = monthStart(today);
@@ -60,8 +62,8 @@ export default function DateStep({ stylistId, serviceIds, selected, onSelect }: 
   const to = last > lastDay ? lastDay : last;
 
   const { data, loading, error } = useAsync(
-    () => provider.getAvailableDates({ from, to, stylistId, serviceIds }),
-    [from, to, stylistId, serviceIds.join(",")],
+    () => (load ? load(from, to) : provider.getAvailableDates({ from, to, stylistId, serviceIds })),
+    [from, to, stylistId, serviceIds.join(","), load],
   );
   const statusFor = new Map<ISODate, DayStatus>(data?.map((d) => [d.date, d.status]));
   const hasAvailability = data?.some((d) => d.status === "available");

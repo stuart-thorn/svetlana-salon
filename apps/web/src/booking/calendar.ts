@@ -44,7 +44,7 @@ export function londonInstant(date: string, time: string): Date {
 
 export function calendarEntry(c: BookingConfirmation, catalog: Catalog): CalendarEntry {
   const services = servicesById(catalog, c.serviceIds).map((s) => s.name).join(", ");
-  const stylist = catalog.stylists.find((s) => s.id === c.stylistId)?.name;
+  const stylist = [...new Set((c.people?.map((p) => p.stylistId) ?? [c.stylistId]).map((id) => catalog.stylists.find((s) => s.id === id)?.name).filter(Boolean))].join(" and ");
   return {
     uid: `${c.reference}@ngcanarywharf`,
     title: `${catalog.salonName}: ${services}`,

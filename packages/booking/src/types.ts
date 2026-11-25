@@ -13,6 +13,8 @@ export interface Audience {
   id: string;
   name: string;
   description?: string;
+  /** Booking for several people: ask each person's age, to offer what suits it (children). */
+  askAge?: boolean;
 }
 
 export interface Service {
@@ -35,6 +37,8 @@ export interface Service {
   addOnTo?: { categoryIds?: string[]; offeringIds?: string[] };
   /** A visit holds at most one service from each group, e.g. "haircut". */
   exclusiveGroup?: string;
+  /** Ages it suits, in years (1.5 = 18 months), both ends included. Absent = any age. */
+  ages?: { min?: number; max?: number };
 }
 
 export interface Stylist {
@@ -92,6 +96,8 @@ export interface Offer {
   days?: number[];
   times?: { start: ClockTime; end: ClockTime };
   claim?: { label: string; check: string };
+  /** Only for bookings of at least this many people (each with a covered service), e.g. a family visit. */
+  minPeople?: number;
 }
 
 /** Something the salon sells online outside a booking: a membership, a package or a retail product. */
@@ -171,6 +177,37 @@ export interface BookingRequest extends AvailabilityQuery {
   offerIds?: string[];
 }
 
+/** One person in a booking for several people. */
+export interface Person {
+  /** Tells the people apart, e.g. "p1". */
+  ref: string;
+  audienceId: string;
+  /** Whole years, for audiences that ask it. */
+  age?: number;
+  /** First name, optional. */
+  name?: string;
+}
+
+/** A person with their services (one visit) and professional (`null` = anyone free). */
+export interface PartyMember extends Person {
+  serviceIds: string[];
+  stylistId: string | null;
+}
+
+/** A start time for a party: who is with whom, and when each starts and finishes. */
+export interface PartySlot {
+  time: ClockTime;
+  assignments: { ref: string; stylistId: string; time: ClockTime; endTime: ClockTime }[];
+}
+
+export interface PartyBookingRequest {
+  party: PartyMember[];
+  date: ISODate;
+  /** The slot chosen: everyone is booked with the professionals it shows. */
+  slot: PartySlot;
+  customer: Customer;
+}
+
 export interface BookingConfirmation {
   reference: string;
   stylistId: string;
@@ -190,6 +227,8 @@ export interface BookingConfirmation {
   expiresAt?: string;
   /** While pending payment: how to take the deposit. Absent = a simulated (test) payment. */
   payment?: OnlinePayment;
+  /** A booking for several people: each person's services, professional and times. */
+  people?: (Person & { serviceIds: string[]; stylistId: string; time: ClockTime; endTime: ClockTime })[];
 }
 
 /**
@@ -267,7 +306,8 @@ export interface ManagedBooking {
   date: ISODate;
   time: ClockTime;
   end: ClockTime;
-  services: { serviceId: string; name: string; stylistId: string; stylistName?: string }[];
+  /** For several people, each service says who it's for (`person`, e.g. "Mia (3)") and when it starts. */
+  services: { serviceId: string; name: string; stylistId: string; stylistName?: string; person?: string; time?: ClockTime }[];
   total: number;
   paid: number;
   /** Confirmed bookings: free cancellation until `deadline` (an instant); after it, `kept` stays with the salon. */
@@ -307,4 +347,8 @@ export interface BookingProvider {
   getManagedBooking?(access: ManageAccess): Promise<ManagedBooking>;
   cancelManagedBooking?(access: ManageAccess): Promise<ManagedBooking>;
   rescheduleManagedBooking?(access: ManageAccess, to: { date: ISODate; time: ClockTime }): Promise<ManagedBooking>;
+  /** Several people in one booking (absent where it isn't offered: they book one by one). */
+  getPartyDates?(query: { party: PartyMember[]; from: ISODate; to: ISODate }): Promise<DayAvailability[]>;
+  getPartyTimes?(query: { party: PartyMember[]; date: ISODate }): Promise<PartySlot[]>;
+  createPartyBooking?(request: PartyBookingRequest): Promise<BookingConfirmation>;
 }

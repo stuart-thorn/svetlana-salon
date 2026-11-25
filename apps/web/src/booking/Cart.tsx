@@ -25,7 +25,7 @@ export interface CartAction {
   onClick?: () => void;
 }
 
-function ActionButton({ action, className = "" }: { action: CartAction; className?: string }) {
+export function ActionButton({ action, className = "" }: { action: CartAction; className?: string }) {
   return (
     <button
       type={action.form ? "submit" : "button"}

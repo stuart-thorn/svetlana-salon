@@ -182,6 +182,7 @@ function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: Cu
   };
   const send = () =>
     run(async () => {
+      if (!valid) throw new Error("Please enter your email address above first.");
       await auth.sendCode(email.trim());
       setSentTo(email.trim());
       setCode("");
@@ -210,7 +211,7 @@ function ConfirmEmail({ email, onSignedIn }: { email: string; onSignedIn: (s: Cu
       {phase === "offer" ? (
         <p>
           Been with us before?{" "}
-          <button type="button" className={linkClass} disabled={busy || !valid} onClick={() => void send()}>
+          <button type="button" className={linkClass} disabled={busy} onClick={() => void send()}>
             {busy ? "Sending a code…" : "Confirm this email"}
           </button>{" "}
           to fill in your details and use any prepaid visits.

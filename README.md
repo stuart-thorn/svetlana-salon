@@ -10,7 +10,7 @@ packages/booking  # @salon/booking: catalogue, availability types, mock provider
 ```
 
 Editable copy (opening hours, contact details) lives in `apps/web/src/data/content.ts`.
-Services, prices, stylists and their rotas live in `packages/booking/src/catalog.ts` (indicative launch menu, mirrored in bookable-agent's seed). Packages, memberships and the Family Visit offer are information only, in `content.ts`.
+Services, prices, stylists and their rotas live in `packages/booking/src/catalog.ts` (indicative launch menu, mirrored in bookable-agent's seed). Packages, memberships and the Family Visit offer are described in `content.ts`; the booking system applies the Family Visit to group bookings (`/book/group`) of 3 or more people.
 
 ## Scripts
 

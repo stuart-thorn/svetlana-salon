@@ -1,5 +1,6 @@
 import type { Catalog } from "@salon/booking";
 import { Link } from "../../router";
+import { provider } from "../provider";
 import { FAMILY, forAudience } from "../state";
 import { Check, Notice } from "../ui";
 
@@ -48,7 +49,7 @@ export default function AudienceStep({ catalog, selected, onSelect }: Props) {
 
       <Deals catalog={catalog} />
 
-      {selected === FAMILY && (
+      {selected === FAMILY && !provider.createPartyBooking && (
         <Notice>
           Booking for more than one person? For now, please book each person's appointment separately, choosing
           the right menu each time. We'll do our best to seat you together.

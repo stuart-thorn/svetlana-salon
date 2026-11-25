@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { BookingExpiredError, formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
+import PeopleLines from "./group/PeopleLines";
 import { stripeFor, type StripeElements, type StripeInstance } from "./stripe";
 import { Notice, Spinner, formatLongDate } from "./ui";
 
@@ -51,13 +52,19 @@ export default function Payment({
       <div className="mt-8 rounded-2xl border border-line p-6">
         <p className="font-medium">{formatLongDate(booking.date)}</p>
         <p className="text-sm text-muted">
-          {booking.time} – {booking.endTime} ({formatDuration(booking.durationMin)}) with {stylist?.name}
+          {booking.time} – {booking.endTime} ({formatDuration(booking.durationMin)}){!booking.people && ` with ${stylist?.name}`}
         </p>
-        <ul className="mt-4 space-y-1 border-t border-line pt-4 text-sm">
-          {servicesById(catalog, booking.serviceIds).map((s) => (
-            <li key={s.id}>{s.name}</li>
-          ))}
-        </ul>
+        {booking.people ? (
+          <div className="mt-4 border-t border-line pt-4">
+            <PeopleLines people={booking.people} catalog={catalog} />
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-1 border-t border-line pt-4 text-sm">
+            {servicesById(catalog, booking.serviceIds).map((s) => (
+              <li key={s.id}>{s.name}</li>
+            ))}
+          </ul>
+        )}
         <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">Total</dt>

@@ -285,7 +285,9 @@ export default function BookingPage() {
                 selected={draft.audience}
                 onSelect={(id) => {
                   chooseAudience(id);
-                  if (id !== FAMILY) goTo("professional");
+                  // Several people: their own flow, where each person gets their own menu.
+                  if (id === FAMILY && provider.createPartyBooking) navigate("/book/group?step=people");
+                  else if (id !== FAMILY) goTo("professional");
                 }}
               />
             )}

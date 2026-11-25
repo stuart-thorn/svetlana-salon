@@ -11,6 +11,7 @@ import Footer from "./components/Footer";
 import StickyBookBar from "./components/StickyBookBar";
 
 const BookingPage = lazy(() => import("./booking/BookingPage"));
+const GroupBookingPage = lazy(() => import("./booking/group/GroupBookingPage"));
 const Privacy = lazy(() => import("./components/Privacy"));
 const Terms = lazy(() => import("./components/Terms"));
 const BuyPage = lazy(() => import("./booking/BuyPage"));
@@ -65,6 +66,14 @@ export default function App() {
     return (
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <BuyPage />
+      </Suspense>
+    );
+  }
+
+  if (pathname === "/book/group" && !isPrelaunch) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <GroupBookingPage />
       </Suspense>
     );
   }

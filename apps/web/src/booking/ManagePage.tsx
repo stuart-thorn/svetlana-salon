@@ -271,10 +271,29 @@ function Summary({ booking }: { booking: ManagedBooking }) {
       <p className="mt-2 font-medium">
         {formatLongDate(booking.date)}, {booking.time}–{booking.end}
       </p>
-      <p className="mt-1 text-sm">
-        {booking.services.map((s) => s.name).join(", ")}
-        {stylists.length > 0 && <span className="text-muted"> with {stylists.join(" and ")}</span>}
-      </p>
+      {booking.services.some((s) => s.person) ? (
+        // A group: each person, their services and professional.
+        <ul className="mt-2 space-y-1 text-sm">
+          {[...new Set(booking.services.map((s) => s.person ?? ""))].map((person) => {
+            const mine = booking.services.filter((s) => (s.person ?? "") === person);
+            const with_ = [...new Set(mine.map((s) => s.stylistName).filter(Boolean))];
+            return (
+              <li key={person}>
+                <span className="font-medium">{person}:</span> {mine.map((s) => s.name).join(", ")}
+                <span className="text-muted">
+                  {mine[0]?.time ? `, ${mine[0].time}` : ""}
+                  {with_.length > 0 && ` with ${with_.join(" and ")}`}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="mt-1 text-sm">
+          {booking.services.map((s) => s.name).join(", ")}
+          {stylists.length > 0 && <span className="text-muted"> with {stylists.join(" and ")}</span>}
+        </p>
+      )}
       {booking.total > 0 && (
         <p className="mt-3 text-sm text-muted">
           {money(booking.total)}
@@ -309,7 +328,9 @@ function Actions({ booking, onCancel, onMove }: { booking: ManagedBooking; onCan
         <p className="text-sm text-muted">
           {c.late
             ? `It's less than ${c.windowHours} hours to your appointment.${c.kept > 0 ? ` If you cancel now, the ${money(c.kept)} paid isn't refunded.` : ""}${c.usesVisits ? " The membership visit isn't given back." : ""}`
-            : `Free cancellation and changes until ${salonTime(c.deadline)}.`}
+            : booking.services.some((s) => s.person)
+              ? `Free cancellation until ${salonTime(c.deadline)}.`
+              : `Free cancellation and changes until ${salonTime(c.deadline)}.`}
         </p>
       )}
       <div className="flex flex-wrap gap-3">

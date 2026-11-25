@@ -67,7 +67,7 @@ export const offers: Offer[] = [
     summary: "15% off haircuts and blow-dries when 3 or more family members visit on the same day.",
     details: [
       "For example, a parent with two children, or both parents and a child.",
-      "Just tell us at the desk: no proof needed.",
+      "Book everyone together online (\"Family or group\") and it's applied automatically, or tell us at the desk: no proof needed.",
       "Not colour. Not combined with other offers: the larger discount applies.",
     ],
   },

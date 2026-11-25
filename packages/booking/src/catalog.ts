@@ -41,7 +41,7 @@ export const catalog: Catalog = {
   audiences: [
     { id: "men", name: "Men's hair & grooming", description: "Cuts and fades" },
     { id: "women", name: "Women's hair", description: "Cuts, blow-dries and styling" },
-    { id: "children", name: "Children's haircuts", description: "Boys and girls up to 12, toddlers from 18 months" },
+    { id: "children", name: "Children's haircuts", description: "Boys and girls up to 12, toddlers from 18 months", askAge: true },
   ],
   services: [
     { id: "mens-two-number", categoryId: "men", name: "Two-number clipper cut", durationMin: 15, price: 25, ...mens, ...cut },
@@ -84,9 +84,9 @@ export const catalog: Catalog = {
       ...womens,
     },
     { id: "deep-treatment", categoryId: "women", name: "Deep treatment", durationMin: 30, price: 40, priceFrom: true, description: "An intensive conditioning treatment, on its own or with a cut, blow-dry or colour. £40 for shorter hair up to £50 for longer hair.", ...adults, addOnTo: { offeringIds: [...CUTS, "blow-dry", ...COLOUR_SERVICES] } },
-    { id: "boys-cut", categoryId: "children", name: "Boys' haircut (up to 12)", durationMin: 30, price: 30, description: `${UP_TO_12} ${SIT_ALONE}`, ...children },
-    { id: "girls-cut", categoryId: "children", name: "Girls' haircut (up to 12)", durationMin: 45, price: 40, priceFrom: true, description: `${UP_TO_12} ${SIT_ALONE}`, ...children },
-    { id: "toddler-cut", categoryId: "children", name: "Toddler haircut (18 months to 4)", durationMin: 30, price: 30, description: "For little ones from 18 months who can't yet sit on their own, with Svetlana.", ...children },
+    { id: "boys-cut", categoryId: "children", name: "Boys' haircut (up to 12)", durationMin: 30, price: 30, description: `${UP_TO_12} ${SIT_ALONE}`, ...children, ages: { min: 4, max: 12 } },
+    { id: "girls-cut", categoryId: "children", name: "Girls' haircut (up to 12)", durationMin: 45, price: 40, priceFrom: true, description: `${UP_TO_12} ${SIT_ALONE}`, ...children, ages: { min: 4, max: 12 } },
+    { id: "toddler-cut", categoryId: "children", name: "Toddler haircut (18 months to 4)", durationMin: 30, price: 30, description: "For little ones from 18 months who can't yet sit on their own, with Svetlana.", ...children, ages: { min: 1.5, max: 4 } },
     { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Needed at least 24 hours (ideally 48) before your first colour appointment.", ...adults },
     { id: "root-colour", categoryId: "colour", name: "Roots colour", durationMin: 75, price: 70, priceFrom: true, ...colour, description: "About 30 minutes applying, then 40–45 minutes developing." },
     { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 75, price: 95, priceFrom: true, ...colour },

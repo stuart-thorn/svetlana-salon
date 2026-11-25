@@ -1,6 +1,7 @@
 import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog, type Offer } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import CalendarChoice from "./CalendarChoice";
+import PeopleLines from "./group/PeopleLines";
 import { freeCancellationUntil } from "./policy";
 import { Avatar, Check, formatLongDate } from "./ui";
 
@@ -47,16 +48,22 @@ export default function Confirmation({
         <p className="text-sm text-muted">
           {c.time} – {c.endTime} ({formatDuration(c.durationMin)})
         </p>
-        <div className="mt-4 flex items-center gap-3 border-t border-line pt-4">
-          <Avatar stylist={stylist} index={index} size="sm" />
-          <p className="text-sm">
-            with <span className="font-medium">{stylist?.name}</span>
-            <span className="text-muted"> · {stylist?.role}</span>
-          </p>
-        </div>
+        {c.people ? (
+          <div className="mt-4 border-t border-line pt-4">
+            <PeopleLines people={c.people} catalog={catalog} />
+          </div>
+        ) : (
+          <div className="mt-4 flex items-center gap-3 border-t border-line pt-4">
+            <Avatar stylist={stylist} index={index} size="sm" />
+            <p className="text-sm">
+              with <span className="font-medium">{stylist?.name}</span>
+              <span className="text-muted"> · {stylist?.role}</span>
+            </p>
+          </div>
+        )}
         <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
-          {services.map((s) => (
-            <li key={s.id} className="flex justify-between">
+          {services.map((s, i) => (
+            <li key={`${s.id}-${i}`} className="flex justify-between">
               <span>{s.name}</span>
               <span>{formatPrice(s.price)}</span>
             </li>
@@ -92,8 +99,9 @@ export default function Confirmation({
       ))}
       {catalog.cancellation && (
         <p className="mt-4 text-sm text-muted">
-          Free cancellation or changes until {freeCancellationUntil(c.date, c.time, catalog.cancellation.windowHours)}. Use the link in your
-          confirmation email.{" "}
+          {c.people
+            ? `Free cancellation until ${freeCancellationUntil(c.date, c.time, catalog.cancellation.windowHours)}, with the link in your confirmation email. To change the time, please call us.`
+            : `Free cancellation or changes until ${freeCancellationUntil(c.date, c.time, catalog.cancellation.windowHours)}. Use the link in your confirmation email.`}{" "}
           <Link to="/terms#cancelling" className="underline underline-offset-2 hover:text-ink">
             Booking terms
           </Link>
