@@ -14,6 +14,10 @@ interface Props {
 export default function GroupServicesStep({ catalog, people, onToggle }: Props) {
   return (
     <div className="space-y-10">
+      <p className="text-sm text-muted">
+        A group booking is priced as a group: memberships, prepaid visits and other offers can't be used on it. To use them, book
+        that person on their own.
+      </p>
       {people.map((p, i) => {
         const audience = catalog.audiences.find((a) => a.id === p.audienceId);
         const visible = servicesFor(catalog, p).filter((s) => eligibleStylists(catalog, [s.id]).length > 0);

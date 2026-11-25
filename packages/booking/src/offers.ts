@@ -66,8 +66,8 @@ const applying = (catalog: Pick<Catalog, "offers">, claimed: readonly string[]) 
   single(catalog).filter((o) => !o.claim || claimed.includes(o.id));
 
 /**
- * A party's savings: each person's services from their own start, with the offers for one visit plus those for
- * several people when enough people have a service they cover. Unclaimed offers only (claims are per visit).
+ * A party's savings: offers for several people (`minPeople`) when enough people have a service they cover, each
+ * person's services from their own start. A group isn't combined with memberships or offers for one person.
  * Until the day and times are known, only offers that apply on any day at any time count.
  * Returns the savings per offer and each person's services at their prices after offers, in pounds.
  */
@@ -82,7 +82,8 @@ export function partyOfferSavings(
   const groupOffers = all.filter(
     (o) => !o.claim && o.minPeople && people.filter((p) => p.services.some((s) => !s.included && covers(o, s))).length >= o.minPeople,
   );
-  const offers = [...all.filter((o) => !o.claim && !o.minPeople), ...groupOffers];
+  // A group is priced as a group: its own offers only, never combined with offers for one person.
+  const offers = groupOffers;
   const totals = new Map<string, number>();
   const priced = people.map((p) => {
     const by = reductions(offers, p.services, date ?? "2000-01-01", p.time ?? "00:00");

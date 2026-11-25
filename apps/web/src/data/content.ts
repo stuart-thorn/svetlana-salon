@@ -68,7 +68,7 @@ export const offers: Offer[] = [
     details: [
       "For example, a parent with two children, or both parents and a child.",
       "Book everyone together online (\"Family or group\") and it's applied automatically, or tell us at the desk: no proof needed.",
-      "Not colour. Not combined with other offers: the larger discount applies.",
+      "Not colour. Not combined with memberships, prepaid visits or other offers.",
     ],
   },
 ];

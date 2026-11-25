@@ -42,6 +42,12 @@ describe("group offers", () => {
     expect(partyOfferSavings({ offers: [family] }, three.slice(0, 2), null).savings).toEqual([]);
   });
 
+  it("are the only offers on a group: offers for one person don't apply", () => {
+    const anyone: Offer = { id: "spring", name: "Spring", percentOff: 50 };
+    const three = [{ services: [cut("mens-cut", 40)], time: "10:00" }, { services: [cut("womens-cut", 70)], time: "10:00" }, { services: [cut("toddler-cut", 30)], time: "10:00" }];
+    expect(partyOfferSavings({ offers: [family, anyone] }, three, "2026-12-02").savings.map((s) => s.offer.id)).toEqual(["family-visit"]);
+  });
+
   it("aren't offered on one person's visit", () => {
     expect(claimableOffers({ offers: [{ ...family, claim: { label: "x", check: "y" } }] }, [cut("mens-cut", 40)], "2026-11-25", "10:00")).toEqual([]);
     expect(offerSavings({ offers: [family] }, [cut("mens-cut", 40)], "2026-11-25", "10:00", [])).toEqual([]);

@@ -131,6 +131,17 @@ export const catalog: Catalog = {
       workingDays: [1, 2, 3, 4, 6],
     },
   ],
+  // As the booking system has them: Family Visit applies by itself to 3 or more people booked together.
+  offers: [
+    {
+      id: "family-visit",
+      name: "Family Visit",
+      description: "15% off haircuts and blow-dries when 3 or more family members visit on the same day. Not colour.",
+      percentOff: 15,
+      serviceIds: [...CUTS, "boys-cut", "girls-cut", "toddler-cut", "blow-dry"],
+      minPeople: 3,
+    },
+  ],
   openingHours: [
     { open: h(10), close: h(18) }, // Sun
     { open: h(8), close: h(19) }, // Mon–Fri

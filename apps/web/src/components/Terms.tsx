@@ -230,7 +230,7 @@ export default function Terms() {
         <li>
           <span className="font-medium">Family Visit:</span> 15% off haircuts and blow-dries when 3 or more family members visit on the same
           day. It applies automatically when you book 3 or more people together online ("Family or group"); if you booked separately, tell
-          us at the desk. Not colour or technical services.
+          us at the desk. Not colour or technical services. A group booking isn't combined with memberships, prepaid visits or other offers.
         </li>
         <li>
           Offers can't be combined with each other or with memberships, and can't be applied to past bookings. Only one reduction applies to

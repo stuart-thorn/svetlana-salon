@@ -163,3 +163,54 @@ describe("mock booking provider", () => {
     await expect(p.completeSimulatedPayment(pending)).rejects.toBeInstanceOf(BookingExpiredError);
   });
 });
+
+describe("mock group bookings", () => {
+  const family = [
+    { ref: "p1", audienceId: "men", serviceIds: ["mens-cut"], stylistId: null },
+    { ref: "p2", audienceId: "women", serviceIds: ["womens-cut"], stylistId: null },
+    { ref: "p3", audienceId: "children", age: 3, name: "Mia", serviceIds: ["toddler-cut"], stylistId: null },
+  ];
+
+  it("starts everyone together with different stylists, the toddler with Svetlana", async () => {
+    const p = make();
+    const date = nextWeekday(addDays(TODAY, 1), 3);
+    const days = await p.getPartyDates({ party: family, from: date, to: addDays(date, 6) });
+    const open = days.find((d) => d.status === "available")!;
+    const slots = await p.getPartyTimes({ party: family, date: open.date });
+    expect(slots.length).toBeGreaterThan(0);
+    const slot = slots[0]!;
+    expect(new Set(slot.assignments.map((a) => a.stylistId)).size).toBe(3);
+    expect(slot.assignments.every((a) => a.time === slot.time)).toBe(true);
+    expect(slot.assignments.find((a) => a.ref === "p3")!.stylistId).toBe("svetlana");
+    // Weekends: Svetlana doesn't work.
+    const sat = nextWeekday(addDays(TODAY, 1), 6);
+    expect(await p.getPartyTimes({ party: family, date: sat })).toEqual([]);
+  });
+
+  it("puts people with the same stylist one after the other, and books and confirms them all", async () => {
+    const p = make();
+    const date = nextWeekday(addDays(TODAY, 1), 3);
+    const pair = [
+      { ...family[1]!, stylistId: "svetlana" },
+      { ...family[2]!, stylistId: "svetlana" },
+    ];
+    const slots = await p.getPartyTimes({ party: pair, date });
+    const slot = slots[0]!;
+    expect(slot.assignments[1]!.time).toBe(slot.assignments[0]!.endTime);
+    const party3 = [family[0]!, ...pair];
+    const slot3 = (await p.getPartyTimes({ party: party3, date }))[0]!;
+    const booked = await p.createPartyBooking({ party: party3, date, slot: slot3, customer: { name: "Pat", email: "pat@example.com", phone: "07700900000" } });
+    // £40 + £70 + £30 less 15% Family Visit is £119; half as a deposit.
+    expect(booked).toMatchObject({ total: 119, status: "pending_payment", deposit: { now: 59.5 } });
+    expect(booked.people!.map((x) => x.stylistId)).toEqual(slot3.assignments.map((a) => a.stylistId));
+    expect((await p.getPartyTimes({ party: party3, date })).some((s) => s.time === slot3.time)).toBe(false);
+    await expect(p.completeSimulatedPayment(booked)).resolves.toMatchObject({ status: "confirmed" });
+    await expect(p.createPartyBooking({ party: party3, date, slot: slot3, customer: { name: "Al", email: "al@example.com", phone: "07700900001" } })).rejects.toBeInstanceOf(SlotUnavailableError);
+  });
+
+  it("refuses services that don't suit someone", async () => {
+    const p = make();
+    const date = nextWeekday(addDays(TODAY, 1), 3);
+    await expect(p.getPartyTimes({ party: [{ ref: "c", audienceId: "children", age: 8, serviceIds: ["toddler-cut"], stylistId: null }], date })).rejects.toBeInstanceOf(IncompatibleServicesError);
+  });
+});
