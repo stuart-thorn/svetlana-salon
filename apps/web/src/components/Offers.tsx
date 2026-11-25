@@ -101,6 +101,16 @@ export default function Offers() {
                     <BuyLink product={product} name={o.title} className="block px-5 py-3 text-center text-sm" />
                   </div>
                 )}
+                {o.group && !isPrelaunch && provider.createPartyBooking && (
+                  <div className="mt-auto pt-6">
+                    <Link
+                      to="/book/group?step=people"
+                      className="block rounded-full bg-accent px-5 py-3 text-center text-sm font-medium text-white cta-hover"
+                    >
+                      Book together<span className="sr-only">: {o.title}</span>
+                    </Link>
+                  </div>
+                )}
                 {claim && (
                   <div className="mt-auto pt-6">
                     <p className="mb-3 text-sm text-muted">Book a haircut at an offer time, then tick “{claim.label}” on the details step.</p>

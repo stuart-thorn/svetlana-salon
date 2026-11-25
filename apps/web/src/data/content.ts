@@ -42,6 +42,8 @@ export interface Offer {
   details: string[];
   /** Shown first and picked out (the client asked for the student offer to be highlighted). */
   featured?: boolean;
+  /** For several people together: links to the group booking. */
+  group?: boolean;
 }
 
 export const offers: Offer[] = [
@@ -64,6 +66,7 @@ export const offers: Offer[] = [
   },
   {
     title: "Family Visit",
+    group: true,
     summary: "15% off haircuts and blow-dries when 3 or more family members visit on the same day.",
     details: [
       "For example, a parent with two children, or both parents and a child.",
