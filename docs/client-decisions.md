@@ -23,7 +23,7 @@ Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
   visits credited back). No "To confirm" left; still a draft until a solicitor reviews it.
 - **Email.** Google Workspace for info@ngcanarywharf.co.uk. `infra/dns.yml` has its MX and SPF records behind
   `GoogleWorkspace=true`, for when the mailbox exists; DKIM comes from her Google admin console.
-- **Student offer.** Haircuts only, not colour or other services (as built).
+- **Student offer.** Haircuts only, not colour or other services (as built). Adults' haircuts only: children's haircuts taken off it (our call, 26 Nov).
 
 Still open with Svetlana: her full price list, the logo, her own working days and services.
 
