@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   BookingExpiredError,
   PaymentsUnavailableError,
+  PrerequisiteMissingError,
   SlotUnavailableError,
   claimableOffers,
   depositFor,
@@ -119,6 +120,12 @@ export default function BookingPage() {
       scrollToTop();
     } catch (e) {
       setTime(null);
+      // Needs something first (a patch test): the services step's note says what, from what's on record now.
+      if (e instanceof PrerequisiteMissingError) {
+        refreshCustomer();
+        goTo("services");
+        return;
+      }
       setSlotError(
         e instanceof SlotUnavailableError ||
           e instanceof BookingExpiredError ||
@@ -313,6 +320,19 @@ export default function BookingPage() {
                 selectedIds={draft.serviceIds}
                 onSelect={selectService}
                 includedIds={new Set((memberships ?? []).filter((m) => m.current).flatMap((m) => m.allowances.filter((a) => a.left > 0).flatMap((a) => a.offeringIds)))}
+                signedIn={customerState.status === "signed_in"}
+                {...(profile && { records: profile.records ?? [] })}
+                signIn={
+                  customerState.status !== "off" && <CustomerSignIn
+                    state={customerState}
+                    startOpen
+                    onSignedIn={signedIn}
+                    onSignOut={() => {
+                      signOut();
+                      setCustomer(emptyCustomer);
+                    }}
+                  />
+                }
               />
             )}
 

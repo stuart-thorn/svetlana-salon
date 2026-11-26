@@ -1,11 +1,11 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 import { Link } from "../router";
 import { salon } from "../data/content";
 
 /**
  * Booking terms: appointments, deposits, cancelling, memberships and packages. DRAFT for the salon to review
- * (from the "N&G Canary Wharf: Booking terms (draft)" doc): points marked "To confirm" wait on the salon's
- * answers. Shown with a draft banner until agreed; not reviewed by a solicitor.
+ * (from the "N&G Canary Wharf: Booking terms (draft)" doc). Every point is agreed with the salon (26 Nov 2026);
+ * shown with a draft banner until a solicitor has reviewed them.
  */
 export default function Terms() {
   useEffect(() => {
@@ -25,8 +25,8 @@ export default function Terms() {
       </p>
       <h1 className="mt-6 font-serif text-4xl">Booking terms</h1>
       <p className="mt-4 rounded-xl border border-accent bg-white px-4 py-3 text-sm">
-        <span className="font-medium">Draft for review.</span> These terms aren't in force yet. Points marked <ToConfirm /> are still being
-        decided.
+        <span className="font-medium">Draft for review.</span> These terms aren't in force yet: they are being reviewed before
+        we open.
       </p>
 
       <h2 className={h2}>1. About us</h2>
@@ -152,16 +152,16 @@ export default function Terms() {
       <h2 className={h2}>6. Patch tests</h2>
       <ul className={list}>
         <li>
-          Colour services need a skin patch test at least 24 hours (ideally 48 hours) before your appointment, to check for an allergic
-          reaction. The test is free.
+          A skin patch test is required before your first colour with us, to check for an allergic reaction. It's free: call us or come in
+          (or book a Colour consultation &amp; patch test online). Your colour appointment can only start at least 24 hours (ideally 48
+          hours) after the test.
         </li>
         <li>
-          If you have had colour with us before and need an appointment sooner, you may sign a form confirming you accept the risk. We can
-          refuse if we think it isn't safe.
+          If you're an existing colour client and your stylist knows the colour suits you, you may sign a waiver instead, confirming you
+          accept the risk. We can refuse if we think it isn't safe.
         </li>
         <li>
-          If you haven't had a patch test and won't sign the form, we won't carry out the colour. We'll offer you another time or refund
-          your deposit. <ToConfirm />
+          If you haven't had a patch test and won't sign the waiver, we won't carry out the colour, and we'll refund any deposit you paid.
         </li>
         <li>Please tell us about any allergies, skin or scalp conditions, or reactions you have had before.</li>
       </ul>
@@ -217,7 +217,8 @@ export default function Terms() {
           you in full, less the value at our usual prices of any visits you used in that time.
         </li>
         <li>
-          After 14 days, we don't refund unused visits, unless we can't provide the service. <ToConfirm />
+          After 14 days, we don't refund unused visits just because they weren't used, unless we can't provide the service. If you have a
+          genuine emergency, such as an accident or a serious illness, tell us and we'll look at it case by case.
         </li>
       </ul>
 
@@ -241,8 +242,9 @@ export default function Terms() {
 
       <h2 className={h2}>9. If we need to cancel</h2>
       <p>
-        If we have to cancel or move your appointment (for example if your stylist is ill), we'll tell you as soon as we can. You can choose
-        a new time or a full refund of anything you paid, and any membership visit is given back. <ToConfirm />
+        If we have to cancel your appointment (for example if your stylist is ill and another stylist can't cover), we'll tell you as soon
+        as we can. You can choose a new time, ideally within 10 days, or a full refund of anything you paid. If the visit was part of a
+        membership or package, it's credited back to your balance.
       </p>
 
       <h2 className={h2}>10. Your hair, allergies and our responsibility</h2>
@@ -287,11 +289,3 @@ export default function Terms() {
   );
 }
 
-/** A point still to be agreed with the salon, highlighted while the terms are a draft. */
-function ToConfirm({ what }: { what?: ReactNode }) {
-  return (
-    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-900">
-      To confirm{what ? `: ${what}` : ""}
-    </span>
-  );
-}

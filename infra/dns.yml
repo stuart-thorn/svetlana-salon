@@ -3,11 +3,22 @@ Description: Canary Wharf Salon - Route 53 hosted zone for ngcanarywharf.co.uk (
 
 # Kept apart from site.yml so the zone (and its nameservers, set at 123-reg) outlives any site stack.
 # Site records (www + apex alias to CloudFront, ACM validation) are added once the certificate is set up.
+# Email is Google Workspace (client, 26 Nov 2026): its MX and SPF records go live with GoogleWorkspace=true, once
+# info@ngcanarywharf.co.uk is set up there (until then mail to the domain would bounce). DKIM and the domain
+# verification TXT come from her Google admin console and are added then.
 
 Parameters:
   DomainName:
     Type: String
     Default: ngcanarywharf.co.uk
+  GoogleWorkspace:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: Publish Google Workspace's MX and SPF records for the domain's mailboxes
+
+Conditions:
+  UseGoogleWorkspace: !Equals [!Ref GoogleWorkspace, "true"]
 
 Resources:
   HostedZone:
@@ -18,6 +29,27 @@ Resources:
       Name: !Ref DomainName
       HostedZoneConfig:
         Comment: N&G Canary Wharf - nameservers delegated from 123-reg
+
+  # Mail for info@ and other mailboxes goes to Google; Google and Amazon SES (booking emails) may send as the domain.
+  GoogleMail:
+    Type: AWS::Route53::RecordSet
+    Condition: UseGoogleWorkspace
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      Name: !Ref DomainName
+      Type: MX
+      TTL: "3600"
+      ResourceRecords: ["1 smtp.google.com."]
+
+  Spf:
+    Type: AWS::Route53::RecordSet
+    Condition: UseGoogleWorkspace
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      Name: !Ref DomainName
+      Type: TXT
+      TTL: "3600"
+      ResourceRecords: ['"v=spf1 include:_spf.google.com include:amazonses.com ~all"']
 
 Outputs:
   HostedZoneId:

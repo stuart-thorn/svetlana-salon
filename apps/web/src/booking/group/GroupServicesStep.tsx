@@ -1,5 +1,6 @@
 import { canAdd, eligibleStylists, personLabel, servicesFor, type Catalog, type PartyMember, type Service } from "@salon/booking";
 import { ServiceCard, type CardState } from "../steps/ServicesStep";
+import { salon } from "../../data/content";
 
 interface Props {
   catalog: Catalog;
@@ -48,6 +49,12 @@ export default function GroupServicesStep({ catalog, people, onToggle }: Props) 
                       included={false}
                       onClick={() => onToggle(p.ref, s.id)}
                     />
+                    {s.needsFirst && p.serviceIds.includes(s.id) && (
+                      <p role="note" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        {s.name} needs a {s.needsFirst.options.map((o) => o.name.toLowerCase()).join(" or ")} first, which we can't check on a
+                        group booking. Book it for this person on their own while signed in, or call us on {salon.phone}.
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>

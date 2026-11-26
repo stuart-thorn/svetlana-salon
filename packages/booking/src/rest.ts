@@ -1,6 +1,7 @@
 import {
   BookingExpiredError,
   IncompatibleServicesError,
+  PrerequisiteMissingError,
   PaymentsUnavailableError,
   SlotUnavailableError,
   type AccountVisit,
@@ -11,6 +12,7 @@ import {
   type CustomerProfile,
   type DayAvailability,
   type ManageAccess,
+  type NeedsFirst,
   type Offer,
   type ManagedBooking,
   type OnlinePayment,
@@ -51,8 +53,10 @@ interface ApiPolicyOverrides {
 }
 interface ApiCatalog {
   tenant: { name: string; policies: { payment: ApiPayment; cancellationWindowHours?: number }; audiencesPrompt?: string; sellsMemberships?: boolean };
+  /** What some offerings need first (a patch test, a waiver). */
+  requirements?: { id: string; name: string; metByOfferingIds?: string[] }[];
   locations: { id: string; kind: string; openingHours?: ({ open: string; close: string } | null)[] }[];
-  categories: ({ id: string; name: string } & ApiPolicyOverrides)[];
+  categories: ({ id: string; name: string } & ApiPolicyOverrides & ApiPrerequisites)[];
   /** Absent from catalogues published before audiences existed. */
   audiences?: { id: string; name: string; description?: string; askAge?: boolean }[];
   offerings: ({
@@ -64,6 +68,7 @@ interface ApiCatalog {
     basePrice: ApiMoney;
     priceFrom?: boolean;
   } & ApiPolicyOverrides &
+    ApiPrerequisites &
     Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup" | "ages">)[];
   providers: { id: string; name: string; title?: string; photoUrl?: string }[];
   skills: { providerId: string; offeringId: string; price: ApiMoney; durationMin: number }[];
@@ -145,10 +150,18 @@ interface ApiCustomerProfile {
     phone?: string;
     lastVisit?: { date: string; providerId?: string; providerName?: string; services: string[]; offeringIds?: string[] };
   };
+  records?: { requirementId: string; at: string; validUntil?: string }[];
 }
 interface ApiProblem {
   code?: string;
   detail?: string;
+  /** With prerequisite_missing. */
+  prerequisites?: { unmet: { offeringId: string; message: string; bookOfferingIds?: string[] }[]; signInMayHelp: boolean };
+}
+
+/** What a category or offering needs first (§2.3 in the booking API); an empty anyOf means nothing. */
+interface ApiPrerequisites {
+  prerequisites?: { anyOf: { requirementId: string; minHoursBefore?: number }[]; message?: string };
 }
 
 const pounds = (m: ApiMoney) => m.amount / 100;
@@ -250,6 +263,7 @@ function toProfile(p: ApiCustomerProfile): CustomerProfile {
     ...(p.memberships?.length && { memberships: p.memberships.map(toMembership) }),
     ...(p.upcoming?.length && { upcoming: p.upcoming.map(toVisit) }),
     ...(p.recent?.length && { recent: p.recent.map(toVisit) }),
+    ...(p.records?.length && { records: p.records.map(({ requirementId, at, validUntil }) => ({ requirementId, at, ...(validUntil && { validUntil }) })) }),
   };
 }
 
@@ -273,6 +287,19 @@ function depositOf(payment: ApiPayment): Service["deposit"] {
   return payment.fixed ? { amount: pounds(payment.fixed) } : undefined;
 }
 
+function toNeedsFirst(needs: NonNullable<ApiPrerequisites["prerequisites"]>, requirements: NonNullable<ApiCatalog["requirements"]>): NeedsFirst {
+  const used = needs.anyOf.map((o) => ({ option: o, requirement: requirements.find((r) => r.id === o.requirementId) }));
+  return {
+    options: used.map(({ option, requirement }) => ({
+      requirementId: option.requirementId,
+      name: requirement?.name ?? option.requirementId,
+      ...(option.minHoursBefore && { minHoursBefore: option.minHoursBefore }),
+    })),
+    bookServiceIds: [...new Set(used.flatMap(({ requirement }) => requirement?.metByOfferingIds ?? []))],
+    ...(needs.message && { message: needs.message }),
+  };
+}
+
 export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
   const location = api.locations.find((l) => l.id === locationId);
   const openingHours: (OpeningHours | null)[] = Array.from({ length: 7 }, (_, d) => {
@@ -289,6 +316,8 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
     services: api.offerings.map((o): Service => {
       const category = api.categories.find((c) => c.id === o.categoryId);
       const deposit = depositOf(o.policyOverrides?.payment ?? category?.policyOverrides?.payment ?? api.tenant.policies.payment);
+      const needs = o.prerequisites ?? category?.prerequisites;
+      const needsFirst = needs && needs.anyOf.length > 0 ? toNeedsFirst(needs, api.requirements ?? []) : undefined;
       return {
         id: o.id,
         categoryId: o.categoryId,
@@ -303,6 +332,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
         ...(o.addOnTo && { addOnTo: o.addOnTo }),
         ...(o.exclusiveGroup && { exclusiveGroup: o.exclusiveGroup }),
         ...(o.ages && { ages: o.ages }),
+        ...(needsFirst && { needsFirst }),
       };
     }),
     stylists: api.providers.map((p) => ({
@@ -445,6 +475,14 @@ export function createRestProvider(options: RestProviderOptions): BookingProvide
     if (problem.code === "booking_expired") throw new BookingExpiredError();
     if (problem.code === "payment_required") throw new PaymentsUnavailableError();
     if (problem.code === "incompatible_offerings") throw new IncompatibleServicesError(problem.detail);
+    if (problem.code === "prerequisite_missing") {
+      const p = problem.prerequisites;
+      throw new PrerequisiteMissingError(
+        problem.detail ?? "This service needs something done first. Please call us to book.",
+        [...new Set(p?.unmet.flatMap((u) => u.bookOfferingIds ?? []) ?? [])],
+        p?.signInMayHelp ?? false,
+      );
+    }
     if (problem.code === "idempotency_conflict") {
       throw new Error("We're still processing your booking. Please wait a moment, then check your email before trying again.");
     }

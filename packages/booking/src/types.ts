@@ -39,6 +39,26 @@ export interface Service {
   exclusiveGroup?: string;
   /** Ages it suits, in years (1.5 = 18 months), both ends included. Absent = any age. */
   ages?: { min?: number; max?: number };
+  /** What a customer needs before booking it, e.g. a patch test 24 hours before colour, or a waiver. */
+  needsFirst?: NeedsFirst;
+}
+
+/** What a service needs first: any one of `options` (the booking API enforces it). */
+export interface NeedsFirst {
+  options: { requirementId: string; name: string; minHoursBefore?: number }[];
+  /** Services whose booking counts as one of them, e.g. the consultation & patch test. */
+  bookServiceIds: string[];
+  /** The salon's own words for it. */
+  message?: string;
+}
+
+/** Something the customer has had done or signed (a patch test, a waiver), on their account. */
+export interface RequirementRecord {
+  requirementId: string;
+  /** When it was done (or the booking that counts starts), as an ISO instant. */
+  at: string;
+  /** Last day it counts. Absent = no expiry. */
+  validUntil?: ISODate;
 }
 
 export interface Stylist {
@@ -263,6 +283,22 @@ export class IncompatibleServicesError extends Error {
   }
 }
 
+/**
+ * The customer doesn't have what a service needs first (e.g. a patch test at least 24 hours before colour). The
+ * message is the salon's; `bookServiceIds` are services whose booking would meet it (a consultation).
+ */
+export class PrerequisiteMissingError extends Error {
+  constructor(
+    message: string,
+    readonly bookServiceIds: string[] = [],
+    /** They weren't signed in: what they've had done only counts when they are. */
+    readonly signInMayHelp = false,
+  ) {
+    super(message);
+    this.name = "PrerequisiteMissingError";
+  }
+}
+
 export class SlotUnavailableError extends Error {
   constructor(message = "Sorry, that time has just been taken. Please choose another.") {
     super(message);
@@ -287,6 +323,8 @@ export interface CustomerProfile {
   /** Bookings to come, soonest first, and recent visits, newest first (their account page). */
   upcoming?: AccountVisit[];
   recent?: AccountVisit[];
+  /** What they've had done or signed that still counts (a patch test, a waiver). */
+  records?: RequirementRecord[];
 }
 
 /** A booking or past visit on the customer's account page. */

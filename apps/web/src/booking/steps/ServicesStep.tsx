@@ -1,4 +1,6 @@
-import { formatDuration, formatServicePrice, type Catalog, type Service } from "@salon/booking";
+import type { ReactNode } from "react";
+import { formatDuration, formatServicePrice, type Catalog, type RequirementRecord, type Service } from "@salon/booking";
+import { NeedsFirstNote } from "../NeedsFirstNote";
 import { ANY, fitsVisit, forAudience } from "../state";
 import { Check, Plus } from "../ui";
 
@@ -12,6 +14,11 @@ interface Props {
   onSelect: (id: string) => void;
   /** Services the signed-in customer's memberships still have visits for. */
   includedIds?: ReadonlySet<string>;
+  /** Signed in: what they have on record (a patch test, a waiver), once their profile has loaded. */
+  signedIn: boolean;
+  records?: RequirementRecord[];
+  /** The sign-in form, for a service that needs something only a signed-in customer's records can show. */
+  signIn?: ReactNode;
 }
 
 /**
@@ -65,7 +72,7 @@ export function ServiceCard({ service, state, addOn, included, onClick }: { serv
   );
 }
 
-export default function ServicesStep({ catalog, stylist, audience, selectedIds, onSelect, includedIds }: Props) {
+export default function ServicesStep({ catalog, stylist, audience, selectedIds, onSelect, includedIds, signedIn, records, signIn }: Props) {
   const specific = stylist && stylist !== ANY ? catalog.stylists.find((s) => s.id === stylist) : undefined;
   const visible = catalog.services.filter((s) => (!specific || specific.serviceIds.includes(s.id)) && forAudience(audience, s));
 
@@ -105,6 +112,17 @@ export default function ServicesStep({ catalog, stylist, audience, selectedIds, 
                 included={includedIds?.has(s.id) ?? false}
                 onClick={() => onSelect(s.id)}
               />
+              {s.needsFirst && selectedIds.includes(s.id) && (
+                <NeedsFirstNote
+                  service={s}
+                  needs={s.needsFirst}
+                  signedIn={signedIn}
+                  records={records}
+                  signIn={signIn}
+                  bookFirst={visible.find((v) => s.needsFirst!.bookServiceIds.includes(v.id))}
+                  onBookFirst={() => onSelect(s.needsFirst!.bookServiceIds.find((id) => visible.some((v) => v.id === id))!)}
+                />
+              )}
             </li>
           );
         })}

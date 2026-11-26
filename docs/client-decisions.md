@@ -2,6 +2,30 @@
 
 Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 
+## 2026-11-26: toddler and children's haircuts, patch test, terms, email
+
+- **Toddler haircut.** 18 months to 4, only with Svetlana, 15–20 minutes (booked as 20). The final price is
+  agreed in the salon once she has seen the child. She asked for a £10 deposit: we kept one rule (50% of the price
+  on every online booking) and asked for the toddler cut's lowest full price; it shows £30 until then (ours).
+- **Boys' and girls' haircuts.** 30 minutes each.
+- **Patch test.** Mandatory for first-time colour clients: a free patch test first (call, come in, or book the
+  Colour consultation & patch test online), with the colour at least 24 hours after it. Colour clients she knows
+  sign a waiver instead. Neither: no colour, any deposit refunded. The booking system now enforces it: colour
+  online needs a signed-in customer with a patch test (or a consultation booked) 24 hours before, or a waiver,
+  recorded by staff. A colour service, once chosen, says where the customer stands from what they have on record
+  (`needsFirst`, `/me` records): their options when nothing counts (book the free consultation first, sign in,
+  call), the earliest time when a patch test is under 24 hours old or still to come, or that they're all set.
+  A refused booking goes back to that note.
+- **Terms complete.** §6 patch tests, §7 refunds after 14 days (none for unused visits unless we can't provide
+  the service; emergencies case by case), §9 if we cancel (a new time, ideally within 10 days, or a full refund;
+  visits credited back). No "To confirm" left; still a draft until a solicitor reviews it.
+- **Email.** Google Workspace for info@ngcanarywharf.co.uk. `infra/dns.yml` has its MX and SPF records behind
+  `GoogleWorkspace=true`, for when the mailbox exists; DKIM comes from her Google admin console.
+- **Student offer.** Haircuts only, not colour or other services (as built).
+
+Still open with Svetlana: the toddler haircut's lowest full price, her full price list, the logo, her own working
+days and services.
+
 ## 2026-11-24 (second batch): blue buttons, walk-ins, children, hair types, blow-dry, terms
 
 - **Brand.** The royal blue is the signature accent: the booking buttons ("Book now", "Book an appointment" and
@@ -21,8 +45,7 @@ Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
   or no-show within 24 hours: deposit kept / membership visit used; memberships and packages non-transferable
   and not for cash. Still marked "To confirm": patch-test refusal, refunds after 14 days, the salon cancelling.
 
-Still open with Svetlana: the toddler haircut's price and length, her own working days and services, the girls'
-haircut length.
+Toddler haircut length, girls' haircut length and the remaining terms: answered on 26 Nov (above).
 
 ## 2026-11-24: hours, Instagram, memberships, deposits, menu, Family Visit, brand
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRestProvider } from "./rest";
 import { depositFor } from "./utils";
-import { BookingExpiredError, IncompatibleServicesError, PaymentsUnavailableError, SlotUnavailableError } from "./types";
+import { BookingExpiredError, IncompatibleServicesError, PaymentsUnavailableError, PrerequisiteMissingError, SlotUnavailableError } from "./types";
 
 const gbp = (amount: number) => ({ amount, currency: "GBP" });
 
@@ -175,6 +175,61 @@ describe("REST provider", () => {
     await expect(
       inFlight.provider.createBooking({ stylistId: "elena", serviceIds: ["a"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } }),
     ).rejects.toThrow(/still processing/);
+    const noTest = fakeApi({
+      "POST /v1/bookings": {
+        status: 422,
+        body: {
+          code: "prerequisite_missing",
+          detail: "Colour needs a patch test first.",
+          prerequisites: { unmet: [{ offeringId: "colour", message: "Colour needs a patch test first.", bookOfferingIds: ["consult"] }], signInMayHelp: true },
+        },
+      },
+    });
+    const refused = await noTest.provider
+      .createBooking({ stylistId: "elena", serviceIds: ["colour"], date: "2026-11-25", time: "10:00", customer: { name: "A", email: "a@b.c", phone: "" } })
+      .catch((e: unknown) => e);
+    expect(refused).toBeInstanceOf(PrerequisiteMissingError);
+    expect(refused).toMatchObject({ message: "Colour needs a patch test first.", bookServiceIds: ["consult"], signInMayHelp: true });
+  });
+
+  it("maps what services need first, and the signed-in customer's records", async () => {
+    const { provider } = fakeApi({
+      "GET /v1/catalog": {
+        body: {
+          tenant: { name: "N&G", policies: { payment: { kind: "none" } } },
+          requirements: [
+            { id: "patch-test", name: "Patch test", metByOfferingIds: ["consult"] },
+            { id: "colour-waiver", name: "Colour waiver" },
+          ],
+          locations: [{ id: "cw", kind: "physical" }],
+          categories: [
+            {
+              id: "colour",
+              name: "Colour",
+              prerequisites: { anyOf: [{ requirementId: "patch-test", minHoursBefore: 24 }, { requirementId: "colour-waiver" }], message: "Patch test first." },
+            },
+          ],
+          offerings: [
+            { id: "roots", categoryId: "colour", name: "Roots", durationMin: 60, basePrice: gbp(6000) },
+            { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), prerequisites: { anyOf: [] } },
+          ],
+          providers: [],
+          skills: [],
+        },
+      },
+      "GET /v1/me": { body: { email: "a@b.c", records: [{ requirementId: "patch-test", at: "2026-11-20T10:00:00Z" }] } },
+    }, () => "token");
+    const catalog = await provider.getCatalog();
+    expect(catalog.services.find((s) => s.id === "roots")?.needsFirst).toEqual({
+      options: [
+        { requirementId: "patch-test", name: "Patch test", minHoursBefore: 24 },
+        { requirementId: "colour-waiver", name: "Colour waiver" },
+      ],
+      bookServiceIds: ["consult"],
+      message: "Patch test first.",
+    });
+    expect(catalog.services.find((s) => s.id === "consult")?.needsFirst).toBeUndefined();
+    expect((await provider.getCustomerProfile!()).records).toEqual([{ requirementId: "patch-test", at: "2026-11-20T10:00:00Z" }]);
   });
 
   it("sends the signed-in customer's token with bookings and reads their profile", async () => {

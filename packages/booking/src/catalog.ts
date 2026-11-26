@@ -16,7 +16,17 @@ const mens = { audienceIds: ["men"] };
 const womens = { audienceIds: ["women"] };
 const adults = { audienceIds: ["men", "women"] };
 const cut = { exclusiveGroup: "haircut", addOnTo: { offeringIds: COLOUR_SERVICES } };
-const colour = { ...adults, exclusiveGroup: "colour" };
+/** A patch test at least 24 hours before, or a waiver (client, 26 Nov 2026); the booking API enforces it. */
+const PATCH_TEST: Service["needsFirst"] = {
+  options: [
+    { requirementId: "patch-test", name: "Patch test", minHoursBefore: 24 },
+    { requirementId: "colour-waiver", name: "Colour waiver" },
+  ],
+  bookServiceIds: ["colour-consultation"],
+  message:
+    "Colour needs a free patch test at least 24 hours before your appointment. New to colour with us? Book a Colour consultation & patch test first, or call us. Had one with us already, or signed a waiver? Sign in to book.",
+};
+const colour = { ...adults, exclusiveGroup: "colour", needsFirst: PATCH_TEST };
 /** Children's prices up to age 12 (client, 24 Nov 2026); from 13, hair type and time mean adult prices. */
 const children = { audienceIds: ["children"], exclusiveGroup: "haircut" };
 const UP_TO_12 = "Up to age 12; from 13, adult prices apply.";
@@ -85,9 +95,9 @@ export const catalog: Catalog = {
     },
     { id: "deep-treatment", categoryId: "women", name: "Deep treatment", durationMin: 30, price: 40, priceFrom: true, description: "An intensive conditioning treatment, on its own or with a cut, blow-dry or colour. £40 for shorter hair up to £50 for longer hair.", ...adults, addOnTo: { offeringIds: [...CUTS, "blow-dry", ...COLOUR_SERVICES] } },
     { id: "boys-cut", categoryId: "children", name: "Boys' haircut (up to 12)", durationMin: 30, price: 30, description: `${UP_TO_12} ${SIT_ALONE}`, ...children, ages: { min: 4, max: 12 } },
-    { id: "girls-cut", categoryId: "children", name: "Girls' haircut (up to 12)", durationMin: 45, price: 40, priceFrom: true, description: `${UP_TO_12} ${SIT_ALONE}`, ...children, ages: { min: 4, max: 12 } },
-    { id: "toddler-cut", categoryId: "children", name: "Toddler haircut (18 months to 4)", durationMin: 30, price: 30, description: "For little ones from 18 months who can't yet sit on their own, with Svetlana.", ...children, ages: { min: 1.5, max: 4 } },
-    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Needed at least 24 hours (ideally 48) before your first colour appointment.", ...adults },
+    { id: "girls-cut", categoryId: "children", name: "Girls' haircut (up to 12)", durationMin: 30, price: 40, priceFrom: true, description: `${UP_TO_12} ${SIT_ALONE}`, ...children, ages: { min: 4, max: 12 } },
+    { id: "toddler-cut", categoryId: "children", name: "Toddler haircut (18 months to 4)", durationMin: 20, price: 30, description: "For little ones from 18 months who can't yet sit on their own, with Svetlana. The final price is agreed in the salon once she has seen your child and the cut they need.", ...children, ages: { min: 1.5, max: 4 } },
+    { id: "colour-consultation", categoryId: "colour", name: "Colour consultation & patch test", durationMin: 15, price: 0, description: "Free. Needed before your first colour with us: your colour appointment starts at least 24 hours (ideally 48) after it.", ...adults },
     { id: "root-colour", categoryId: "colour", name: "Roots colour", durationMin: 75, price: 70, priceFrom: true, ...colour, description: "About 30 minutes applying, then 40–45 minutes developing." },
     { id: "full-colour", categoryId: "colour", name: "Full head colour", durationMin: 75, price: 95, priceFrom: true, ...colour },
     { id: "balayage", categoryId: "colour", name: "Balayage", durationMin: 150, price: 180, priceFrom: true, ...colour, description: "Hand-painted, natural-looking lightening. Includes toner. About 2.5 hours or more." },
