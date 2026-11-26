@@ -67,6 +67,7 @@ interface ApiCatalog {
     durationMin: number;
     basePrice: ApiMoney;
     priceFrom?: boolean;
+    priceAgreed?: boolean;
   } & ApiPolicyOverrides &
     ApiPrerequisites &
     Pick<Service, "audienceIds" | "standalone" | "addOnTo" | "exclusiveGroup" | "ages">)[];
@@ -179,7 +180,7 @@ interface ApiManagedBooking {
   date: string;
   time: string;
   end: string;
-  services: { offeringId: string; name: string; providerId: string; providerName?: string; attendee?: ApiAttendee; time?: string }[];
+  services: { offeringId: string; name: string; providerId: string; providerName?: string; attendee?: ApiAttendee; time?: string; priceToAgree?: boolean }[];
   total: ApiMoney;
   amountPaid: ApiMoney;
   cancellation?: { deadline: string; windowHours: number; late: boolean; refund: ApiMoney; kept: ApiMoney; usesVisits: boolean; visitsReturned: boolean };
@@ -206,6 +207,7 @@ function toManaged(b: ApiManagedBooking): ManagedBooking {
         ...(s.providerName && { stylistName: s.providerName }),
         ...(a?.ref && refs.length > 1 && { person: personLabel(a, refs.indexOf(a.ref)) }),
         ...(s.time && { time: s.time }),
+        ...(s.priceToAgree && { priceToAgree: true }),
       };
     }),
     total: pounds(b.total),
@@ -326,6 +328,7 @@ export function toCatalog(api: ApiCatalog, locationId: string): Catalog {
         durationMin: o.durationMin,
         price: pounds(o.basePrice),
         ...(o.priceFrom && { priceFrom: true }),
+        ...(o.priceAgreed && { priceAgreed: true }),
         ...(deposit && { deposit }),
         ...(o.audienceIds && { audienceIds: o.audienceIds }),
         ...(o.standalone === false && { standalone: false }),

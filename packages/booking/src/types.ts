@@ -39,6 +39,11 @@ export interface Service {
   exclusiveGroup?: string;
   /** Ages it suits, in years (1.5 = 18 months), both ends included. Absent = any age. */
   ages?: { min?: number; max?: number };
+  /**
+   * The price is agreed in the salon (it depends on what's needed): `price` is only what's paid when booking, and
+   * counts towards it. Never with `priceFrom`.
+   */
+  priceAgreed?: boolean;
   /** What a customer needs before booking it, e.g. a patch test 24 hours before colour, or a waiver. */
   needsFirst?: NeedsFirst;
 }
@@ -345,7 +350,8 @@ export interface ManagedBooking {
   time: ClockTime;
   end: ClockTime;
   /** For several people, each service says who it's for (`person`, e.g. "Mia (3)") and when it starts. */
-  services: { serviceId: string; name: string; stylistId: string; stylistName?: string; person?: string; time?: ClockTime }[];
+  /** `priceToAgree`: its price is agreed in the salon, so `total` is only what was paid for it when booking. */
+  services: { serviceId: string; name: string; stylistId: string; stylistName?: string; person?: string; time?: ClockTime; priceToAgree?: boolean }[];
   total: number;
   paid: number;
   /** Confirmed bookings: free cancellation until `deadline` (an instant); after it, `kept` stays with the salon. */

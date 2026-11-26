@@ -294,10 +294,12 @@ function Summary({ booking }: { booking: ManagedBooking }) {
           {stylists.length > 0 && <span className="text-muted"> with {stylists.join(" and ")}</span>}
         </p>
       )}
-      {booking.total > 0 && (
+      {(booking.total > 0 || booking.services.some((s) => s.priceToAgree)) && (
         <p className="mt-3 text-sm text-muted">
           {money(booking.total)}
           {booking.paid > 0 ? `, ${money(booking.paid)} paid` : ""}
+          {booking.services.some((s) => s.priceToAgree) &&
+            ` · the price of ${[...new Set(booking.services.filter((s) => s.priceToAgree).map((s) => s.name))].join(" and ")} is agreed in the salon, and what you've paid counts towards it`}
         </p>
       )}
       {booking.status === "cancelled" && booking.cancelled && (

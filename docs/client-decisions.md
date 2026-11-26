@@ -4,9 +4,11 @@ Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
 
 ## 2026-11-26: toddler and children's haircuts, patch test, terms, email
 
-- **Toddler haircut.** 18 months to 4, only with Svetlana, 15–20 minutes (booked as 20). The final price is
-  agreed in the salon once she has seen the child. She asked for a £10 deposit: we kept one rule (50% of the price
-  on every online booking) and asked for the toddler cut's lowest full price; it shows £30 until then (ours).
+- **Toddler haircut.** 18 months to 4, only with Svetlana, 15–20 minutes (booked as 20). £10 deposit to book;
+  the price is agreed in the salon once she has seen the child, and the £10 counts towards it. Built as a price
+  agreed in person (`priceAgreed` in the booking system): the site shows "£10 deposit · price agreed in the salon"
+  and no made-up total, and staff enter the agreed price on the booking (Set price…) before taking the rest. Staff
+  can also change a "from" price on a booking to what it came to (Change price…).
 - **Boys' and girls' haircuts.** 30 minutes each.
 - **Patch test.** Mandatory for first-time colour clients: a free patch test first (call, come in, or book the
   Colour consultation & patch test online), with the colour at least 24 hours after it. Colour clients she knows
@@ -23,8 +25,7 @@ Decisions and clarifications from Svetlana (N&G Canary Wharf Ltd), newest first.
   `GoogleWorkspace=true`, for when the mailbox exists; DKIM comes from her Google admin console.
 - **Student offer.** Haircuts only, not colour or other services (as built).
 
-Still open with Svetlana: the toddler haircut's lowest full price, her full price list, the logo, her own working
-days and services.
+Still open with Svetlana: her full price list, the logo, her own working days and services.
 
 ## 2026-11-24 (second batch): blue buttons, walk-ins, children, hair types, blow-dry, terms
 

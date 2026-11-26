@@ -40,7 +40,7 @@ export function ServiceCard({ service, state, addOn, included, onClick }: { serv
     addOn ? "Add-on" : undefined,
     formatDuration(service.durationMin),
     included ? "Included in your membership" : formatServicePrice(service),
-    !included && service.deposit && service.price > 0 ? "Deposit online" : undefined,
+    !included && service.deposit && service.price > 0 && !service.priceAgreed ? "Deposit online" : undefined,
   ].filter(Boolean);
   return (
     <button

@@ -40,6 +40,12 @@ describe("offers on the booking site", () => {
     expect(depositFor(withOfferPrices(catalog, [half], null, null, ["student"]))).toBe(20);
   });
 
+  it("takes nothing off a price agreed in the salon until it's agreed", () => {
+    const agreed: PricedService = { ...cut, price: 10, priceAgreed: true, deposit: { amount: 10 } };
+    expect(offerSavings(catalog, [agreed], "2026-11-25", "15:00", ["student"])).toEqual([]);
+    expect(depositFor(withOfferPrices(catalog, [agreed], "2026-11-25", "15:00", ["student"]))).toBe(10);
+  });
+
   it("saves only when claimed, on each covered service by its own start", () => {
     expect(offerSavings(catalog, [cut], "2026-11-25", "15:00", [])).toEqual([]);
     expect(offerSavings(catalog, [cut], "2026-11-25", "15:00", ["student"])).toEqual([{ offer: student, amount: 4 }]);

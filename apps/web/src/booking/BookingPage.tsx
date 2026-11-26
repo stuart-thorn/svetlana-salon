@@ -151,7 +151,13 @@ export default function BookingPage() {
   const priced = catalog ? withOfferPrices(catalog, selected, draft.date, draft.time, claimedNow) : [];
   const depositNow = depositFor(priced);
   const deposit: Deposit | undefined =
-    depositNow > 0 ? { now: depositNow, atSalon: Math.round((totals(priced).price - depositNow) * 100) / 100 } : undefined;
+    depositNow > 0
+      ? {
+          now: depositNow,
+          atSalon: Math.round((totals(priced).price - depositNow) * 100) / 100,
+          ...(priced.some((s) => s.priceAgreed && !s.included) && { agreed: true }),
+        }
+      : undefined;
 
   const action: CartAction = {
     audience: { label: "Continue", disabled: !draft.audience || draft.audience === FAMILY, onClick: next },

@@ -91,6 +91,10 @@ export default function Terms() {
         <li>
           Every appointment booked online needs a deposit of 50% of the price (for services priced "from", 50% of the starting price).
         </li>
+        <li>
+          The toddler haircut is the exception: it's booked with a £10 deposit, and its price is agreed in the salon once we've
+          seen your child and the cut they need. The £10 counts towards that price.
+        </li>
         <li>The rest, and anything agreed at your appointment, is paid in the salon.</li>
         <li>Your booking is held for 10 minutes while you pay the deposit, and confirmed once it has gone through.</li>
         <li>

@@ -23,7 +23,7 @@ interface Props {
   onChange: (value: Customer) => void;
   onSubmit: () => void;
   /** Amounts in pounds when part of the price is paid online. */
-  deposit?: { now: number; atSalon: number };
+  deposit?: { now: number; atSalon: number; agreed?: boolean };
   /** A signed-in customer books in the email they proved, so it can't be changed here. */
   signedInEmail?: string;
   /** Signed in and known: the booking is under their own name (changed on their account page, not here). */
@@ -135,7 +135,9 @@ export default function DetailsStep({ value, errors, onChange, onSubmit, deposit
           </p>
         ))}
       <p className="text-xs text-muted">
-        {deposit
+        {deposit?.agreed
+          ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. It counts towards the price we agree with you in the salon${deposit.atSalon > 0 ? `, and the remaining ${formatPrice(deposit.atSalon)} for your other services is paid in the salon too` : ""}. We'll email your confirmation.`
+          : deposit
           ? `A ${formatPrice(deposit.now)} deposit is paid online on the next step to secure your appointment. The remaining ${formatPrice(deposit.atSalon)} is paid in the salon. We'll email your confirmation.`
           : "No payment is taken online. We'll email your confirmation."}{" "}
         {cancellationHours ? `${cancellationRule(cancellationHours, !!deposit)} ` : ""}

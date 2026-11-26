@@ -200,8 +200,8 @@ describe("mock group bookings", () => {
     const party3 = [family[0]!, ...pair];
     const slot3 = (await p.getPartyTimes({ party: party3, date }))[0]!;
     const booked = await p.createPartyBooking({ party: party3, date, slot: slot3, customer: { name: "Pat", email: "pat@example.com", phone: "07700900000" } });
-    // £40 + £70 + £30 less 15% Family Visit is £119; half as a deposit.
-    expect(booked).toMatchObject({ total: 119, status: "pending_payment", deposit: { now: 59.5 } });
+    // £40 + £70 less 15% Family Visit, half as a deposit, and the toddler cut's £10 (its price is agreed in the salon).
+    expect(booked).toMatchObject({ total: 103.5, status: "pending_payment", deposit: { now: 56.75 } });
     expect(booked.people!.map((x) => x.stylistId)).toEqual(slot3.assignments.map((a) => a.stylistId));
     expect((await p.getPartyTimes({ party: party3, date })).some((s) => s.time === slot3.time)).toBe(false);
     await expect(p.completeSimulatedPayment(booked)).resolves.toMatchObject({ status: "confirmed" });

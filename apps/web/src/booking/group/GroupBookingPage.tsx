@@ -101,7 +101,13 @@ export default function GroupBookingPage() {
     savings,
     total,
     from: services.flat().some((s) => s.priceFrom),
-    ...(depositNow > 0 && { deposit: { now: depositNow, atSalon: Math.round((total - depositNow) * 100) / 100 } }),
+    ...(depositNow > 0 && {
+      deposit: {
+        now: depositNow,
+        atSalon: Math.round((total - depositNow) * 100) / 100,
+        ...(priced.flat().some((s) => s.priceAgreed) && { agreed: true }),
+      },
+    }),
   };
 
   const key = partyKey(draft.people);

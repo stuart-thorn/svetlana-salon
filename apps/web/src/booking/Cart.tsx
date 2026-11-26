@@ -2,7 +2,9 @@ import { useState } from "react";
 import {
   formatDuration,
   formatPrice,
-  formatServicePrice,
+  formatAtSalon,
+  formatLinePrice,
+  formatTotal,
   minutesToTime,
   servicesById,
   timeToMinutes,
@@ -46,6 +48,8 @@ type Savings = { offer: Offer; amount: number }[];
 export interface Deposit {
   now: number;
   atSalon: number;
+  /** A service's price is agreed in the salon: the deposit counts towards it, and `atSalon` leaves it out. */
+  agreed?: boolean;
 }
 
 function CartBody({
@@ -115,6 +119,7 @@ function CartBody({
                   <p className="text-xs text-muted">
                     {i > 0 && "Add-on · "}
                     {formatDuration(s.durationMin)}
+                    {s.priceAgreed && !s.included && " · price agreed in the salon"}
                   </p>
                   {s.included && (
                     <p className="text-xs text-accent-dark">
@@ -122,7 +127,7 @@ function CartBody({
                     </p>
                   )}
                 </div>
-                <p className="shrink-0">{s.included ? "Included" : formatServicePrice(s)}</p>
+                <p className="shrink-0">{s.included ? "Included" : formatLinePrice(s)}</p>
               </li>
             ))}
           </ul>
@@ -138,21 +143,18 @@ function CartBody({
 
       <div className="flex items-baseline justify-between border-t border-line pt-4">
         <p className="font-medium">Total</p>
-        <p className="text-lg font-medium">{services.length ? (price === 0 ? formatPrice(0) : `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}`) : "Free"}</p>
+        <p className="text-right text-lg font-medium">{services.length ? (price === 0 && !services.some((s) => s.priceAgreed) ? formatPrice(0) : formatTotal(price, services)) : "Free"}</p>
       </div>
       {deposit && (
         <dl className="mt-2 space-y-1 text-sm text-muted">
           <div className="flex justify-between gap-4">
-            <dt>{deposit.atSalon > 0 ? "Deposit to pay now" : "To pay now"}</dt>
+            <dt>{deposit.atSalon > 0 || services.some((s) => s.priceAgreed) ? "Deposit to pay now" : "To pay now"}</dt>
             <dd>{formatPrice(deposit.now)}</dd>
           </div>
-          {deposit.atSalon > 0 && (
+          {(deposit.atSalon > 0 || services.some((s) => s.priceAgreed)) && (
             <div className="flex justify-between gap-4">
-              <dt>To pay in the salon</dt>
-              <dd>
-                {services.some((s) => s.priceFrom) ? "from " : ""}
-                {formatPrice(deposit.atSalon)}
-              </dd>
+              <dt className="shrink-0">To pay in the salon</dt>
+              <dd className="text-right">{formatAtSalon(deposit.atSalon, services)}</dd>
             </div>
           )}
         </dl>
@@ -215,7 +217,7 @@ export function CartBar({
       )}
       <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="min-w-0 text-left">
-          <p className="font-medium">{services.length ? `${services.some((s) => s.priceFrom) ? "from " : ""}${formatPrice(price)}` : "Free"}</p>
+          <p className="font-medium">{services.length ? formatTotal(price, services) : "Free"}</p>
           <p className="truncate text-xs text-muted">
             {services.length
               ? `${services.length} service${services.length > 1 ? "s" : ""} · ${formatDuration(durationMin)}`

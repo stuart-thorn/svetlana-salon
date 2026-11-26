@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BookingExpiredError, formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
+import { BookingExpiredError, formatAtSalon, formatDuration, formatPrice, formatTotal, servicesById, type BookingConfirmation, type Catalog } from "@salon/booking";
 import PeopleLines from "./group/PeopleLines";
 import { stripeFor, type StripeElements, type StripeInstance } from "./stripe";
 import { Notice, Spinner, formatLongDate } from "./ui";
@@ -36,6 +36,7 @@ export default function Payment({
   const minutesLeft = useMinutesLeft(booking.expiresAt);
   const deposit = booking.deposit!;
   const stylist = catalog.stylists.find((s) => s.id === booking.stylistId);
+  const services = booking.people ? booking.people.flatMap((p) => servicesById(catalog, p.serviceIds)) : servicesById(catalog, booking.serviceIds);
   const stripe = booking.payment?.kind === "stripe" ? booking.payment : undefined;
   // Once the card has been charged, the hold running out no longer means "nothing was taken".
   const [submitted, setSubmitted] = useState(false);
@@ -68,7 +69,7 @@ export default function Payment({
         <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">Total</dt>
-            <dd>{formatPrice(booking.total)}</dd>
+            <dd className="text-right">{formatTotal(booking.total, services)}</dd>
           </div>
           <div className="flex justify-between font-medium">
             <dt>Deposit to pay now</dt>
@@ -76,7 +77,7 @@ export default function Payment({
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">To pay in the salon</dt>
-            <dd>{formatPrice(deposit.atSalon)}</dd>
+            <dd className="text-right">{formatAtSalon(deposit.atSalon, services)}</dd>
           </div>
         </dl>
       </div>

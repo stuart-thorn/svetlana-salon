@@ -1,4 +1,4 @@
-import { formatDuration, formatPrice, servicesById, type BookingConfirmation, type Catalog, type Offer } from "@salon/booking";
+import { formatAtSalon, formatDuration, formatLinePrice, formatPrice, formatTotal, servicesById, type BookingConfirmation, type Catalog, type Offer } from "@salon/booking";
 import { Link, navigate, scrollToTop, useLocation } from "../router";
 import CalendarChoice from "./CalendarChoice";
 import PeopleLines from "./group/PeopleLines";
@@ -22,6 +22,7 @@ export default function Confirmation({
   const index = catalog.stylists.findIndex((s) => s.id === c.stylistId);
   const stylist = catalog.stylists[index];
   const services = servicesById(catalog, c.serviceIds);
+  const allServices = c.people ? c.people.flatMap((p) => servicesById(catalog, p.serviceIds)) : services;
   const listTotal = services.reduce((sum, s) => sum + s.price, 0);
   const { pathname, search } = useLocation();
 
@@ -64,8 +65,11 @@ export default function Confirmation({
         <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
           {services.map((s, i) => (
             <li key={`${s.id}-${i}`} className="flex justify-between">
-              <span>{s.name}</span>
-              <span>{formatPrice(s.price)}</span>
+              <span>
+                {s.name}
+                {s.priceAgreed && <span className="block text-xs text-muted">Price agreed in the salon</span>}
+              </span>
+              <span className="shrink-0">{s.priceAgreed ? formatLinePrice(s) : formatPrice(s.price)}</span>
             </li>
           ))}
         </ul>
@@ -77,7 +81,7 @@ export default function Confirmation({
         )}
         <div className="mt-4 flex justify-between border-t border-line pt-4 font-medium">
           <span>Total</span>
-          <span>{formatPrice(c.total)}</span>
+          <span className="text-right">{formatTotal(c.total, allServices)}</span>
         </div>
         {c.deposit && (
           <div className="mt-2 space-y-1 text-sm">
@@ -87,7 +91,7 @@ export default function Confirmation({
             </div>
             <div className="flex justify-between">
               <span>To pay in the salon</span>
-              <span>{formatPrice(c.deposit.atSalon)}</span>
+              <span className="text-right">{formatAtSalon(c.deposit.atSalon, allServices)}</span>
             </div>
           </div>
         )}

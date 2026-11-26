@@ -37,9 +37,43 @@ export const formatPrice = (pounds: number): string => {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(pounds);
 };
 
-/** A service's price as shown on menus: "£40", "from £70", or "Free". */
-export const formatServicePrice = (service: Pick<Service, "price" | "priceFrom">): string =>
-  service.price === 0 ? "Free" : `${service.priceFrom ? "from " : ""}${formatPrice(service.price)}`;
+/** A service's price as shown on menus: "£40", "from £70", "Free", or "£10 deposit · price agreed in the salon". */
+export const formatServicePrice = (service: Pick<Service, "price" | "priceFrom" | "priceAgreed">): string =>
+  service.priceAgreed
+    ? `${formatPrice(service.price)} deposit · price agreed in the salon`
+    : service.price === 0
+      ? "Free"
+      : `${service.priceFrom ? "from " : ""}${formatPrice(service.price)}`;
+
+/**
+ * A service's price on a summary line, where space is short: as on menus, except a price agreed in the salon is
+ * just its deposit ("£10 deposit"), with the rest said under its name.
+ */
+export const formatLinePrice = (service: Pick<Service, "price" | "priceFrom" | "priceAgreed">): string =>
+  service.priceAgreed ? `${formatPrice(service.price)} deposit` : formatServicePrice(service);
+
+type Priced = Pick<Service, "price" | "priceFrom" | "priceAgreed"> & { included?: unknown };
+/** What's paid when booking for services whose price is agreed in the salon (it counts towards that price). */
+const agreedUpFront = (services: readonly Priced[]) => services.filter((s) => s.priceAgreed && !s.included).reduce((sum, s) => sum + s.price, 0);
+const agreed = (services: readonly Priced[]) => services.some((s) => s.priceAgreed && !s.included);
+const from = (services: readonly Priced[]) => (services.some((s) => s.priceFrom) ? "from " : "");
+
+/**
+ * A visit's total: "£65", "from £70", or with a price agreed in the salon, "£40 + agreed price" (what's paid for
+ * that service when booking counts towards its price, so it isn't added) or just "Agreed in salon". `total` is
+ * in pounds, after offers.
+ */
+export function formatTotal(total: number, services: readonly Priced[]): string {
+  if (!agreed(services)) return `${from(services)}${formatPrice(total)}`;
+  const rest = Math.round((total - agreedUpFront(services)) * 100) / 100;
+  return rest > 0 ? `${from(services)}${formatPrice(rest)} + agreed price` : "Agreed in salon";
+}
+
+/** What's left to pay in the salon after the deposit: "£30", "from £35", "£20 + rest of agreed price". */
+export function formatAtSalon(atSalon: number, services: readonly Priced[]): string {
+  if (!agreed(services)) return `${from(services)}${formatPrice(atSalon)}`;
+  return atSalon > 0 ? `${from(services)}${formatPrice(atSalon)} + rest of agreed price` : "Rest of agreed price";
+}
 
 /**
  * Deposit taken online for these services, in pounds, rounded per service to the penny the same way the

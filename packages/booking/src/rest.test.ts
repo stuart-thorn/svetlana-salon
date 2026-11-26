@@ -212,6 +212,7 @@ describe("REST provider", () => {
           offerings: [
             { id: "roots", categoryId: "colour", name: "Roots", durationMin: 60, basePrice: gbp(6000) },
             { id: "consult", categoryId: "colour", name: "Consultation", durationMin: 15, basePrice: gbp(0), prerequisites: { anyOf: [] } },
+            { id: "assess", categoryId: "colour", name: "Assessment", durationMin: 20, basePrice: gbp(1000), priceAgreed: true, policyOverrides: { payment: { kind: "deposit", fixed: gbp(1000) } } },
           ],
           providers: [],
           skills: [],
@@ -229,6 +230,7 @@ describe("REST provider", () => {
       message: "Patch test first.",
     });
     expect(catalog.services.find((s) => s.id === "consult")?.needsFirst).toBeUndefined();
+    expect(catalog.services.find((s) => s.id === "assess")).toMatchObject({ price: 10, priceAgreed: true, deposit: { amount: 10 } });
     expect((await provider.getCustomerProfile!()).records).toEqual([{ requirementId: "patch-test", at: "2026-11-20T10:00:00Z" }]);
   });
 

@@ -42,7 +42,10 @@ export function offersAtOtherTimes(catalog: Pick<Catalog, "offers">, services: r
   return single(catalog).filter((o) => o.claim && !now.includes(o) && services.some((s) => !s.included && covers(o, s)));
 }
 
-/** Per service, the largest reduction from the offers that apply, in pounds (none on ones included in a membership). */
+/**
+ * Per service, the largest reduction from the offers that apply, in pounds: none on ones included in a membership,
+ * or on a price agreed in the salon (offers apply to it once it's agreed, as the booking system does).
+ */
 function reductions(
   offers: readonly Offer[],
   services: readonly PricedService[],
@@ -51,7 +54,7 @@ function reductions(
 ): ({ id: string; amount: number } | undefined)[] {
   const at = starts(services, time);
   return services.map((s, i) => {
-    if (s.included) return undefined;
+    if (s.included || s.priceAgreed) return undefined;
     let best: { id: string; amount: number } | undefined;
     for (const o of offers) {
       if (!covers(o, s) || !onTime(o, date, at[i]!)) continue;
