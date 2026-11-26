@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { formatAtSalon, formatLinePrice, formatPrice, formatTotal, personLabel, type Catalog, type Offer, type PartyMember, type PartySlot, type PricedService } from "@salon/booking";
 import { salon } from "../../data/content";
 import { ActionButton, type CartAction, type Deposit } from "../Cart";
-import { formatLongDate } from "../ui";
+import { SheetBackdrop, formatLongDate } from "../ui";
 
 export interface GroupPricing {
   /** Each person's services at their list prices, in the order of `people`. */
@@ -102,15 +102,17 @@ export function GroupPanel({ action, ...rest }: Props) {
 /** Mobile: fixed bottom bar with an expandable summary. */
 export function GroupBar({ action, ...rest }: Props) {
   const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
   const count = rest.pricing.services.flat().length;
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      {open && <SheetBackdrop onClose={close} />}
       {open && (
-        <div className="max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
+        <div className="relative max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
           <Body {...rest} />
         </div>
       )}
-      <div className="flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="relative flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="min-w-0 text-left">
           <p className="font-medium">{formatTotal(rest.pricing.total, rest.pricing.services.flat())}</p>
           <p className="truncate text-xs text-muted">

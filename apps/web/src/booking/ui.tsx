@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { ISODate, Stylist } from "@salon/booking";
 import { parseISODate } from "@salon/booking";
 
@@ -93,4 +93,19 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error"; c
       {children}
     </div>
   );
+}
+
+/** Dims and blocks the page behind an open mobile summary sheet; tapping it (or Escape) closes the sheet. */
+export function SheetBackdrop({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+  return <button type="button" aria-label="Close summary" onClick={onClose} className="fixed inset-0 cursor-default bg-black/40" />;
 }
