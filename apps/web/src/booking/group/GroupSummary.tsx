@@ -117,7 +117,7 @@ export function GroupBar({ action, ...rest }: Props) {
             <span className="underline underline-offset-2">{open ? "Hide" : "View"} summary</span>
           </p>
         </button>
-        <ActionButton action={action} className="shrink-0" />
+        <ActionButton action={action} onPress={close} className="shrink-0" />
       </div>
     </div>
   );

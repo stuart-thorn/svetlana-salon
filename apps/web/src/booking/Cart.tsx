@@ -27,12 +27,16 @@ export interface CartAction {
   onClick?: () => void;
 }
 
-export function ActionButton({ action, className = "" }: { action: CartAction; className?: string }) {
+/** `onPress` runs on every press, before the action (or the form submit), e.g. to close the mobile summary. */
+export function ActionButton({ action, className = "", onPress }: { action: CartAction; className?: string; onPress?: () => void }) {
   return (
     <button
       type={action.form ? "submit" : "button"}
       form={action.form}
-      onClick={action.form ? undefined : action.onClick}
+      onClick={() => {
+        onPress?.();
+        if (!action.form) action.onClick?.();
+      }}
       disabled={action.disabled || action.busy}
       className={`inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-medium text-white cta-hover disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
     >
@@ -224,7 +228,7 @@ export function CartBar({
             · <span className="underline underline-offset-2">{open ? "Hide" : "View"} summary</span>
           </p>
         </button>
-        {action && <ActionButton action={action} className="shrink-0" />}
+        {action && <ActionButton action={action} onPress={close} className="shrink-0" />}
       </div>
     </div>
   );
