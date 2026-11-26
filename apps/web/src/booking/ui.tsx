@@ -95,9 +95,13 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error"; c
   );
 }
 
-/** Dims and blocks the page behind an open mobile summary sheet; tapping it (or Escape) closes the sheet. */
-export function SheetBackdrop({ onClose }: { onClose: () => void }) {
+/**
+ * Mobile summary sheet above a fixed bottom bar. While open, the page behind is dimmed and blocked; tapping it (or
+ * Escape) closes the sheet. It stays mounted so opening and closing animate: the panel slides and the dimming fades.
+ */
+export function SummarySheet({ open, onClose, children }: { open: boolean; onClose: () => void; children: ReactNode }) {
   useEffect(() => {
+    if (!open) return;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -106,6 +110,22 @@ export function SheetBackdrop({ onClose }: { onClose: () => void }) {
       document.body.style.overflow = overflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [onClose]);
-  return <button type="button" aria-label="Close summary" onClick={onClose} className="fixed inset-0 cursor-default bg-black/40" />;
+  }, [open, onClose]);
+  const timing = `ease-in-out motion-reduce:transition-none ${open ? "duration-200" : "duration-300"}`;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Close summary"
+        tabIndex={open ? 0 : -1}
+        onClick={onClose}
+        className={`fixed inset-0 cursor-default bg-black/40 transition-opacity ${timing} ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      />
+      <div className={`relative grid transition-[grid-template-rows] ${timing} ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`} inert={!open}>
+        <div className="min-h-0 overflow-hidden">
+          <div className="max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2">{children}</div>
+        </div>
+      </div>
+    </>
+  );
 }

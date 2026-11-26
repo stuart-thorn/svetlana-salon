@@ -16,7 +16,7 @@ import {
 } from "@salon/booking";
 import { salon } from "../data/content";
 import { ANY, type Draft } from "./state";
-import { Avatar, SheetBackdrop, Spinner, formatLongDate } from "./ui";
+import { Avatar, SummarySheet, Spinner, formatLongDate } from "./ui";
 
 export interface CartAction {
   label: string;
@@ -211,12 +211,9 @@ export function CartBar({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
-      {open && <SheetBackdrop onClose={close} />}
-      {open && (
-        <div className="relative max-h-[60vh] overflow-y-auto border-t border-line bg-white px-4 pt-5 pb-2 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-          <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} deposit={deposit} />
-        </div>
-      )}
+      <SummarySheet open={open} onClose={close}>
+        <CartBody catalog={catalog} draft={draft} memberships={memberships} savings={savings} deposit={deposit} />
+      </SummarySheet>
       <div className="relative flex items-center justify-between gap-4 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="min-w-0 text-left">
           <p className="font-medium">{services.length ? formatTotal(price, services) : "Free"}</p>
