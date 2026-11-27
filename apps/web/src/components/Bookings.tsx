@@ -1,4 +1,4 @@
-import { catalog, formatDuration, formatServicePrice } from "@salon/booking";
+import { catalog, formatDuration, formatPrice, formatServicePrice } from "@salon/booking";
 import { hoursNote, isPrelaunch, prelaunchNote } from "../data/content";
 import clippers from "../assets/clippers.jpg";
 import { Link } from "../router";
@@ -34,8 +34,11 @@ export default function Bookings() {
                         <span>
                           {s.name}
                           <span className="ml-2 text-xs text-muted">{formatDuration(s.durationMin)}</span>
+                          {s.priceAgreed && <span className="block text-xs text-muted">Price agreed in the salon</span>}
                         </span>
-                        <span className="shrink-0 font-medium">{formatServicePrice(s)}</span>
+                        <span className="shrink-0 font-medium">
+                          {s.priceAgreed ? `${formatPrice(s.price)} deposit` : formatServicePrice(s)}
+                        </span>
                       </li>
                     ))}
                 </ul>

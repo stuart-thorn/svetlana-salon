@@ -27,8 +27,9 @@ export const timeToMinutes = (t: ClockTime): number => {
 export const formatDuration = (min: number): string => {
   const h = Math.floor(min / 60);
   const m = min % 60;
-  if (!h) return `${m} min`;
-  return m ? `${h} hr ${m} min` : `${h} hr`;
+  // A non-breaking space keeps each number with its unit ("20 min" never wraps between them).
+  if (!h) return `${m}\u00a0min`;
+  return m ? `${h}\u00a0hr ${m}\u00a0min` : `${h}\u00a0hr`;
 };
 
 /** "£65", or "£92.50" when there are pence. */
